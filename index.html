@@ -5,18 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#8B2E23">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Nona-me Sales">
-<link rel="manifest" href="manifest.webmanifest">
+<title>Nona-me Sales V5</title>
 <link rel="stylesheet" href="style.css">
-<title>Nona-me Sales V4</title>
 </head>
 <body>
 <div id="loginScreen" class="screen">
   <div class="login-card">
     <div class="brand-mark">nona-me <span>coffee</span></div>
-    <div class="login-sub">Daily Sales System · ប្រព័ន្ធកត់ត្រាការលក់</div>
-    <label>Username / ឈ្មោះអ្នកប្រើ</label><input id="username" placeholder="staff01">
-    <label>Password / ពាក្យសម្ងាត់</label><input id="password" type="password" placeholder="••••••••">
+    <div class="login-sub">Daily Sales System · ប្រព័ន្ធកត់ត្រាការលក់ប្រចាំថ្ងៃ</div>
+    <label>Username / ឈ្មោះអ្នកប្រើ</label>
+    <input id="username" autocomplete="username" placeholder="staff01">
+    <label>Password / ពាក្យសម្ងាត់</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="••••••••">
     <button id="loginBtn" class="primary-btn">LOGIN / ចូលប្រើ</button>
     <div class="demo-hint">Demo: staff01 / 1234 · admin / admin</div>
   </div>
@@ -24,94 +26,100 @@
 
 <div id="app" class="hidden">
 <header class="topbar">
-  <div class="brand">nona-me <span>coffee</span> · Sales</div>
-  <div class="top-actions">
-    <button id="langBtn" class="ghost-btn">ខ្មែរ / EN</button>
-    <button id="logoutBtn" class="ghost-btn">Logout</button>
-  </div>
+  <div class="brand">nona-me <span>coffee</span><small>SALES</small></div>
+  <div class="top-actions"><button id="langBtn" class="ghost-btn">ខ្មែរ / EN</button><button id="logoutBtn" class="ghost-btn">Logout</button></div>
 </header>
 
 <main class="wrap">
   <nav class="tabs">
     <button class="tab active" data-page="sales">🧾 Sales / ការលក់</button>
-    <button id="adminTab" class="tab hidden" data-page="admin">📊 Admin Dashboard</button>
-    <button class="tab" data-page="summary">📤 Daily Report / របាយការណ៍</button>
-    <button class="tab" data-page="history">📅 History / ប្រវត្តិ</button>
+    <button class="tab" data-page="expenses">💸 Expenses / ចំណាយ</button>
+    <button class="tab" data-page="closing">🔐 Cash Closing / បិទបញ្ជី</button>
+    <button id="adminTab" class="tab hidden" data-page="admin">👑 Admin</button>
+    <button class="tab" data-page="report">📤 Daily Report / របាយការណ៍</button>
+    <button class="tab" data-page="history">📅 History</button>
   </nav>
 
   <section id="salesPage" class="page">
-    <div class="page-head">
-      <div><h1>Today's Sales / ការលក់ថ្ងៃនេះ</h1><p id="userLine" class="muted"></p></div>
-      <div class="chips" id="categoryBar"></div>
-    </div>
+    <div class="page-head"><div><h1>Today's Sales / ការលក់ថ្ងៃនេះ</h1><p id="userLine" class="muted"></p></div><div id="categoryBar" class="chips"></div></div>
     <section class="stats">
       <div class="stat"><small>KHR Sales / លក់ជារៀល</small><strong id="kpiKhr">0៛</strong></div>
       <div class="stat"><small>USD Sales / លក់ជាដុល្លារ</small><strong id="kpiUsd">$0.00</strong></div>
+      <div class="stat"><small>Cash Sales / លុយសាច់</small><strong id="kpiCashKhr">0៛</strong></div>
       <div class="stat"><small>Total Cups / កែវសរុប</small><strong id="kpiCups">0</strong></div>
-      <div class="stat"><small>Mixed Total / តម្លៃសរុប</small><strong id="kpiMixed">$0.00</strong></div>
     </section>
-
     <div class="sales-grid">
-      <section class="panel">
-        <div class="panel-title"><h2>☕ Menu / មីនុយ</h2><input id="menuSearch" class="search" placeholder="Search / ស្វែងរក"></div>
-        <div id="productGrid" class="product-grid"></div>
-      </section>
-
+      <section class="panel"><div class="panel-title"><h2>☕ Menu / មីនុយ</h2><input id="menuSearch" class="search" placeholder="Search / ស្វែងរក"></div><div id="productGrid" class="product-grid"></div></section>
       <section class="panel cart-panel">
-        <h2>🧾 Current Sale / ការលក់បច្ចុប្បន្ន</h2>
-        <div id="cart"></div>
+        <h2>🧾 Current Sale / ការលក់បច្ចុប្បន្ន</h2><div id="cart"></div>
         <div class="currency-box">
-          <div><span>Currency / រូបិយប័ណ្ណ</span>
-            <div class="segmented"><button class="currency-btn active" data-currency="KHR">KHR ៛</button><button class="currency-btn" data-currency="USD">USD $</button></div>
-          </div>
-          <div class="rate-wrap"><label>Exchange Rate / អត្រាប្តូរ</label><input id="rateInput" type="number" value="4000" min="1" step="1"><small>៛ / $1</small></div>
+          <div><label>Currency / រូបិយប័ណ្ណ</label><div class="segmented"><button class="currency-btn active" data-currency="KHR">KHR ៛</button><button class="currency-btn" data-currency="USD">USD $</button></div></div>
+          <div><label>Rate / អត្រា</label><input id="rateInput" class="small-input" type="number" value="4000" min="1"><small>៛ / $1</small></div>
         </div>
         <div class="total-row"><span>Total</span><strong id="cartTotal">0៛</strong></div>
-        <h3>Payment / ការទូទាត់</h3>
-        <div class="payment-grid">
-          <button class="pay-btn active" data-payment="Cash">Cash / សាច់ប្រាក់</button>
-          <button class="pay-btn" data-payment="ABA">ABA / បាញ់ប្រាក់</button>
-          <button class="pay-btn" data-payment="Other">Other / ផ្សេងៗ</button>
-        </div>
+        <h3>Payment / ការទូទាត់</h3><div class="payment-grid"><button class="pay-btn active" data-payment="Cash">Cash</button><button class="pay-btn" data-payment="ABA">ABA</button><button class="pay-btn" data-payment="Other">Other</button></div>
         <button id="saveSaleBtn" class="save-btn">SAVE SALE / រក្សាទុក</button>
       </section>
     </div>
   </section>
 
-  <section id="adminPage" class="page hidden">
-    <div class="page-head"><div><h1>Admin Dashboard / ផ្ទាំងគ្រប់គ្រង</h1><p class="muted">Owner only · សម្រាប់ Admin ប៉ុណ្ណោះ</p></div></div>
-    <section class="stats">
-      <div class="stat"><small>KHR Sales / លក់ជារៀល</small><strong id="adminKhr">0៛</strong></div>
-      <div class="stat"><small>USD Sales / លក់ជាដុល្លារ</small><strong id="adminUsd">$0.00</strong></div>
-      <div class="stat"><small>Total Cups / កែវសរុប</small><strong id="adminCups">0</strong></div>
-      <div class="stat"><small>Transactions / ប្រតិបត្តិការ</small><strong id="adminTx">0</strong></div>
-    </section>
-    <div class="admin-grid">
-      <section class="panel"><h2>📈 Sales Overview / ស្ថិតិការលក់</h2><div class="admin-kpi" id="adminKpi">$0.00</div><div class="bar"><i id="adminBar"></i></div><div id="bestSeller" class="best">—</div><p class="muted small">Rate / អត្រាប្តូរ: <span id="adminRate">4,000</span>៛ = $1</p></section>
-      <section class="panel"><h2>👥 Users / ក្រុមការងារ</h2>
-        <div class="user-row"><span>Admin<br><small>Owner</small></span><b class="role admin-role">ADMIN</b></div>
-        <div class="user-row"><span>Staff 01<br><small>Sales</small></span><b class="role">STAFF</b></div>
-        <div class="user-row"><span>Staff 02<br><small>Sales</small></span><b class="role">STAFF</b></div>
+  <section id="expensesPage" class="page hidden">
+    <div class="page-head"><div><h1>Expenses / ការចំណាយ</h1><p class="muted">Enter what the money was spent on.</p></div></div>
+    <div class="two-col">
+      <section class="panel">
+        <h2>💸 Add Expense / បញ្ចូលការចំណាយ</h2>
+        <label>Spent on / ចំណាយលើអ្វី?</label><input id="expenseDesc" placeholder="e.g. ទិញទឹកកក">
+        <div class="form-grid">
+          <div><label>Amount / ចំនួន</label><input id="expenseAmount" type="number" min="0" step="0.01" placeholder="10000"></div>
+          <div><label>Currency / រូបិយប័ណ្ណ</label><select id="expenseCurrency"><option value="KHR">KHR ៛</option><option value="USD">USD $</option></select></div>
+        </div>
+        <label>Payment / វិធីបង់</label><select id="expensePayment"><option>Cash</option><option>ABA</option><option>Other</option></select>
+        <label>Note / កំណត់សម្គាល់</label><textarea id="expenseNote" rows="3" placeholder="Optional / មិនបាច់ក៏បាន"></textarea>
+        <button id="saveExpenseBtn" class="save-btn">SAVE EXPENSE / រក្សាទុក</button>
       </section>
+      <section class="panel"><h2>Today's Expenses / ចំណាយថ្ងៃនេះ</h2><div id="expenseList"></div></section>
     </div>
   </section>
 
-  <section id="summaryPage" class="page hidden">
-    <div class="page-head"><div><h1>Daily Report / របាយការណ៍ប្រចាំថ្ងៃ</h1><p id="summaryDate" class="muted"></p></div></div>
-    <section class="panel">
+  <section id="closingPage" class="page hidden">
+    <div class="page-head"><div><h1>Cash Closing / បិទបញ្ជីប្រចាំថ្ងៃ</h1><p class="muted">Compare expected cash with the money actually counted.</p></div></div>
+    <div class="closing-grid">
+      <section class="panel">
+        <h2>💵 Opening & Actual Cash / លុយដើម និងលុយរាប់ជាក់ស្តែង</h2>
+        <div class="form-grid">
+          <div><label>Opening KHR / លុយដើមជារៀល</label><input id="openKhr" type="number" min="0" value="0"></div>
+          <div><label>Opening USD / លុយដើមជាដុល្លារ</label><input id="openUsd" type="number" min="0" step="0.01" value="0"></div>
+          <div><label>Actual KHR / លុយរាប់ឃើញ</label><input id="actualKhr" type="number" min="0" value="0"></div>
+          <div><label>Actual USD / លុយរាប់ឃើញ</label><input id="actualUsd" type="number" min="0" step="0.01" value="0"></div>
+        </div>
+        <button id="saveClosingBtn" class="save-btn">SAVE CLOSING / រក្សាទុក</button>
+      </section>
+      <section class="panel"><h2>📊 Closing Result / លទ្ធផល</h2><div id="closingResult"></div></section>
+    </div>
+  </section>
+
+  <section id="adminPage" class="page hidden">
+    <div class="page-head"><div><h1>Admin Control Center / មជ្ឈមណ្ឌលគ្រប់គ្រង</h1><p class="muted">Owner can configure the shop without editing code.</p></div></div>
+    <div class="admin-menu">
+      <button class="admin-menu-btn active" data-admin="overview">📊 Overview</button>
+      <button class="admin-menu-btn" data-admin="products">☕ Products / Menu</button>
+      <button class="admin-menu-btn" data-admin="staff">👥 Staff / Users</button>
+      <button class="admin-menu-btn" data-admin="settings">⚙️ Shop Settings</button>
+      <button class="admin-menu-btn" data-admin="audit">🛡️ Audit Log</button>
+    </div>
+    <div id="adminContent"></div>
+  </section>
+
+  <section id="reportPage" class="page hidden">
+    <div class="page-head"><div><h1>Daily Report / របាយការណ៍ប្រចាំថ្ងៃ</h1><p id="reportDate" class="muted"></p></div></div>
+    <div class="panel">
       <div id="reportPreview" class="report-card"></div>
-      <div class="export-grid">
-        <button id="exportPng" class="export-btn">🖼 Export Image / រូបភាព PNG</button>
-        <button id="copyText" class="export-btn">📋 Copy Text / ចម្លងអត្ថបទ</button>
-        <button id="downloadTxt" class="export-btn">📄 Download TXT</button>
-        <button id="shareTelegram" class="export-btn accent">✈️ Share to Telegram</button>
-      </div>
-      <p class="muted small">Exported report can be saved and sent to the Nona-me Telegram group each day.</p>
-    </section>
+      <div class="export-grid"><button id="exportPng" class="export-btn">🖼 Export Image / PNG</button><button id="copyText" class="export-btn">📋 Copy Text</button><button id="downloadTxt" class="export-btn">📄 Download TXT</button><button id="shareTelegram" class="export-btn accent">✈️ Telegram</button></div>
+    </div>
   </section>
 
   <section id="historyPage" class="page hidden">
-    <div class="page-head"><div><h1>Sales History / ប្រវត្តិការលក់</h1><p class="muted">Browser prototype storage · Production will use Supabase</p></div></div>
+    <div class="page-head"><div><h1>History / ប្រវត្តិ</h1><p class="muted">Sales + expenses + closing records</p></div></div>
     <div class="panel"><div id="historyList"></div></div>
   </section>
 </main>
