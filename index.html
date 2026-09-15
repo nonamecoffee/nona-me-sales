@@ -34,7 +34,8 @@
   <nav class="tabs">
     <button class="tab active" data-page="sales">🧾 Sales / ការលក់</button>
     <button class="tab" data-page="expenses">💸 Expenses / ចំណាយ</button>
-    <button class="tab" data-page="closing">🔐 Cash Closing / បិទបញ្ជី</button>
+    <button class="tab" data-page="cash">💵 Daily Cash / លុយក្នុងតុ</button>
+    <button class="tab" data-page="deposit">🏦 Deposit / ដាក់ធនាគារ</button>
     <button id="adminTab" class="tab hidden" data-page="admin">👑 Admin</button>
     <button class="tab" data-page="report">📤 Daily Report / របាយការណ៍</button>
     <button class="tab" data-page="history">📅 History</button>
@@ -81,20 +82,44 @@
     </div>
   </section>
 
-  <section id="closingPage" class="page hidden">
-    <div class="page-head"><div><h1>Cash Closing / បិទបញ្ជីប្រចាំថ្ងៃ</h1><p class="muted">Compare expected cash with the money actually counted.</p></div></div>
-    <div class="closing-grid">
+  <section id="cashPage" class="page hidden">
+    <div class="page-head"><div><h1>Daily Cash / លុយសុទ្ធក្នុងតុ</h1><p class="muted">Running balance — it continues from one day to the next.</p></div></div>
+    <div class="stats">
+      <div class="stat"><small>Previous KHR / សល់ពីមុន</small><strong id="prevCashKhr">0៛</strong></div>
+      <div class="stat"><small>Expected KHR / គួរសល់</small><strong id="expectedCashKhr">0៛</strong></div>
+      <div class="stat"><small>Previous USD / សល់ពីមុន</small><strong id="prevCashUsd">$0.00</strong></div>
+      <div class="stat"><small>Expected USD / គួរសល់</small><strong id="expectedCashUsd">$0.00</strong></div>
+    </div>
+    <div class="two-col">
       <section class="panel">
-        <h2>💵 Opening & Actual Cash / លុយដើម និងលុយរាប់ជាក់ស្តែង</h2>
+        <h2>🔢 Count Actual Cash / រាប់លុយជាក់ស្តែង</h2>
         <div class="form-grid">
-          <div><label>Opening KHR / លុយដើមជារៀល</label><input id="openKhr" type="number" min="0" value="0"></div>
-          <div><label>Opening USD / លុយដើមជាដុល្លារ</label><input id="openUsd" type="number" min="0" step="0.01" value="0"></div>
-          <div><label>Actual KHR / លុយរាប់ឃើញ</label><input id="actualKhr" type="number" min="0" value="0"></div>
-          <div><label>Actual USD / លុយរាប់ឃើញ</label><input id="actualUsd" type="number" min="0" step="0.01" value="0"></div>
+          <div><label>Actual KHR / រាប់បានជារៀល</label><input id="actualKhr" type="number" min="0" value="0"></div>
+          <div><label>Actual USD / រាប់បានជាដុល្លារ</label><input id="actualUsd" type="number" min="0" step="0.01" value="0"></div>
         </div>
-        <button id="saveClosingBtn" class="save-btn">SAVE CLOSING / រក្សាទុក</button>
+        <button id="saveCashCountBtn" class="save-btn">SAVE CASH COUNT / រក្សាទុក</button>
       </section>
-      <section class="panel"><h2>📊 Closing Result / លទ្ធផល</h2><div id="closingResult"></div></section>
+      <section class="panel"><h2>📊 Cash Result / លទ្ធផល</h2><div id="cashResult"></div></section>
+    </div>
+  </section>
+
+  <section id="depositPage" class="page hidden">
+    <div class="page-head"><div><h1>Bank Deposit / ដាក់ចូលធនាគារ</h1><p class="muted">Record money removed from the table and deposited to the bank.</p></div></div>
+    <div class="two-col">
+      <section class="panel">
+        <h2>🏦 Add Deposit / បញ្ចូលការដាក់ធនាគារ</h2>
+        <div class="form-grid">
+          <div><label>Amount / ចំនួន</label><input id="depositAmount" type="number" min="0" step="0.01" placeholder="500000"></div>
+          <div><label>Currency / រូបិយប័ណ្ណ</label><select id="depositCurrency"><option value="KHR">KHR ៛</option><option value="USD">USD $</option></select></div>
+        </div>
+        <label>Bank / ធនាគារ</label><input id="depositBank" placeholder="ABA / ACLEDA / Other">
+        <label>Note / កំណត់សម្គាល់</label><input id="depositNote" placeholder="ដាក់ចូលធនាគារ">
+        <button id="saveDepositBtn" class="save-btn">SAVE DEPOSIT / រក្សាទុក</button>
+      </section>
+      <section class="panel">
+        <h2>Today's Deposits / ការដាក់ធនាគារថ្ងៃនេះ</h2>
+        <div id="depositList"></div>
+      </section>
     </div>
   </section>
 
