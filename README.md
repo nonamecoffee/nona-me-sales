@@ -22,3 +22,10 @@ Demo:
 - admin / admin
 
 This is still a browser-only prototype using LocalStorage. Production multi-device use requires Supabase Auth + Database + RLS.
+
+
+## V7 target
+- Responsive for iPhone, iPad, Android phone, Android tablet, Windows PC and Mac
+- Khmer + English UI/report
+- Remember Login
+- KHR and USD kept separate
