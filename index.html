@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Nona-me Sales">
-<title>Nona-me Sales V7</title>
+<title>Nona-me Coffee Sales V8</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -39,6 +39,7 @@
     <button class="tab" data-page="deposit">🏦 Deposit / ដាក់ធនាគារ</button>
     <button id="adminTab" class="tab hidden" data-page="admin">👑 Admin</button>
     <button class="tab" data-page="report">📤 Daily Report / របាយការណ៍</button>
+    <button id="periodReportTab" class="tab hidden" data-page="periodReport">📊 Weekly / Monthly</button>
     <button class="tab" data-page="history">📅 History</button>
   </nav>
 
@@ -141,6 +142,18 @@
     <div class="panel">
       <div id="reportPreview" class="report-card"></div>
       <div class="export-grid"><button id="exportPng" class="export-btn">🖼 Export Image / PNG</button><button id="copyText" class="export-btn">📋 Copy Text</button><button id="downloadTxt" class="export-btn">📄 Download TXT</button><button id="shareTelegram" class="export-btn accent">✈️ Telegram</button></div>
+    </div>
+  </section>
+
+  <section id="periodReportPage" class="page hidden">
+    <div class="page-head"><div><h1>Weekly & Monthly Reports / របាយការណ៍សប្តាហ៍ និងខែ</h1><p class="muted">Admin only · Export data for Google Sheets</p></div></div>
+    <div class="panel">
+      <div class="form-grid">
+        <div><label>Report Type / ប្រភេទរបាយការណ៍</label><select id="periodType"><option value="week">Weekly / ប្រចាំសប្តាហ៍</option><option value="month">Monthly / ប្រចាំខែ</option></select></div>
+        <div><label>Start Date / កាលបរិច្ឆេទចាប់ផ្តើម</label><input id="periodStart" type="date"></div>
+      </div>
+      <div class="export-grid period-actions"><button id="generatePeriod" class="save-btn">📊 Generate / បង្កើតរបាយការណ៍</button><button id="exportCsv" class="export-btn">📥 Google Sheets CSV</button></div>
+      <div id="periodPreview" class="report-card period-preview"></div>
     </div>
   </section>
 

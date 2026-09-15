@@ -12,3 +12,16 @@ This build implements the requested prototype improvements:
 Demo login:
 - Staff: staff01 / 1234
 - Admin: admin / admin
+
+
+## V8 enhancements
+- Owner Dashboard
+- Weekly and Monthly reports
+- CSV export formatted for Google Sheets import
+- Stock / Inventory with low-stock indicators
+- Audit Log
+- Staff performance summary
+- Responsive target: iPhone, iPad, Android phone/tablet, PC/Mac
+- Khmer + English reporting
+
+Google Sheets direct API sync requires the production Google/Supabase integration; this build provides a safe CSV export that opens in Google Sheets.
