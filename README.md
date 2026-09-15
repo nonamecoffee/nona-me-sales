@@ -1,31 +1,14 @@
-# Nona-me Sales V6
+# Nona-me Sales V7 – Responsive Khmer/English Prototype
 
-V6 changes the cash model to a running balance:
-Previous Cash + Cash Sales - Cash Expenses - Bank Deposits = Current Expected Cash
+This build implements the requested prototype improvements:
+- Responsive UI for iPhone, iPad, Android phone, Android tablet, Windows PC and Mac.
+- Khmer + English language toggle across the main UI and Daily Report.
+- Remember Login using a local session (logout clears it).
+- KHR and USD remain separate; payment method is independent (Cash / ABA / Other).
+- Running cash balance continues across days and supports bank deposits.
+- Daily Report preview, Khmer/English text export, PNG export, TXT download and Telegram share.
+- LocalStorage prototype only; Supabase should be used for production multi-device sync and secure authentication.
 
-Separate KHR and USD balances are kept throughout.
-
-Staff can:
-- Record sales
-- Record free-text expenses
-- Record bank deposits
-- Count actual cash in the table
-- Export/share daily report
-
-Admin can:
-- View sales, expenses, deposits, cash balance
-- Review activity
-- Manage future settings/products/staff
-
-Demo:
-- staff01 / 1234
-- admin / admin
-
-This is still a browser-only prototype using LocalStorage. Production multi-device use requires Supabase Auth + Database + RLS.
-
-
-## V7 target
-- Responsive for iPhone, iPad, Android phone, Android tablet, Windows PC and Mac
-- Khmer + English UI/report
-- Remember Login
-- KHR and USD kept separate
+Demo login:
+- Staff: staff01 / 1234
+- Admin: admin / admin

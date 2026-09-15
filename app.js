@@ -1,269 +1,219 @@
-const S={user:null,role:null,lang:"kh",products:[],category:"All",cart:{},currency:"KHR",payment:"Cash",
-rate:Number(localStorage.getItem("nm_rate")||4000),
-sales:JSON.parse(localStorage.getItem("nm_sales_v6")||"[]"),
-expenses:JSON.parse(localStorage.getItem("nm_expenses_v6")||"[]"),
-deposits:JSON.parse(localStorage.getItem("nm_deposits_v6")||"[]"),
-cashCounts:JSON.parse(localStorage.getItem("nm_cashcounts_v6")||"[]"),
-settings:JSON.parse(localStorage.getItem("nm_settings_v6")||'{"shopName":"nona-me coffee","phone":"","telegram":"","address":""}')};
-const $=id=>document.getElementById(id), moneyKHR=n=>Number(n||0).toLocaleString()+"៛", moneyUSD=n=>"$"+Number(n||0).toFixed(2);
-async function boot(){
-  S.products=await fetch("products.json").then(r=>r.json());
-  $("loginBtn").onclick=login;
-  $("password").addEventListener("keydown",e=>e.key==="Enter"&&login());
-  $("logoutBtn").onclick=()=>location.reload();
-  $("langBtn").onclick=()=>{S.lang=S.lang==="kh"?"en":"kh";renderAll()};
-  $("menuSearch").oninput=renderProducts;
-  $("rateInput").oninput=e=>{S.rate=Math.max(1,Number(e.target.value||4000));localStorage.setItem("nm_rate",S.rate);renderCart();refreshAll()};
-  $("saveSaleBtn").onclick=saveSale;
-  $("saveExpenseBtn").onclick=saveExpense;
-  $("saveDepositBtn").onclick=saveDeposit;
-  $("saveCashCountBtn").onclick=saveCashCount;
-  $("exportPng").onclick=exportPng;
-  $("copyText").onclick=copyText;
-  $("downloadTxt").onclick=downloadTxt;
-  $("shareTelegram").onclick=shareTelegram;
-  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showPage(b.dataset.page,b));
-  document.querySelectorAll(".currency-btn").forEach(b=>b.onclick=()=>{S.currency=b.dataset.currency;document.querySelectorAll(".currency-btn").forEach(x=>x.classList.toggle("active",x===b));renderCart()});
-  document.querySelectorAll(".pay-btn").forEach(b=>b.onclick=()=>{S.payment=b.dataset.payment;document.querySelectorAll(".pay-btn").forEach(x=>x.classList.toggle("active",x===b))});
-  $("rateInput").value=S.rate;
+const KEY = {
+  sales: "nm_sales_v7",
+  expenses: "nm_expenses_v7",
+  deposits: "nm_deposits_v7",
+  cash: "nm_cashcounts_v7",
+  settings: "nm_settings_v7",
+  rate: "nm_rate_v7",
+  session: "nm_session_v7"
+};
+
+const I18N = {
+  kh: {
+    sales: "ការលក់", expenses: "ចំណាយ", cash: "លុយក្នុងតុ", deposit: "ដាក់ធនាគារ", report: "របាយការណ៍", history: "ប្រវត្តិ", admin: "គ្រប់គ្រង",
+    todaySales: "ការលក់ថ្ងៃនេះ", menu: "មីនុយ", currentSale: "ការលក់បច្ចុប្បន្ន", selectDrink: "សូមជ្រើសភេសជ្ជៈ", item: "មុខទំនិញ", qty: "ចំនួន", total: "សរុប",
+    expense: "ការចំណាយ", spentOn: "ចំណាយលើអ្វី?", amount: "ចំនួនទឹកប្រាក់", payment: "វិធីបង់", note: "កំណត់សម្គាល់", addExpense: "បញ្ចូលការចំណាយ",
+    previous: "សល់ពីមុន", expected: "គួរសល់", actual: "រាប់បានជាក់ស្តែង", difference: "ខុសគ្នា", cashResult: "លទ្ធផលសាច់ប្រាក់",
+    bankDeposit: "ដាក់ចូលធនាគារ", bank: "ធនាគារ", depositNote: "ដាក់ចូលធនាគារ", addDeposit: "បញ្ចូលការដាក់ធនាគារ",
+    dailyReport: "របាយការណ៍ប្រចាំថ្ងៃ", staff: "បុគ្គលិក", cups: "ចំនួនកែវ", bestSeller: "មុខលក់ដាច់ជាងគេ", rate: "អត្រាប្តូរប្រាក់",
+    salesSection: "ការលក់", expensesSection: "ចំណាយ", cashMovement: "ចលនាសាច់ប្រាក់", actualCash: "សាច់ប្រាក់រាប់បាន", cashCountMissing: "មិនទាន់រាប់លុយ",
+    salesKHR: "ការលក់ KHR", salesUSD: "ការលក់ USD", expenseKHR: "ចំណាយ KHR", expenseUSD: "ចំណាយ USD", cashSales: "ការលក់សាច់ប្រាក់", cashExpenses: "ចំណាយសាច់ប្រាក់", bankDeposits: "ប្រាក់ដាក់ធនាគារ",
+    expectedTable: "សាច់ប្រាក់រំពឹងទុកក្នុងតុ", actualKHR: "សាច់ប្រាក់ជាក់ស្តែង KHR", actualUSD: "សាច់ប្រាក់ជាក់ស្តែង USD", best: "មុខលក់ដាច់",
+    noRecords: "មិនទាន់មានទិន្នន័យ", invalid: "ឈ្មោះអ្នកប្រើ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ", chooseDrink: "សូមជ្រើសភេសជ្ជៈជាមុនសិន",
+    saved: "រក្សាទុករួច", copied: "ចម្លងរួច", noCount: "មិនទាន់បញ្ចូលការរាប់លុយ", login: "ចូលប្រើ", logout: "ចេញ", remember: "ចងចាំការចូលប្រើ"
+  },
+  en: {
+    sales: "Sales", expenses: "Expenses", cash: "Daily Cash", deposit: "Bank Deposit", report: "Daily Report", history: "History", admin: "Admin",
+    todaySales: "Today's Sales", menu: "Menu", currentSale: "Current Sale", selectDrink: "Select drinks", item: "Item", qty: "Qty", total: "Total",
+    expense: "Expenses", spentOn: "Spent on", amount: "Amount", payment: "Payment", note: "Note", addExpense: "Add Expense",
+    previous: "Previous", expected: "Expected", actual: "Actual", difference: "Difference", cashResult: "Cash Result",
+    bankDeposit: "Bank Deposit", bank: "Bank", depositNote: "Note", addDeposit: "Add Deposit",
+    dailyReport: "Daily Report", staff: "Staff", cups: "Total Cups", bestSeller: "Best Seller", rate: "Exchange Rate",
+    salesSection: "SALES", expensesSection: "EXPENSES", cashMovement: "CASH MOVEMENT", actualCash: "ACTUAL CASH", cashCountMissing: "Not counted yet",
+    salesKHR: "Sales KHR", salesUSD: "Sales USD", expenseKHR: "Expenses KHR", expenseUSD: "Expenses USD", cashSales: "Cash Sales", cashExpenses: "Cash Expenses", bankDeposits: "Bank Deposit",
+    expectedTable: "Expected Cash in Table", actualKHR: "Actual Cash KHR", actualUSD: "Actual Cash USD", best: "Best Seller",
+    noRecords: "No records yet", invalid: "Invalid username or password", chooseDrink: "Please select a drink first",
+    saved: "Saved", copied: "Copied", noCount: "Cash count not submitted", login: "Login", logout: "Logout", remember: "Remember login"
+  }
+};
+
+const $ = id => document.getElementById(id);
+const t = key => I18N[S.lang][key] || key;
+const moneyKHR = n => Number(n || 0).toLocaleString("km-KH") + "៛";
+const moneyUSD = n => "$" + Number(n || 0).toFixed(2);
+const read = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
+const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const now = () => new Date();
+const today = () => now().toISOString().slice(0, 10);
+
+const migrate = (freshKey, oldKeys) => {
+  const existing = localStorage.getItem(freshKey);
+  if (existing) return;
+  for (const k of oldKeys) { const v = localStorage.getItem(k); if (v) { localStorage.setItem(freshKey, v); return; } }
+};
+migrate(KEY.sales, ["nm_sales_v6", "nm_sales_v5"]);
+migrate(KEY.expenses, ["nm_expenses_v6", "nm_expenses_v5"]);
+migrate(KEY.deposits, ["nm_deposits_v6", "nm_deposits_v5"]);
+migrate(KEY.cash, ["nm_cashcounts_v6"]);
+migrate(KEY.settings, ["nm_settings_v6", "nm_settings_v5"]);
+if (!localStorage.getItem(KEY.rate) && localStorage.getItem("nm_rate")) localStorage.setItem(KEY.rate, localStorage.getItem("nm_rate"));
+
+const S = {
+  user: null, role: null, lang: localStorage.getItem("nm_lang_v7") || "kh", products: [], category: "All", cart: {}, currency: "KHR", payment: "Cash",
+  rate: Number(localStorage.getItem(KEY.rate) || 4000),
+  sales: read(KEY.sales, []), expenses: read(KEY.expenses, []), deposits: read(KEY.deposits, []), cashCounts: read(KEY.cash, []),
+  settings: read(KEY.settings, { shopName: "nona-me coffee", phone: "", telegram: "", address: "" })
+};
+
+async function boot() {
+  S.products = await fetch("products.json").then(r => r.json());
+  bindEvents();
+  restoreSession();
+  if (!S.user) showLogin(); else showApp();
+  applyLanguage();
   renderAll();
 }
 
-function login(){const u=$("username").value.trim(),p=$("password").value;if((u==="admin"&&p==="admin")||(u.startsWith("staff")&&p==="1234")){S.user=u;S.role=u==="admin"?"admin":"staff";$("loginScreen").classList.add("hidden");$("app").classList.remove("hidden");$("userLine").textContent=`${u} · ${S.role.toUpperCase()}`;if(S.role==="admin")$("adminTab").classList.remove("hidden");refreshAll()}else alert("Invalid username or password / ឈ្មោះអ្នកប្រើ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ")}
-function showPage(name,btn){
-  document.querySelectorAll(".page").forEach(x=>x.classList.add("hidden"));
-  $(name+"Page").classList.remove("hidden");
-  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  btn.classList.add("active");
-  if(name==="expenses")renderExpenses();
-  if(name==="cash")renderCash();
-  if(name==="deposit")renderDeposits();
-  if(name==="report")renderReport();
-  if(name==="history")renderHistory();
-  if(name==="admin")renderAdmin("overview");
+function bindEvents() {
+  $("loginBtn").onclick = login;
+  $("password").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+  $("logoutBtn").onclick = logout;
+  $("langBtn").onclick = () => { S.lang = S.lang === "kh" ? "en" : "kh"; localStorage.setItem("nm_lang_v7", S.lang); applyLanguage(); renderAll(); };
+  $("menuSearch").oninput = renderProducts;
+  $("rateInput").oninput = e => { S.rate = Math.max(1, Number(e.target.value || 4000)); localStorage.setItem(KEY.rate, S.rate); renderProducts(); renderCart(); renderReport(); renderCash(); };
+  $("saveSaleBtn").onclick = saveSale;
+  $("saveExpenseBtn").onclick = saveExpense;
+  $("saveDepositBtn").onclick = saveDeposit;
+  $("saveCashCountBtn").onclick = saveCashCount;
+  $("exportPng").onclick = exportPng;
+  $("copyText").onclick = copyText;
+  $("downloadTxt").onclick = downloadTxt;
+  $("shareTelegram").onclick = shareTelegram;
+  document.querySelectorAll(".tab").forEach(b => b.onclick = () => showPage(b.dataset.page, b));
+  document.querySelectorAll(".currency-btn").forEach(b => b.onclick = () => { S.currency = b.dataset.currency; document.querySelectorAll(".currency-btn").forEach(x => x.classList.toggle("active", x === b)); renderCart(); });
+  document.querySelectorAll(".pay-btn").forEach(b => b.onclick = () => { S.payment = b.dataset.payment; document.querySelectorAll(".pay-btn").forEach(x => x.classList.toggle("active", x === b)); });
 }
 
-function renderAll(){
-  renderCategories();renderProducts();renderCart();renderExpenses();renderCash();renderDeposits();renderReport();renderHistory();
-  if(S.role==="admin")renderAdmin("overview");
-  refreshAll();
+function showLogin() { $("loginScreen").classList.remove("hidden"); $("app").classList.add("hidden"); }
+function showApp() { $("loginScreen").classList.add("hidden"); $("app").classList.remove("hidden"); }
+function restoreSession() {
+  const s = read(KEY.session, null);
+  if (s && s.user && (Date.now() - Number(s.createdAt || 0) < 1000 * 60 * 60 * 24 * 30)) { S.user = s.user; S.role = s.role; }
+}
+function login() {
+  const u = $("username").value.trim(), p = $("password").value;
+  const valid = (u === "admin" && p === "admin") || (u.startsWith("staff") && p === "1234");
+  if (!valid) return alert(t("invalid"));
+  S.user = u; S.role = u === "admin" ? "admin" : "staff";
+  if ($("rememberLogin")?.checked !== false) write(KEY.session, { user: S.user, role: S.role, createdAt: Date.now() });
+  showApp(); updateUserLine(); if (S.role === "admin") $("adminTab").classList.remove("hidden"); else $("adminTab").classList.add("hidden"); renderAll();
+}
+function logout() { localStorage.removeItem(KEY.session); S.user = null; S.role = null; showLogin(); }
+function updateUserLine() { $("userLine").textContent = `${S.user || "—"} · ${(S.role || "").toUpperCase()}`; }
+
+function applyLanguage() {
+  document.documentElement.lang = S.lang === "kh" ? "km" : "en";
+  if ($("rememberLogin")) $("rememberLogin").nextElementSibling.textContent = t("remember");
+  updateUserLine();
+  const map = {
+    "adminTab": t("admin"),
+    "langBtn": "ខ្មែរ / EN", "logoutBtn": t("logout"), "loginBtn": `${t("login")} / ${S.lang === "kh" ? "ចូលប្រើ" : "Login"}`,
+    "saveSaleBtn": `SAVE SALE / ${S.lang === "kh" ? "រក្សាទុក" : "Save Sale"}`,
+    "saveExpenseBtn": `SAVE EXPENSE / ${S.lang === "kh" ? "រក្សាទុក" : "Save Expense"}`,
+    "saveDepositBtn": `SAVE DEPOSIT / ${S.lang === "kh" ? "រក្សាទុក" : "Save Deposit"}`,
+    "saveCashCountBtn": `SAVE CASH COUNT / ${S.lang === "kh" ? "រក្សាទុក" : "Save Cash Count"}`,
+    "exportPng": `🖼 ${S.lang === "kh" ? "រក្សាទុកជារូបភាព / PNG" : "Export Image / PNG"}`,
+    "copyText": `📋 ${S.lang === "kh" ? "ចម្លងអត្ថបទ" : "Copy Text"}`,
+    "downloadTxt": `📄 ${S.lang === "kh" ? "ទាញយក TXT" : "Download TXT"}`,
+    "shareTelegram": `✈️ ${S.lang === "kh" ? "Telegram" : "Telegram"}`
+  };
+  Object.entries(map).forEach(([id, text]) => { if ($(id)) $(id).textContent = text; });
+  const placeholders = { menuSearch: S.lang === "kh" ? "ស្វែងរកមីនុយ..." : "Search menu...", expenseDesc: S.lang === "kh" ? "ឧ. ទិញទឹកកក" : "e.g. ice", expenseNote: S.lang === "kh" ? "មិនបាច់ក៏បាន" : "Optional", depositBank: "ABA / ACLEDA / Other", depositNote: "ដាក់ចូលធនាគារ" };
+  Object.entries(placeholders).forEach(([id, text]) => { if ($(id)) $(id).placeholder = text; });
 }
 
-function renderCategories(){const cats=["All","Coffee","Matcha","Cacao","Tea","Soda"],kh={All:"ទាំងអស់",Coffee:"កាហ្វេ",Matcha:"Matcha",Cacao:"កាកាវ",Tea:"តែ",Soda:"សូដា"};$("categoryBar").innerHTML=cats.map(c=>`<button class="chip ${S.category===c?"active":""}" onclick="setCategory('${c}')">${S.lang==="kh"?kh[c]:c}</button>`).join("")}
-function setCategory(c){S.category=c;renderCategories();renderProducts()}
-function renderProducts(){const q=($("menuSearch").value||"").toLowerCase();const list=S.products.filter(p=>(S.category==="All"||p[3]===S.category)&&(`${p[0]} ${p[1]}`).toLowerCase().includes(q));$("productGrid").innerHTML=list.map(p=>{const i=S.products.indexOf(p);return `<button class="product" onclick="addToCart(${i})"><div>${p[0]}</div><span class="kh">${p[1]}</span><span class="price">${moneyKHR(p[2])} / ${moneyUSD(p[2]/S.rate)}</span></button>`}).join("")}
-function addToCart(i){const p=S.products[i];S.cart[i]=S.cart[i]||{name:p[0],kh:p[1],priceKHR:p[2],qty:0};S.cart[i].qty++;renderCart()}
-function minus(i){if(!S.cart[i])return;S.cart[i].qty--;if(S.cart[i].qty<=0)delete S.cart[i];renderCart()}
-function cartKhr(){return Object.values(S.cart).reduce((s,v)=>s+v.priceKHR*v.qty,0)}
-function renderCart(){const items=Object.entries(S.cart),total=cartKhr();if(!items.length){$("cart").innerHTML='<div class="cart-empty">Select drinks / ជ្រើសភេសជ្ជៈ</div>';$("cartTotal").textContent="0៛";return}let rows="";items.forEach(([i,v])=>rows+=`<tr><td>${S.lang==="kh"?v.kh:v.name}</td><td><button class="qty-btn" onclick="minus(${i})">−</button> ${v.qty} <button class="qty-btn" onclick="addToCart(${i})">+</button></td><td>${S.currency==="KHR"?moneyKHR(v.priceKHR*v.qty):moneyUSD((v.priceKHR*v.qty)/S.rate)}</td></tr>`);$("cart").innerHTML=`<table class="cart-table"><tr><th>Item</th><th>Qty</th><th>Total</th></tr>${rows}</table>`;$("cartTotal").textContent=S.currency==="KHR"?moneyKHR(total):moneyUSD(total/S.rate)}
-function saveSale(){const items=Object.values(S.cart);if(!items.length)return alert("Select a drink first / សូមជ្រើសភេសជ្ជៈ");const totalKHR=cartKhr(),cups=items.reduce((s,v)=>s+v.qty,0),amount=S.currency==="KHR"?totalKHR:totalKHR/S.rate;S.sales.push({id:String(Date.now()),date:new Date().toISOString().slice(0,10),time:new Date().toLocaleTimeString(),user:S.user,payment:S.payment,currency:S.currency,amount,totalKHR,cups,rate:S.rate,items:items.map(v=>({name:v.name,kh:v.kh,priceKHR:v.priceKHR,qty:v.qty}))});localStorage.setItem("nm_sales_v5",JSON.stringify(S.sales));S.cart={};renderCart();refreshAll();renderReport()}
-function saveExpense(){const desc=$("expenseDesc").value.trim(),amount=Number($("expenseAmount").value||0);if(!desc||amount<=0)return alert("Enter description and amount / សូមបញ្ចូលអ្វីដែលចំណាយ និងចំនួនទឹកប្រាក់");S.expenses.push({id:String(Date.now()),date:new Date().toISOString().slice(0,10),time:new Date().toLocaleTimeString(),user:S.user,desc,amount,currency:$("expenseCurrency").value,payment:$("expensePayment").value,note:$("expenseNote").value.trim(),rate:S.rate});localStorage.setItem("nm_expenses_v5",JSON.stringify(S.expenses));$("expenseDesc").value="";$("expenseAmount").value="";$("expenseNote").value="";renderExpenses();renderReport();refreshAll()}
-function today(){return new Date().toISOString().slice(0,10)}
-function tsales(){return S.sales.filter(s=>s.date===today())}
-function texpenses(){return S.expenses.filter(s=>s.date===today())}
-function tdeposits(){return S.deposits.filter(s=>s.date===today())}
-function lastCashBalance(currency){
-  // Latest saved cash count remaining after the last deposit.
-  const rows=S.cashCounts.filter(x=>x.currencySummary);
-  const latest=rows.slice().sort((a,b)=>a.createdAt-b.createdAt).pop();
-  return latest?Number(currency==="KHR"?latest.actualKhr:latest.actualUsd):0;
+function showPage(name, btn) {
+  document.querySelectorAll(".page").forEach(x => x.classList.add("hidden"));
+  $(name + "Page").classList.remove("hidden");
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active")); btn.classList.add("active");
+  if (name === "expenses") renderExpenses(); if (name === "cash") renderCash(); if (name === "deposit") renderDeposits(); if (name === "report") renderReport(); if (name === "history") renderHistory(); if (name === "admin") renderAdmin("overview");
 }
-function allPreviousCash(){
-  // Prefer latest closing count; otherwise calculate from all historical cash movements.
-  const latest=S.cashCounts.slice().sort((a,b)=>a.createdAt-b.createdAt).pop();
-  if(latest)return {khr:Number(latest.actualKhr||0),usd:Number(latest.actualUsd||0)};
-  const o={khr:0,usd:0};
-  S.sales.forEach(s=>{if(s.payment==="Cash"){if(s.currency==="KHR")o.khr+=s.amount;else o.usd+=s.amount}});
-  S.expenses.forEach(e=>{if(e.payment==="Cash"){if(e.currency==="KHR")o.khr-=e.amount;else o.usd-=e.amount}});
-  S.deposits.forEach(d=>{if(d.currency==="KHR")o.khr-=d.amount;else o.usd-=d.amount});
+function renderAll() { renderCategories(); renderProducts(); renderCart(); renderExpenses(); renderCash(); renderDeposits(); renderReport(); renderHistory(); if (S.role === "admin") renderAdmin("overview"); refreshAll(); updateUserLine(); }
+
+function renderCategories() { const cats = ["All", "Coffee", "Matcha", "Cacao", "Tea", "Soda"], kh = { All: "ទាំងអស់", Coffee: "កាហ្វេ", Matcha: "Matcha", Cacao: "កាកាវ", Tea: "តែ", Soda: "សូដា" }; $("categoryBar").innerHTML = cats.map(c => `<button class="chip ${S.category === c ? "active" : ""}" onclick="setCategory('${c}')">${S.lang === "kh" ? kh[c] : c}</button>`).join(""); }
+function setCategory(c) { S.category = c; renderCategories(); renderProducts(); }
+function renderProducts() { const q = ($("menuSearch").value || "").toLowerCase(); const list = S.products.filter(p => (S.category === "All" || p[3] === S.category) && (`${p[0]} ${p[1]}`).toLowerCase().includes(q)); $("productGrid").innerHTML = list.map(p => { const i = S.products.indexOf(p); return `<button class="product" onclick="addToCart(${i})"><div>${p[0]}</div><span class="kh">${p[1]}</span><span class="price">${moneyKHR(p[2])} / ${moneyUSD(p[2] / S.rate)}</span></button>`; }).join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
+function addToCart(i) { const p = S.products[i]; S.cart[i] = S.cart[i] || { name: p[0], kh: p[1], priceKHR: p[2], qty: 0 }; S.cart[i].qty++; renderCart(); }
+function minus(i) { if (!S.cart[i]) return; S.cart[i].qty--; if (S.cart[i].qty <= 0) delete S.cart[i]; renderCart(); }
+function cartKhr() { return Object.values(S.cart).reduce((s, v) => s + v.priceKHR * v.qty, 0); }
+function renderCart() {
+  const items = Object.entries(S.cart), total = cartKhr();
+  if (!items.length) { $("cart").innerHTML = `<div class="cart-empty">☕ ${t("selectDrink")}</div>`; $("cartTotal").textContent = "0៛"; return; }
+  let rows = "";
+  items.forEach(([i, v]) => rows += `<tr><td>${S.lang === "kh" ? v.kh : v.name}</td><td><button class="qty-btn" onclick="minus(${i})">−</button> ${v.qty} <button class="qty-btn" onclick="addToCart(${i})">+</button></td><td>${S.currency === "KHR" ? moneyKHR(v.priceKHR * v.qty) : moneyUSD(v.priceKHR * v.qty / S.rate)}</td></tr>`);
+  $("cart").innerHTML = `<table class="cart-table"><tr><th>${t("item")}</th><th>${t("qty")}</th><th>${t("total")}</th></tr>${rows}</table>`;
+  $("cartTotal").textContent = S.currency === "KHR" ? moneyKHR(total) : moneyUSD(total / S.rate);
+}
+function saveSale() {
+  const items = Object.values(S.cart); if (!items.length) return alert(t("chooseDrink"));
+  const d = now(), totalKHR = cartKhr(), cups = items.reduce((s, v) => s + v.qty, 0), amount = S.currency === "KHR" ? totalKHR : totalKHR / S.rate;
+  S.sales.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, payment: S.payment, currency: S.currency, amount, totalKHR, cups, rate: S.rate, createdAt: Date.now(), items: items.map(v => ({ name: v.name, kh: v.kh, priceKHR: v.priceKHR, qty: v.qty })) });
+  write(KEY.sales, S.sales); S.cart = {}; renderCart(); refreshAll(); renderReport(); alert(t("saved"));
+}
+function saveExpense() { const desc = $("expenseDesc").value.trim(), amount = Number($("expenseAmount").value || 0); if (!desc || amount <= 0) return alert(`${t("spentOn")} + ${t("amount")}`); const d = now(); S.expenses.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, desc, amount, currency: $("expenseCurrency").value, payment: $("expensePayment").value, note: $("expenseNote").value.trim(), rate: S.rate, createdAt: Date.now() }); write(KEY.expenses, S.expenses); $("expenseDesc").value = ""; $("expenseAmount").value = ""; $("expenseNote").value = ""; renderAll(); alert(t("saved")); }
+function saveDeposit() { const amount = Number($("depositAmount").value || 0); if (amount <= 0) return alert(t("amount")); const d = now(); S.deposits.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, amount, currency: $("depositCurrency").value, bank: $("depositBank").value.trim(), note: $("depositNote").value.trim(), rate: S.rate, createdAt: Date.now() }); write(KEY.deposits, S.deposits); $("depositAmount").value = ""; $("depositBank").value = ""; $("depositNote").value = ""; renderAll(); alert(t("saved")); }
+function saveCashCount() { const d = now(), expected = expectedCurrentCash(); S.cashCounts.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, actualKhr: Number($("actualKhr").value || 0), actualUsd: Number($("actualUsd").value || 0), expectedKhr: expected.khr, expectedUsd: expected.usd, currencySummary: true, createdAt: Date.now() }); write(KEY.cash, S.cashCounts); renderAll(); alert(t("saved")); }
+
+function summary() {
+  const o = { salesKHR: 0, salesUSD: 0, cashKHR: 0, cashUSD: 0, abaKHR: 0, abaUSD: 0, otherKHR: 0, otherUSD: 0, expenseKHR: 0, expenseUSD: 0, cashExpKHR: 0, cashExpUSD: 0, depositKHR: 0, depositUSD: 0, cups: 0, tx: 0, items: {} };
+  S.sales.filter(s => s.date === today()).forEach(s => { o.tx++; o.cups += Number(s.cups || 0); if (s.currency === "KHR") { o.salesKHR += Number(s.amount); if (s.payment === "Cash") o.cashKHR += Number(s.amount); else if (s.payment === "ABA") o.abaKHR += Number(s.amount); else o.otherKHR += Number(s.amount); } else { o.salesUSD += Number(s.amount); if (s.payment === "Cash") o.cashUSD += Number(s.amount); else if (s.payment === "ABA") o.abaUSD += Number(s.amount); else o.otherUSD += Number(s.amount); } (s.items || []).forEach(i => o.items[i.kh || i.name] = (o.items[i.kh || i.name] || 0) + Number(i.qty || 0)); });
+  S.expenses.filter(e => e.date === today()).forEach(e => { if (e.currency === "KHR") { o.expenseKHR += Number(e.amount); if (e.payment === "Cash") o.cashExpKHR += Number(e.amount); } else { o.expenseUSD += Number(e.amount); if (e.payment === "Cash") o.cashExpUSD += Number(e.amount); } });
+  S.deposits.filter(d => d.date === today()).forEach(d => { if (d.currency === "KHR") o.depositKHR += Number(d.amount); else o.depositUSD += Number(d.amount); });
   return o;
 }
-function summary(){
-  const o={salesKHR:0,salesUSD:0,cashKHR:0,cashUSD:0,abaKHR:0,abaUSD:0,otherKHR:0,otherUSD:0,
-    expenseKHR:0,expenseUSD:0,cashExpKHR:0,cashExpUSD:0,depositKHR:0,depositUSD:0,cups:0,tx:0,items:{}};
-  tsales().forEach(s=>{
-    o.tx++;o.cups+=s.cups;
-    if(s.currency==="KHR"){o.salesKHR+=s.amount;if(s.payment==="Cash")o.cashKHR+=s.amount;else if(s.payment==="ABA")o.abaKHR+=s.amount;else o.otherKHR+=s.amount}
-    else{o.salesUSD+=s.amount;if(s.payment==="Cash")o.cashUSD+=s.amount;else if(s.payment==="ABA")o.abaUSD+=s.amount;else o.otherUSD+=s.amount}
-    s.items.forEach(i=>o.items[i.name]=(o.items[i.name]||0)+i.qty)
-  });
-  texpenses().forEach(e=>{
-    if(e.currency==="KHR"){o.expenseKHR+=e.amount;if(e.payment==="Cash")o.cashExpKHR+=e.amount}
-    else{o.expenseUSD+=e.amount;if(e.payment==="Cash")o.cashExpUSD+=e.amount}
-  });
-  tdeposits().forEach(d=>{if(d.currency==="KHR")o.depositKHR+=d.amount;else o.depositUSD+=d.amount});
-  return o;
+function previousBalance() {
+  // Running cash: all cash movements strictly before today. KHR and USD remain separate.
+  let khr = 0, usd = 0;
+  S.sales.filter(s => s.date < today() && s.payment === "Cash").forEach(s => s.currency === "KHR" ? khr += Number(s.amount) : usd += Number(s.amount));
+  S.expenses.filter(e => e.date < today() && e.payment === "Cash").forEach(e => e.currency === "KHR" ? khr -= Number(e.amount) : usd -= Number(e.amount));
+  S.deposits.filter(d => d.date < today()).forEach(d => d.currency === "KHR" ? khr -= Number(d.amount) : usd -= Number(d.amount));
+  // Latest prior verified cash count is a better starting point than rebuilding history only when it exists.
+  const priorCounts = S.cashCounts.filter(c => c.date < today()).sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+  if (priorCounts.length) { const c = priorCounts[priorCounts.length - 1]; return { khr: Number(c.actualKhr || 0), usd: Number(c.actualUsd || 0) }; }
+  return { khr, usd };
 }
-function previousBalance(){
-  // Previous balance immediately before today, excluding today's cash movements.
-  const beforeDate=S.sales.filter(s=>s.date<today()&&s.payment==="Cash").reduce((a,s)=>a+(s.currency==="KHR"?s.amount/S.rate:s.amount),0);
-  const exp=S.expenses.filter(e=>e.date<today()&&e.payment==="Cash").reduce((a,e)=>a+(e.currency==="KHR"?-e.amount/S.rate:-e.amount),0);
-  const dep=S.deposits.filter(d=>d.date<today()).reduce((a,d)=>a+(d.currency==="KHR"?-d.amount/S.rate:-d.amount),0);
-  // Return separate currency figures from raw records.
-  let k=0,u=0;
-  S.sales.filter(s=>s.date<today()&&s.payment==="Cash").forEach(s=>s.currency==="KHR"?k+=s.amount:u+=s.amount);
-  S.expenses.filter(e=>e.date<today()&&e.payment==="Cash").forEach(e=>e.currency==="KHR"?k-=e.amount:u-=e.amount);
-  S.deposits.filter(d=>d.date<today()).forEach(d=>d.currency==="KHR"?k-=d.amount:u-=d.amount);
-  return {khr:k,usd:u};
-}
-function expectedCurrentCash(){
-  const prev=previousBalance(),o=summary();
-  return {khr:prev.khr+o.cashKHR-o.cashExpKHR-o.depositKHR,usd:prev.usd+o.cashUSD-o.cashExpUSD-o.depositUSD};
-}
-function refreshAll(){const o=summary();$("kpiKhr").textContent=moneyKHR(o.salesKHR);$("kpiUsd").textContent=moneyUSD(o.salesUSD);$("kpiCashKhr").textContent=moneyKHR(o.cashKHR);$("kpiCups").textContent=o.cups;if(S.role==="admin")renderAdmin("overview")}
-function saveDeposit(){
-  const amount=Number($("depositAmount").value||0),currency=$("depositCurrency").value;
-  if(amount<=0)return alert("Enter amount / សូមបញ្ចូលចំនួន");
-  S.deposits.push({id:String(Date.now()),date:today(),time:new Date().toLocaleTimeString(),createdAt:Date.now(),user:S.user,amount,currency,bank:$("depositBank").value.trim(),note:$("depositNote").value.trim()});
-  localStorage.setItem("nm_deposits_v6",JSON.stringify(S.deposits));
-  $("depositAmount").value="";$("depositBank").value="";$("depositNote").value="";
-  renderDeposits();renderCash();renderReport();renderHistory();refreshAll();
-}
-function renderDeposits(){
-  const list=tdeposits().slice().reverse();
-  $("depositList").innerHTML=list.length?list.map(d=>`<div class="list-row"><span><b>${d.currency==="KHR"?moneyKHR(d.amount):moneyUSD(d.amount)}</b> → ${d.bank||"Bank"}<br><small>${d.time} · ${d.user}${d.note?" · "+d.note:""}</small></span><b>🏦</b></div>`).join(""):'<div class="cart-empty">No deposits today / មិនទាន់មានការដាក់ធនាគារ</div>';
-}
-function saveCashCount(){
-  const aK=Number($("actualKhr").value||0),aU=Number($("actualUsd").value||0),e=expectedCurrentCash();
-  S.cashCounts.push({id:String(Date.now()),date:today(),time:new Date().toLocaleTimeString(),createdAt:Date.now(),user:S.user,actualKhr:aK,actualUsd:aU,expectedKhr:e.khr,expectedUsd:e.usd,currencySummary:true});
-  localStorage.setItem("nm_cashcounts_v6",JSON.stringify(S.cashCounts));
-  renderCash();renderReport();renderHistory();refreshAll();
-}
-function renderCash(){
-  const prev=previousBalance(),e=expectedCurrentCash();
-  $("prevCashKhr").textContent=moneyKHR(prev.khr);$("prevCashUsd").textContent=moneyUSD(prev.usd);
-  $("expectedCashKhr").textContent=moneyKHR(e.khr);$("expectedCashUsd").textContent=moneyUSD(e.usd);
-  const latest=S.cashCounts.filter(x=>x.date===today()).slice(-1)[0];
-  const aK=latest?latest.actualKhr:0,aU=latest?latest.actualUsd:0,dk=aK-e.khr,du=aU-e.usd;
-  const status=(d,curr)=>d===0?'<span class="matched">MATCHED</span>':d<0?`<span class="short">SHORT ${curr==="KHR"?moneyKHR(Math.abs(d)):moneyUSD(Math.abs(d))}</span>`:`<span class="over">OVER ${curr==="KHR"?moneyKHR(d):moneyUSD(d)}</span>`;
-  $("cashResult").innerHTML=`<div class="result-box"><div class="result-line"><span>Expected KHR</span><b>${moneyKHR(e.khr)}</b></div><div class="result-line"><span>Actual KHR</span><b>${moneyKHR(aK)}</b></div><div class="result-line"><span>Difference KHR</span><b>${status(dk,"KHR")}</b></div><div class="result-line"><span>Expected USD</span><b>${moneyUSD(e.usd)}</b></div><div class="result-line"><span>Actual USD</span><b>${moneyUSD(aU)}</b></div><div class="result-line"><span>Difference USD</span><b>${status(du,"USD")}</b></div></div>`;
-}
+function expectedCurrentCash() { const p = previousBalance(), o = summary(); return { khr: p.khr + o.cashKHR - o.cashExpKHR - o.depositKHR, usd: p.usd + o.cashUSD - o.cashExpUSD - o.depositUSD }; }
+function latestCash() { return S.cashCounts.filter(c => c.date === today()).sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0)).slice(-1)[0]; }
 
-function renderAdmin(section){
-  if(S.role!=="admin")return;
-  const o=summary(),e=expectedCurrentCash(),best=Object.entries(o.items).sort((a,b)=>b[1]-a[1])[0];
-  let content="";
-  if(section==="overview"){
-    content=`<div class="stats">
-      <div class="stat"><small>Sales KHR</small><strong>${moneyKHR(o.salesKHR)}</strong></div>
-      <div class="stat"><small>Sales USD</small><strong>${moneyUSD(o.salesUSD)}</strong></div>
-      <div class="stat"><small>Expenses KHR</small><strong>${moneyKHR(o.expenseKHR)}</strong></div>
-      <div class="stat"><small>Deposits KHR</small><strong>${moneyKHR(o.depositKHR)}</strong></div>
-    </div>
-    <div class="admin-grid"><section class="panel"><h2>📊 Running Cash / លុយក្នុងតុ</h2>
-      <div class="setting-row"><span>Expected KHR</span><b>${moneyKHR(e.khr)}</b></div>
-      <div class="setting-row"><span>Expected USD</span><b>${moneyUSD(e.usd)}</b></div>
-      <div class="setting-row"><span>Today's Deposit KHR</span><b>${moneyKHR(o.depositKHR)}</b></div>
-      <div class="setting-row"><span>Today's Deposit USD</span><b>${moneyUSD(o.depositUSD)}</b></div>
-      <p>${best?`Best Seller: <b>${best[0]}</b> · ${best[1]} cups`:"No sales yet / មិនទាន់មានការលក់"}</p>
-    </section><section class="panel"><h2>👥 Users / ក្រុមការងារ</h2>
-      <div class="user-row"><span>Admin<br><small>Owner</small></span><b class="role admin-role">ADMIN</b></div>
-      <div class="user-row"><span>Staff 01<br><small>Sales + Expenses + Deposit + Cash Count</small></span><b class="role">STAFF</b></div>
-      <div class="user-row"><span>Staff 02<br><small>Sales + Expenses + Deposit + Cash Count</small></span><b class="role">STAFF</b></div>
-    </section></div>`;
-  } else if(section==="products"){
-    content=`<div class="panel"><h2>☕ Products / Menu</h2>${S.products.map(p=>`<div class="list-row"><span>${p[0]}<br><small>${p[1]} · ${p[3]}</small></span><b>${moneyKHR(p[2])}</b></div>`).join("")}<p class="muted small">Production: Admin can Add / Edit / Disable products without editing code.</p></div>`;
-  } else if(section==="staff"){
-    content=`<div class="panel"><h2>👥 Staff / Users</h2><div class="user-row"><span>Admin<br><small>Owner</small></span><b class="role admin-role">ADMIN</b></div><div class="user-row"><span>Staff 01</span><b class="role">STAFF</b></div><div class="user-row"><span>Staff 02</span><b class="role">STAFF</b></div><p class="muted small">Production: Add user, disable, reset password, roles.</p></div>`;
-  } else if(section==="settings"){
-    content=`<div class="panel"><h2>⚙️ Shop Settings / ព័ត៌មានហាង</h2><div class="form-grid"><div><label>Shop Name</label><input id="setShop" value="${S.settings.shopName||""}"></div><div><label>Phone</label><input id="setPhone" value="${S.settings.phone||""}"></div><div><label>Telegram</label><input id="setTelegram" value="${S.settings.telegram||""}"></div><div><label>Address</label><input id="setAddress" value="${S.settings.address||""}"></div></div><label>Default Exchange Rate</label><input id="setRate" type="number" value="${S.rate}"><button class="save-btn" onclick="saveSettings()">SAVE SETTINGS</button></div>`;
-  } else if(section==="audit"){
-    const logs=[...S.sales.map(x=>({t:x.time,a:"SALE",u:x.user,d:x.currency==="KHR"?moneyKHR(x.amount):moneyUSD(x.amount)})),...S.expenses.map(x=>({t:x.time,a:"EXPENSE",u:x.user,d:x.desc})),...S.deposits.map(x=>({t:x.time,a:"DEPOSIT",u:x.user,d:x.currency==="KHR"?moneyKHR(x.amount):moneyUSD(x.amount)})),...S.cashCounts.map(x=>({t:x.time,a:"CASH COUNT",u:x.user,d:moneyKHR(x.actualKhr)+" / "+moneyUSD(x.actualUsd)}))].slice(-30).reverse();
-    content=`<div class="panel"><h2>🛡️ Activity / Audit Log</h2>${logs.map(l=>`<div class="log-row"><span>${l.t} · ${l.a}<br><small>${l.u}</small></span><b>${l.d}</b></div>`).join("")||'<div class="cart-empty">No activity yet</div>'}</div>`;
-  }
-  $("adminContent").innerHTML=`<div class="admin-menu">${["overview","products","staff","settings","audit"].map(x=>`<button class="admin-menu-btn ${x===section?"active":""}" onclick="renderAdmin('${x}')">${x[0].toUpperCase()+x.slice(1)}</button>`).join("")}</div>${content}`;
+function renderExpenses() { const rows = S.expenses.filter(x => x.date === today()).slice().reverse(); $("expenseList").innerHTML = rows.map(x => `<div class="list-row"><span><b>${x.desc}</b><br><small>${x.user} · ${x.time} · ${x.payment}${x.note ? " · " + x.note : ""}</small></span><b>${x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount)}</b></div>`).join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
+function renderDeposits() { const rows = S.deposits.filter(x => x.date === today()).slice().reverse(); $("depositList").innerHTML = rows.map(x => `<div class="list-row"><span><b>${x.bank || "Bank"}</b><br><small>${x.user} · ${x.time}${x.note ? " · " + x.note : ""}</small></span><b>${x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount)}</b></div>`).join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
+function renderCash() { const p = previousBalance(), e = expectedCurrentCash(), c = latestCash(); $("prevCashKhr").textContent = moneyKHR(p.khr); $("expectedCashKhr").textContent = moneyKHR(e.khr); $("prevCashUsd").textContent = moneyUSD(p.usd); $("expectedCashUsd").textContent = moneyUSD(e.usd); $("cashResult").innerHTML = `<div class="result-box"><div class="result-line"><span>${t("actualKHR")}</span><b>${c ? moneyKHR(c.actualKhr) : t("cashCountMissing")}</b></div><div class="result-line"><span>${t("actualUSD")}</span><b>${c ? moneyUSD(c.actualUsd) : t("cashCountMissing")}</b></div><div class="result-line"><span>${t("difference")} KHR</span><b class="${c && c.actualKhr - e.khr === 0 ? "matched" : "short"}">${c ? moneyKHR(c.actualKhr - e.khr) : "—"}</b></div><div class="result-line"><span>${t("difference")} USD</span><b class="${c && c.actualUsd - e.usd === 0 ? "matched" : "short"}">${c ? moneyUSD(c.actualUsd - e.usd) : "—"}</b></div></div>`; }
+function refreshAll() { const o = summary(); $("kpiKhr").textContent = moneyKHR(o.salesKHR); $("kpiUsd").textContent = moneyUSD(o.salesUSD); $("kpiCashKhr").textContent = moneyKHR(o.cashKHR); $("kpiCups").textContent = o.cups; }
+
+function reportData() { const o = summary(), p = previousBalance(), e = expectedCurrentCash(), c = latestCash(), best = Object.entries(o.items).sort((a, b) => b[1] - a[1])[0]; return { o, p, e, c, best }; }
+function reportText() { const { o, p, e, c, best } = reportData(); return `${S.settings.shopName || "nona-me coffee"}\n${t("dailyReport")} / DAILY REPORT\n${S.lang === "kh" ? "កាលបរិច្ឆេទ" : "Date"}: ${new Date().toLocaleDateString("en-GB")}\n${t("staff")}: ${S.user || "—"}\n\n${t("salesSection")}\nKHR: ${moneyKHR(o.salesKHR)}\nUSD: ${moneyUSD(o.salesUSD)}\n${t("cups")}: ${o.cups}\n\n${t("expensesSection")}\nKHR: ${moneyKHR(o.expenseKHR)}\nUSD: ${moneyUSD(o.expenseUSD)}\n\n${t("cashMovement")}\n${t("previous")} KHR: ${moneyKHR(p.khr)}\n${t("cashSales")} KHR: ${moneyKHR(o.cashKHR)}\n${t("cashExpenses")} KHR: ${moneyKHR(o.cashExpKHR)}\n${t("bankDeposits")} KHR: ${moneyKHR(o.depositKHR)}\n${t("expectedTable")} KHR: ${moneyKHR(e.khr)}\n\n${t("previous")} USD: ${moneyUSD(p.usd)}\n${t("cashSales")} USD: ${moneyUSD(o.cashUSD)}\n${t("cashExpenses")} USD: ${moneyUSD(o.cashExpUSD)}\n${t("bankDeposits")} USD: ${moneyUSD(o.depositUSD)}\n${t("expectedTable")} USD: ${moneyUSD(e.usd)}\n\n${t("actualCash")}\nKHR: ${c ? moneyKHR(c.actualKhr) : t("noCount")}\nUSD: ${c ? moneyUSD(c.actualUsd) : t("noCount")}\n${t("difference")} KHR: ${c ? moneyKHR(c.actualKhr - e.khr) : "—"}\n${t("difference")} USD: ${c ? moneyUSD(c.actualUsd - e.usd) : "—"}\n\n${t("bestSeller")}: ${best ? `${best[0]} (${best[1]} ${t("cups")})` : "—"}\n${t("rate")}: ${Number(S.rate).toLocaleString()}៛ = $1`; }
+function renderReport() { const { o, p, e, c, best } = reportData(); $("reportDate").textContent = `${new Date().toLocaleDateString("en-GB")} · ${S.user || "—"}`; $("reportPreview").innerHTML = `<div class="report-brand">${S.settings.shopName || "nona-me coffee"}</div><div class="report-title">${t("dailyReport")} / DAILY REPORT</div><p class="muted">${new Date().toLocaleDateString("en-GB")} · ${S.user || "—"}</p><div class="report-section-title">${t("salesSection")}</div>${line(t("salesKHR"), moneyKHR(o.salesKHR))}${line(t("salesUSD"), moneyUSD(o.salesUSD))}${line(t("cups"), o.cups)}<div class="report-section-title">${t("expensesSection")}</div>${line(t("expenseKHR"), moneyKHR(o.expenseKHR))}${line(t("expenseUSD"), moneyUSD(o.expenseUSD))}<div class="report-section-title">${t("cashMovement")}</div>${line(`${t("previous")} KHR`, moneyKHR(p.khr))}${line(`${t("cashSales")} KHR`, moneyKHR(o.cashKHR))}${line(`${t("cashExpenses")} KHR`, moneyKHR(o.cashExpKHR))}${line(`${t("bankDeposits")} KHR`, moneyKHR(o.depositKHR))}${line(`${t("expectedTable")} KHR`, moneyKHR(e.khr), true)}${line(`${t("previous")} USD`, moneyUSD(p.usd))}${line(`${t("cashSales")} USD`, moneyUSD(o.cashUSD))}${line(`${t("cashExpenses")} USD`, moneyUSD(o.cashExpUSD))}${line(`${t("bankDeposits")} USD`, moneyUSD(o.depositUSD))}${line(`${t("expectedTable")} USD`, moneyUSD(e.usd), true)}<div class="report-section-title">${t("actualCash")}</div>${line(t("actualKHR"), c ? moneyKHR(c.actualKhr) : `— ${t("noCount")}`)}${line(t("actualUSD"), c ? moneyUSD(c.actualUsd) : `— ${t("noCount")}`)}${line(`${t("difference")} KHR`, c ? moneyKHR(c.actualKhr - e.khr) : "—")}${line(`${t("difference")} USD`, c ? moneyUSD(c.actualUsd - e.usd) : "—")}${line(t("bestSeller"), best ? `${best[0]} (${best[1]} ${t("cups")})` : "—")}${line(t("rate"), `${Number(S.rate).toLocaleString()}៛ = $1`)}`; }
+function line(a, b, total = false) { return `<div class="report-line ${total ? "report-total" : ""}"><span>${a}</span><b>${b}</b></div>`; }
+
+async function exportPng() {
+  // SVG -> PNG keeps Khmer text rendered by the browser instead of canvas's limited font assumptions.
+  const text = reportText().split("\n"); const width = 1000, lineH = 34, height = Math.max(1450, 180 + text.length * lineH);
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const lines = text.map((s, i) => `<text x="80" y="${110 + i * lineH}" class="${i === 0 ? "brand" : i % 4 === 1 ? "title" : "body"}">${esc(s || " ")}</text>`).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="#F8F6F1"/><rect x="45" y="45" width="910" height="${height - 90}" rx="28" fill="#fff" stroke="#E9E0DB"/><style>.brand{font:700 40px 'Noto Sans Khmer',Arial,sans-serif;fill:#3A2A24}.title{font:700 24px 'Noto Sans Khmer',Arial,sans-serif;fill:#8B2E23}.body{font:20px 'Noto Sans Khmer',Arial,sans-serif;fill:#4B3A32}</style>${lines}</svg>`;
+  const img = new Image(); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+  const can = document.createElement("canvas"); can.width = width; can.height = height; const ctx = can.getContext("2d"); ctx.fillStyle = "#F8F6F1"; ctx.fillRect(0, 0, width, height); ctx.drawImage(img, 0, 0); can.toBlob(blob => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `nona-me-report-${today()}.png`; a.click(); URL.revokeObjectURL(a.href); });
 }
+function copyText() { navigator.clipboard?.writeText(reportText()).then(() => alert(t("copied"))).catch(() => alert(reportText())); }
+function downloadTxt() { const b = new Blob([reportText()], { type: "text/plain;charset=utf-8" }), a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `nona-me-report-${today()}.txt`; a.click(); URL.revokeObjectURL(a.href); }
+function shareTelegram() { const text = encodeURIComponent(reportText()); window.open(`https://t.me/share/url?url=&text=${text}`, "_blank"); }
 
-function saveSettings(){S.settings={shopName:$("setShop").value.trim(),phone:$("setPhone").value.trim(),telegram:$("setTelegram").value.trim(),address:$("setAddress").value.trim()};S.rate=Math.max(1,Number($("setRate").value||4000));localStorage.setItem("nm_settings_v5",JSON.stringify(S.settings));localStorage.setItem("nm_rate",S.rate);$("rateInput").value=S.rate;renderAll();alert("Settings saved / រក្សាទុករួច")}
-function reportText(){
-  const o=summary(),prev=previousBalance(),e=expectedCurrentCash(),c=S.cashCounts.filter(x=>x.date===today()).slice(-1)[0];
-  const best=Object.entries(o.items).sort((a,b)=>b[1]-a[1])[0];
-  return `NONA-ME COFFEE
-DAILY CASH REPORT / របាយការណ៍លុយប្រចាំថ្ងៃ
-Date: ${new Date().toLocaleDateString("en-GB")}
-Staff: ${S.user||"—"}
+function renderHistory() { const a = [...S.sales].reverse().map(s => `<div class="history-item"><div>🧾 <b>${s.date}</b> · ${s.time}<br><small>${s.user} · ${s.payment} · ${s.currency} · ${s.cups} ${t("cups")}</small></div><div class="history-total">${s.currency === "KHR" ? moneyKHR(s.amount) : moneyUSD(s.amount)}</div></div>`); const b = [...S.expenses].reverse().map(e => `<div class="history-item"><div>💸 <b>${e.date}</b> · ${e.time}<br><small>${e.user} · ${e.desc} · ${e.payment}</small></div><div class="history-total">${e.currency === "KHR" ? moneyKHR(e.amount) : moneyUSD(e.amount)}</div></div>`); const d = [...S.deposits].reverse().map(x => `<div class="history-item"><div>🏦 <b>${x.date}</b> · ${x.time}<br><small>${x.user} · ${x.bank || "Bank"}${x.note ? " · " + x.note : ""}</small></div><div class="history-total">${x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount)}</div></div>`); const c = [...S.cashCounts].reverse().map(x => `<div class="history-item"><div>💵 <b>${x.date}</b> · ${x.time}<br><small>${x.user} · ${t("actualCash")}</small></div><div class="history-total">${moneyKHR(x.actualKhr)} / ${moneyUSD(x.actualUsd)}</div></div>`); $("historyList").innerHTML = [...a, ...b, ...d, ...c].join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
 
-SALES
-KHR: ${moneyKHR(o.salesKHR)}
-USD: ${moneyUSD(o.salesUSD)}
-Cups: ${o.cups}
-
-EXPENSES
-KHR: ${moneyKHR(o.expenseKHR)}
-USD: ${moneyUSD(o.expenseUSD)}
-
-CASH MOVEMENT
-Previous KHR: ${moneyKHR(prev.khr)}
-Cash Sales KHR: ${moneyKHR(o.cashKHR)}
-Cash Expenses KHR: ${moneyKHR(o.cashExpKHR)}
-Bank Deposits KHR: ${moneyKHR(o.depositKHR)}
-Expected KHR: ${moneyKHR(e.khr)}
-
-Previous USD: ${moneyUSD(prev.usd)}
-Cash Sales USD: ${moneyUSD(o.cashUSD)}
-Cash Expenses USD: ${moneyUSD(o.cashExpUSD)}
-Bank Deposits USD: ${moneyUSD(o.depositUSD)}
-Expected USD: ${moneyUSD(e.usd)}
-
-ACTUAL CASH
-KHR: ${c?moneyKHR(c.actualKhr):"Not counted"}
-USD: ${c?moneyUSD(c.actualUsd):"Not counted"}
-
-${c?`DIFFERENCE
-KHR: ${moneyKHR(c.actualKhr-e.khr)}
-USD: ${moneyUSD(c.actualUsd-e.usd)}`:"CASH COUNT: Not submitted yet"}
-
-Best Seller: ${best?best[0]+" ("+best[1]+" cups)":"—"}
-Rate: ${Number(S.rate).toLocaleString()}៛ = $1`;
+function renderAdmin(section) { if (S.role !== "admin") return; const o = summary(); let content = ""; if (section === "overview") content = `<div class="admin-grid"><section class="panel"><h2>📊 Overview / សង្ខេប</h2><div class="admin-kpi">${moneyKHR(o.salesKHR)}</div><p class="muted">${t("salesKHR")}</p><div class="bar"><i style="width:${Math.min(100, o.salesKHR ? (o.cashKHR / o.salesKHR) * 100 : 0)}%"></i></div><p class="muted small">${o.tx} transactions · ${o.cups} cups</p></section><section class="panel"><h2>💰 Cash / សាច់ប្រាក់</h2><div class="result-line"><span>KHR</span><b>${moneyKHR(expectedCurrentCash().khr)}</b></div><div class="result-line"><span>USD</span><b>${moneyUSD(expectedCurrentCash().usd)}</b></div></section></div>`; else if (section === "products") content = `<div class="panel"><h2>☕ Products / Menu</h2>${S.products.map(p => `<div class="list-row"><span>${p[0]}<br><small>${p[1]} · ${p[3]}</small></span><b>${moneyKHR(p[2])}</b></div>`).join("")}</div>`; else if (section === "staff") content = `<div class="panel"><h2>👥 Staff / Users</h2><div class="user-row"><span>Admin<br><small>Owner</small></span><b class="role admin-role">ADMIN</b></div><div class="user-row"><span>Staff 01</span><b class="role">STAFF</b></div><div class="user-row"><span>Staff 02</span><b class="role">STAFF</b></div></div>`; else if (section === "settings") content = `<div class="panel"><h2>⚙️ Shop Settings / ព័ត៌មានហាង</h2><div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="setShop" value="${escAttr(S.settings.shopName)}"></div><div><label>Phone / ទូរស័ព្ទ</label><input id="setPhone" value="${escAttr(S.settings.phone)}"></div><div><label>Telegram</label><input id="setTelegram" value="${escAttr(S.settings.telegram)}"></div><div><label>Address / អាសយដ្ឋាន</label><input id="setAddress" value="${escAttr(S.settings.address)}"></div></div><label>Default Exchange Rate / អត្រាប្តូរប្រាក់</label><input id="setRate" type="number" value="${S.rate}"><button class="save-btn" onclick="saveSettings()">SAVE SETTINGS / រក្សាទុក</button></div>`; else if (section === "audit") { const logs = [...S.sales.map(x => ({ t: x.time, a: "SALE / ការលក់", u: x.user, d: x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount) })), ...S.expenses.map(x => ({ t: x.time, a: "EXPENSE / ចំណាយ", u: x.user, d: x.desc })), ...S.deposits.map(x => ({ t: x.time, a: "DEPOSIT / ដាក់ធនាគារ", u: x.user, d: x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount) }))].slice(-30).reverse(); content = `<div class="panel"><h2>🛡️ Audit Log / ប្រវត្តិសកម្មភាព</h2>${logs.map(l => `<div class="log-row"><span>${l.t} · ${l.a}<br><small>${l.u}</small></span><b>${l.d}</b></div>`).join("") || `<div class="cart-empty">${t("noRecords")}</div>`}</div>`; }
+  $("adminContent").innerHTML = `<div class="admin-menu">${["overview", "products", "staff", "settings", "audit"].map(x => `<button class="admin-menu-btn ${x === section ? "active" : ""}" onclick="renderAdmin('${x}')">${x === "overview" ? "📊 " : x === "products" ? "☕ " : x === "staff" ? "👥 " : x === "settings" ? "⚙️ " : "🛡️ "}${x}</button>`).join("")}</div>${content}`;
 }
-function renderReport(){
-  const o=summary(),prev=previousBalance(),e=expectedCurrentCash(),c=S.cashCounts.filter(x=>x.date===today()).slice(-1)[0];
-  $("reportDate").textContent=new Date().toLocaleDateString("en-GB");
-  $("reportPreview").innerHTML=`<div class="report-brand">${S.settings.shopName||"nona-me coffee"}</div><div class="report-title">DAILY CASH REPORT</div>
-  <p class="muted">${new Date().toLocaleDateString("en-GB")} · ${S.user||"—"}</p>
-  <div class="report-line"><span>Sales KHR</span><b>${moneyKHR(o.salesKHR)}</b></div>
-  <div class="report-line"><span>Sales USD</span><b>${moneyUSD(o.salesUSD)}</b></div>
-  <div class="report-line"><span>Expenses KHR</span><b>${moneyKHR(o.expenseKHR)}</b></div>
-  <div class="report-line"><span>Expenses USD</span><b>${moneyUSD(o.expenseUSD)}</b></div>
-  <div class="report-line"><span>Previous KHR Cash</span><b>${moneyKHR(prev.khr)}</b></div>
-  <div class="report-line"><span>Cash Sales KHR</span><b>${moneyKHR(o.cashKHR)}</b></div>
-  <div class="report-line"><span>Cash Expenses KHR</span><b>${moneyKHR(o.cashExpKHR)}</b></div>
-  <div class="report-line"><span>Bank Deposit KHR</span><b>${moneyKHR(o.depositKHR)}</b></div>
-  <div class="report-line report-total"><span>Expected KHR in Table</span><b>${moneyKHR(e.khr)}</b></div>
-  <div class="report-line"><span>Previous USD Cash</span><b>${moneyUSD(prev.usd)}</b></div>
-  <div class="report-line"><span>Cash Sales USD</span><b>${moneyUSD(o.cashUSD)}</b></div>
-  <div class="report-line"><span>Cash Expenses USD</span><b>${moneyUSD(o.cashExpUSD)}</b></div>
-  <div class="report-line"><span>Bank Deposit USD</span><b>${moneyUSD(o.depositUSD)}</b></div>
-  <div class="report-line report-total"><span>Expected USD in Table</span><b>${moneyUSD(e.usd)}</b></div>
-  <div class="report-line"><span>Actual KHR</span><b>${c?moneyKHR(c.actualKhr):"—"}</b></div>
-  <div class="report-line"><span>Actual USD</span><b>${c?moneyUSD(c.actualUsd):"—"}</b></div>
-  <div class="report-line"><span>Difference KHR</span><b>${c?moneyKHR(c.actualKhr-e.khr):"—"}</b></div>
-  <div class="report-line"><span>Difference USD</span><b>${c?moneyUSD(c.actualUsd-e.usd):"—"}</b></div>
-  <div class="report-line"><span>Total Cups</span><b>${o.cups}</b></div>`;
-}
-function exportPng(){
-  const o=summary(),prev=previousBalance(),e=expectedCurrentCash(),c=S.cashCounts.filter(x=>x.date===today()).slice(-1)[0];
-  const can=document.createElement("canvas"),ctx=can.getContext("2d");can.width=1000;can.height=1480;
-  ctx.fillStyle="#F8F6F1";ctx.fillRect(0,0,1000,1480);ctx.fillStyle="#fff";ctx.roundRect(55,55,890,1370,28,28);ctx.fill();
-  ctx.fillStyle="#3A2A24";ctx.font="700 42px Arial";ctx.fillText(S.settings.shopName||"nona-me coffee",90,125);
-  ctx.fillStyle="#8B2E23";ctx.font="700 28px Arial";ctx.fillText("DAILY CASH REPORT",90,172);
-  ctx.fillStyle="#4B3A32";ctx.font="20px Arial";ctx.fillText(new Date().toLocaleDateString("en-GB")+" · "+(S.user||"—"),90,212);
-  const rows=[["Sales KHR",moneyKHR(o.salesKHR)],["Sales USD",moneyUSD(o.salesUSD)],["Expenses KHR",moneyKHR(o.expenseKHR)],["Expenses USD",moneyUSD(o.expenseUSD)],
-    ["Previous KHR",moneyKHR(prev.khr)],["Cash Sales KHR",moneyKHR(o.cashKHR)],["Cash Expenses KHR",moneyKHR(o.cashExpKHR)],["Bank Deposit KHR",moneyKHR(o.depositKHR)],
-    ["Expected KHR",moneyKHR(e.khr)],["Previous USD",moneyUSD(prev.usd)],["Cash Sales USD",moneyUSD(o.cashUSD)],["Cash Expenses USD",moneyUSD(o.cashExpUSD)],
-    ["Bank Deposit USD",moneyUSD(o.depositUSD)],["Expected USD",moneyUSD(e.usd)],["Actual KHR",c?moneyKHR(c.actualKhr):"—"],["Actual USD",c?moneyUSD(c.actualUsd):"—"],
-    ["Difference KHR",c?moneyKHR(c.actualKhr-e.khr):"—"],["Difference USD",c?moneyUSD(c.actualUsd-e.usd):"—"],["Total Cups",String(o.cups)]];
-  let y=275;rows.forEach((r,i)=>{ctx.fillStyle=(i===8||i===13||i===16||i===17)?"#8B2E23":"#4B3A32";ctx.font=(i===8||i===13)?"700 21px Arial":"20px Arial";ctx.fillText(r[0],90,y);ctx.textAlign="right";ctx.fillText(r[1],905,y);ctx.textAlign="left";y+=59});
-  ctx.fillStyle="#9CA3AF";ctx.font="17px Arial";ctx.fillText("Nona-me Coffee · Running Cash Report",90,1370);
-  can.toBlob(blob=>{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`nona-me-report-${today()}.png`;a.click();URL.revokeObjectURL(a.href)});
-}
-
-function renderHistory(){
-  const a=[...S.sales].reverse().map(s=>`<div class="history-item"><div>🧾 <b>${s.date}</b> · ${s.time}<br><small>${s.user} · ${s.payment} · ${s.currency} · ${s.cups} cups</small></div><div class="history-total">${s.currency==="KHR"?moneyKHR(s.amount):moneyUSD(s.amount)}</div></div>`);
-  const b=[...S.expenses].reverse().map(e=>`<div class="history-item"><div>💸 <b>${e.date}</b> · ${e.time}<br><small>${e.user} · ${e.desc} · ${e.payment}</small></div><div class="history-total">${e.currency==="KHR"?moneyKHR(e.amount):moneyUSD(e.amount)}</div></div>`);
-  const d=[...S.deposits].reverse().map(x=>`<div class="history-item"><div>🏦 <b>${x.date}</b> · ${x.time}<br><small>${x.user} · ${x.bank||"Bank"}${x.note?" · "+x.note:""}</small></div><div class="history-total">${x.currency==="KHR"?moneyKHR(x.amount):moneyUSD(x.amount)}</div></div>`);
-  const c=[...S.cashCounts].reverse().map(x=>`<div class="history-item"><div>💵 <b>${x.date}</b> · ${x.time}<br><small>${x.user} · Cash Count</small></div><div class="history-total">${moneyKHR(x.actualKhr)} / ${moneyUSD(x.actualUsd)}</div></div>`);
-  $("historyList").innerHTML=[...a,...b,...d,...c].join("")||'<div class="cart-empty">No records yet / មិនទាន់មានទិន្នន័យ</div>';
-}
+function escAttr(v) { return String(v || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function saveSettings() { S.settings = { shopName: $("setShop").value.trim(), phone: $("setPhone").value.trim(), telegram: $("setTelegram").value.trim(), address: $("setAddress").value.trim() }; S.rate = Math.max(1, Number($("setRate").value || 4000)); write(KEY.settings, S.settings); localStorage.setItem(KEY.rate, S.rate); $("rateInput").value = S.rate; renderAll(); alert(t("saved")); }
 
 boot();
