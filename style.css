@@ -6,7 +6,9 @@
   --shadow:0 16px 40px rgba(58,42,36,.08); --radius:22px;
 }
 *{box-sizing:border-box}
-html{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI","Noto Sans Khmer",system-ui,sans-serif;background:var(--bg);color:var(--dark)}
+html{font-family:"Inter","Noto Sans Khmer",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--dark);font-synthesis:none;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+html:lang(km), html[lang="km"], html[lang="kh"]{font-family:"Noto Sans Khmer","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+body,input,select,textarea,button{font-family:inherit;letter-spacing:-0.01em}
 body{margin:0;min-height:100vh;background:
  radial-gradient(800px 420px at 0% 0%,rgba(226,201,168,.42),transparent 58%),
  radial-gradient(700px 420px at 100% 0%,rgba(196,86,59,.10),transparent 58%),var(--bg);}
@@ -89,3 +91,170 @@ html.dark{
 html.dark body{background:radial-gradient(800px 420px at 0% 0%,rgba(112,65,50,.22),transparent 58%),linear-gradient(180deg,#151211,#0d0c0b)}
 html.dark .topbar{background:rgba(19,17,16,.84)} html.dark input,html.dark select,html.dark textarea,html.dark .btn,html.dark .tab,html.dark .nav-btn,html.dark .menu-btn,html.dark .card-btn{background:rgba(255,255,255,.055);color:var(--dark)}
 html.dark .product-card{background:rgba(255,255,255,.045)} html.dark .bottom-nav{background:rgba(25,22,20,.94)}
+
+/* V21: Make Reports clearly reachable on mobile phones. */
+.mobile-quick-nav-v21{display:none}
+@media(max-width:800px){
+  .mobile-quick-nav-v21{
+    display:flex;
+    gap:7px;
+    overflow:auto;
+    padding:2px 0 10px;
+    scrollbar-width:none;
+  }
+  .mobile-quick-nav-v21::-webkit-scrollbar{display:none}
+  .mobile-quick-nav-v21 button{
+    flex:0 0 auto;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.74);
+    color:var(--dark);
+    border-radius:999px;
+    padding:8px 12px;
+    font-weight:850;
+    white-space:nowrap;
+  }
+  html.dark .mobile-quick-nav-v21 button{background:rgba(255,255,255,.06);color:var(--dark)}
+}
+
+/* V22: Daily Report image export */
+#saveReportImage{border-color:rgba(139,46,35,.22)}
+
+/* V23: Dedicated Menu route */
+[data-page="menu"]{font-weight:900}
+
+.category-manage-grid-v24{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.category-manage-item-v24{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.55)}
+@media(max-width:800px){.category-manage-grid-v24{grid-template-columns:1fr}}
+
+
+/* ========================= V25 DARK MODE TEXT FIX ========================= */
+html.dark,
+html.dark body{
+  color:var(--dark);
+}
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6,
+html.dark p,
+html.dark label,
+html.dark span,
+html.dark div,
+html.dark small,
+html.dark strong,
+html.dark b,
+html.dark td,
+html.dark th,
+html.dark li,
+html.dark a,
+html.dark .brand-title,
+html.dark .brand-sub,
+html.dark .page-head .muted,
+html.dark .muted,
+html.dark .small,
+html.dark .field label,
+html.dark .panel-title,
+html.dark .panel-title h2,
+html.dark .panel > h2,
+html.dark .panel > h3,
+html.dark .stat small,
+html.dark .stat strong,
+html.dark .price,
+html.dark .product-name,
+html.dark .product-kh,
+html.dark .empty,
+html.dark .receipt-preview,
+html.dark .report-separator,
+html.dark .list-row,
+html.dark .user-row,
+html.dark .stock-row,
+html.dark .promo-row{
+  color:var(--dark);
+}
+html.dark input,
+html.dark select,
+html.dark textarea{
+  color:var(--dark) !important;
+  background:rgba(255,255,255,.055) !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder{
+  color:#a99b92 !important;
+  opacity:1;
+}
+html.dark select option{
+  color:#f4eee8 !important;
+  background:#211b18 !important;
+}
+html.dark .btn,
+html.dark .tab,
+html.dark .nav-btn,
+html.dark .menu-btn,
+html.dark .card-btn,
+html.dark .ghost-btn{
+  color:var(--dark);
+}
+html.dark .btn-primary,
+html.dark .tab.active,
+html.dark .nav-btn.active,
+html.dark .admin-menu-btn.active,
+html.dark .bottom-nav button.active{
+  color:#fff !important;
+}
+html.dark .btn-danger{
+  color:#ffb7b7 !important;
+  background:rgba(180,62,62,.12) !important;
+}
+html.dark table,
+html.dark .table{
+  color:var(--dark);
+}
+html.dark .table th,
+html.dark .table td{
+  color:var(--dark);
+  border-color:rgba(255,255,255,.10);
+}
+html.dark .badge.green{
+  color:#bfe5c3;
+  background:rgba(90,125,91,.22);
+}
+html.dark .badge.red{
+  color:#ffc0c0;
+  background:rgba(180,62,62,.20);
+}
+html.dark .color-pick,
+html.dark .product-card{
+  color:var(--dark);
+  background:rgba(255,255,255,.05);
+}
+html.dark .bottom-nav button{
+  color:var(--dark);
+}
+html.dark .asset-preview,
+html.dark .brand img,
+html.dark .product-image,
+html.dark .stock-thumb{
+  background:#fff;
+}
+html.dark .receipt-preview{
+  background:#211d1b;
+  border-color:rgba(255,255,255,.12);
+}
+
+/* ========================= V28 MINIMALIST TYPOGRAPHY ========================= */
+body{font-weight:450}
+button,.btn,.tab,.nav-btn,.menu-btn,.card-btn,.brand-title,.product-name,.stat strong,h1,h2,h3{font-weight:700}
+.brand-sub,.muted,.small,small{font-weight:500}
+h1{letter-spacing:-0.025em}
+h2{letter-spacing:-0.02em}
+h3{letter-spacing:-0.015em}
+input,select,textarea{letter-spacing:-0.005em}
+@media(max-width:800px){
+  body{font-size:14px}
+  h1{font-size:25px}
+  h2{font-size:20px}
+  h3{font-size:16px}
+  .btn,.tab,.nav-btn{font-size:13px}
+}

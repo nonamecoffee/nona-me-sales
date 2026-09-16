@@ -20,7 +20,7 @@ const T={
   promotion:"Promotion",none:"No Promotion",normalPrice:"Normal price",saveSale:"Save Sale",savePrint:"Save & Print",print:"Print",
   expense:"Expense",expenseOn:"What was it spent on?",amount:"Amount",note:"Note",method:"Payment method",
   prevCash:"Previous Cash",cashSales:"Cash Sales",cashExpenses:"Cash Expenses",bankDeposit:"Bank Deposit",expected:"Expected Cash",actual:"Actual Cash",difference:"Difference",
-  reportTitle:"Daily Report",date:"Date",staff:"Staff",bestSeller:"Best Seller",exchange:"Exchange Rate",copy:"Copy Text",export:"Export CSV",clear:"Clear",
+  reportTitle:"Daily Report",date:"Date",staff:"Staff",bestSeller:"Best Seller",exchange:"Exchange Rate",copy:"Copy Text",saveImage:"Save Image",export:"Export CSV",clear:"Clear",
   overview:"Overview",website:"Website Control",products:"Products & Menu",promotions:"Promotions",inventory:"Inventory",staffUsers:"Staff & Users",settings:"Shop Settings",audit:"Audit Log",appearance:"Appearance",
   displayMode:"Display Mode",light:"Light",dark:"Dark",auto:"Auto",primary:"Primary",accent:"Accent",beige:"Beige",cream:"Cream",darkColor:"Dark",green:"Green",chooseColor:"Choose color",
   logo:"Official Logo",uploadLogo:"Upload Logo",navigation:"Navigation",show:"Show",hide:"Hide",view:"View",grid:"Grid",list:"List",separator:"Report Separator",
@@ -40,7 +40,7 @@ const T={
   promotion:"ប្រូម៉ូសិន",none:"គ្មានប្រូម៉ូសិន",normalPrice:"តម្លៃធម្មតា",saveSale:"រក្សាទុកការលក់",savePrint:"រក្សាទុក និងព្រីន",print:"ព្រីន",
   expense:"ចំណាយ",expenseOn:"ចំណាយលើអ្វី?",amount:"ចំនួនទឹកប្រាក់",note:"កំណត់សម្គាល់",method:"វិធីទូទាត់",
   prevCash:"សាច់ប្រាក់ដើម",cashSales:"លក់សាច់ប្រាក់",cashExpenses:"ចំណាយសាច់ប្រាក់",bankDeposit:"ដាក់ធនាគារ",expected:"សាច់ប្រាក់រំពឹងទុក",actual:"សាច់ប្រាក់រាប់បាន",difference:"ខុសគ្នា",
-  reportTitle:"របាយការណ៍ប្រចាំថ្ងៃ",date:"កាលបរិច្ឆេទ",staff:"បុគ្គលិក",bestSeller:"លក់ដាច់ជាងគេ",exchange:"អត្រាប្តូរប្រាក់",copy:"ចម្លងអត្ថបទ",export:"ទាញ CSV",clear:"សម្អាត",
+  reportTitle:"របាយការណ៍ប្រចាំថ្ងៃ",date:"កាលបរិច្ឆេទ",staff:"បុគ្គលិក",bestSeller:"លក់ដាច់ជាងគេ",exchange:"អត្រាប្តូរប្រាក់",copy:"ចម្លងអត្ថបទ",saveImage:"រក្សាទុកជារូបភាព",export:"ទាញ CSV",clear:"សម្អាត",
   overview:"សង្ខេប",website:"គ្រប់គ្រង Website",products:"មុខទំនិញ និងមីនុយ",promotions:"ប្រូម៉ូសិន",inventory:"ស្តុក",staffUsers:"បុគ្គលិក និងអ្នកប្រើ",settings:"កំណត់ហាង",audit:"ប្រវត្តិសកម្មភាព",appearance:"រូបរាង",
   displayMode:"របៀបបង្ហាញ",light:"ភ្លឺ",dark:"ងងឹត",auto:"ស្វ័យប្រវត្តិ",primary:"ពណ៌មេ",accent:"ពណ៌បន្ថែម",beige:"ត្នោតស្រាល",cream:"ពណ៌ក្រែម",darkColor:"ងងឹត",green:"បៃតង",chooseColor:"ជ្រើសពណ៌",
   logo:"Logo ផ្លូវការ",uploadLogo:"បញ្ចូល Logo",navigation:"មីនុយ",show:"បង្ហាញ",hide:"លាក់",view:"មើល",grid:"ក្រឡា",list:"បញ្ជី",separator:"បន្ទាត់ខណ្ឌរបាយការណ៍",
@@ -56,7 +56,22 @@ const T={
 };
 let S=loadState();
 let DATA = {products:[]};
-fetch("products.json").then(r=>r.json()).then(p=>{DATA.products=p; if(!S.products.length){S.products=p.map((x,i)=>({id:"p"+i,en:x[0],kh:x[1],price:Number(x[2]),category:x[3],active:true,image:""})); saveState(); render();}}).catch(()=>{});
+function initProductsV23(){
+  DATA.products = EMBEDDED_PRODUCTS_V23;
+  if(!Array.isArray(S.products) || S.products.length===0){
+    S.products = EMBEDDED_PRODUCTS_V23.map((x,i)=>({id:"p"+i,en:x[0],kh:x[1],price:Number(x[2]),category:x[3],active:true,image:""}));
+    saveState();
+  } else {
+    // Restore a missing/empty active menu without deleting admin-created products.
+    const existingIds = new Set(S.products.map(p=>p.id));
+    EMBEDDED_PRODUCTS_V23.forEach((x,i)=>{
+      const id="p"+i;
+      if(!existingIds.has(id)) S.products.push({id,en:x[0],kh:x[1],price:Number(x[2]),category:x[3],active:true,image:""});
+    });
+    saveState();
+  }
+}
+initProductsV23();
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function loadState(){
  const raw=localStorage.getItem(DB);
@@ -91,7 +106,7 @@ function render(){
  const root=document.getElementById("app");
  if(!S.user){root.innerHTML=renderLogin();bindLogin();return}
  root.innerHTML=renderApp();
- bindGlobal();renderPage();
+ bindGlobal();ensureMobileReportQuickNav();renderPage();
 }
 function langButton(){return `<button id="langBtn" class="btn btn-ghost">${S.lang==="kh"?"English":"ខ្មែរ"}</button>`}
 function renderLogin(){
@@ -119,11 +134,27 @@ function bindLogin(){
 function renderApp(){
  const brand=logoSrc();
  const nav=navItems().map(([k,ic])=>`<button class="tab ${S.page===k?"active":""}" data-page="${k}">${ic} ${L(k)}</button>`).join("");
- const bottom=navItems().slice(0,5).map(([k,ic])=>`<button class="${S.page===k?"active":""}" data-page="${k}">${ic}<br>${L(k)}</button>`).join("");
+ const bottomItems = S.role==="admin"
+  ? [["sales","💰"],["expenses","🧾"],["report","📊"],["stock","📦"],["admin","⚙️"]]
+  : [["sales","💰"],["expenses","🧾"],["stock","📦"],["report","📊"],["cash","💵"]];
+ const bottom=bottomItems.map(([k,ic])=>`<button class="${S.page===k?"active":""}" data-page="${k}">${ic}<br>${L(k)}</button>`).join("");
  return `<header class="topbar"><div class="brand"><img src="${brand}" alt=""><div><div class="brand-title">${esc(S.cms.shopName)}</div><div class="brand-sub">Nona-me Sales</div></div></div>
  <div class="top-actions">${langButton()}<button id="themeBtn" class="btn">${S.theme==="dark"?"☀️":"🌙"}</button><button id="logoutBtn" class="btn">${L("logout")}</button></div></header>
  <main class="wrap"><nav class="tabs">${nav}</nav><div id="page"></div></main><nav class="bottom-nav">${bottom}</nav>`
 }
+
+function ensureMobileReportQuickNav(){
+  const host=document.querySelector(".wrap");
+  if(!host || document.getElementById("mobileQuickNavV21")) return;
+  const bar=document.createElement("div");
+  bar.id="mobileQuickNavV21";
+  bar.className="mobile-quick-nav-v21";
+  const items=[["sales","💰"],["expenses","🧾"],["report","📊"],["stock","📦"],["cash","💵"]];
+  bar.innerHTML=items.map(([k,ic])=>`<button data-page="${k}">${ic} ${L(k)}</button>`).join("");
+  host.insertBefore(bar, host.querySelector(".tabs"));
+  bar.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>goto(b.dataset.page));
+}
+
 function bindGlobal(){
  document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>goto(b.dataset.page));
  $("langBtn").onclick=()=>{S.lang=S.lang==="kh"?"en":"kh";saveState();render()};
@@ -140,7 +171,7 @@ function renderPage(){
  else if(S.page==="report")p.innerHTML=renderReport(),bindReport();
  else if(S.page==="period")p.innerHTML=renderPeriodReport(),bindPeriodReport();
  else if(S.page==="history")p.innerHTML=renderHistory();
- else if(S.page==="admin")p.innerHTML=renderAdmin(),bindAdmin();
+ else if(S.page==="admin"){p.innerHTML=renderAdmin();bindAdmin();}
 }
 function renderSales(){
  const cats=[L("all"),...new Set(activeProducts().map(p=>p.category))];
@@ -196,12 +227,25 @@ function renderDeposit(){return `<div class="page-head"><div><h1>${L("deposit")}
 function bindDeposit(){$("saveDep").onclick=()=>{const a=Number($("depAmount").value||0);if(a<=0)return alert(L("required"));const t=dateTime();S.deposits.push({id:uid("dep"),date:t.date,time:t.time,user:S.user.name,amount:a,currency:$("depCurrency").value,bank:$("depBank").value,note:$("depNote").value});saveState();renderPage()}}
 function renderStock(){const low=(S.stock||[]).filter(x=>Number(x.qty)<=Number(x.min||0));return `<div class="page-head"><div><h1>${L("stock")}</h1><div class="muted">${low.length?`⚠️ ${L("inventoryAlert")}: ${low.length}`:""}</div></div></div><div class="two-col"><section class="panel"><div class="form-grid"><div class="field"><label>${L("item")}</label><input id="stockName"></div><div class="field"><label>${L("quantity")}</label><input id="stockQty" type="number" min="0"></div><div class="field"><label>${L("unit")}</label><input id="stockUnit" placeholder="kg / pcs / L"></div><div class="field"><label>${L("minimum")}</label><input id="stockMin" type="number" min="0"></div><div class="field full"><label>${L("image")}</label><input id="stockImage" type="file" accept="image/*"></div><div class="field full"><label>${L("note")}</label><textarea id="stockNote"></textarea></div></div><button id="saveStock" class="btn btn-primary" style="margin-top:10px">${L("addStock")}</button></section><section class="panel">${(S.stock||[]).map((x,i)=>`<div class="list-row"><img class="stock-thumb" src="${esc(x.image||"assets/nona-me-logo.png")}"><div><b>${esc(x.name)}</b><div class="small muted">${x.qty} ${esc(x.unit||"")}${x.note?` · ${esc(x.note)}`:""}</div></div><div class="row-actions"><span class="badge ${x.qty<=x.min?"red":"green"}">${x.qty<=x.min?L("inventoryAlert"):L("active")}</span><button class="btn btn-danger" data-del-stock="${i}">🗑</button></div></div>`).join("")||`<div class="empty">${L("noRecords")}</div>`}</section></div>`}
 function bindStock(){$("saveStock").onclick=()=>{const n=$("stockName").value.trim(),q=Number($("stockQty").value||0);if(!n||q<=0)return alert(L("required"));const f=$("stockImage").files[0],save=(img)=>{S.stock.push({id:uid("st"),name:n,qty:q,unit:$("stockUnit").value,min:Number($("stockMin").value||0),image:img,note:$("stockNote").value});saveState();renderPage()};if(f){const r=new FileReader();r.onload=()=>save(r.result);r.readAsDataURL(f)}else save("")};document.querySelectorAll("[data-del-stock]").forEach(b=>b.onclick=()=>{S.stock.splice(Number(b.dataset.delStock),1);saveState();renderPage()})}
-function renderReport(){const d=today(),salesK=todaySales("KHR"),salesU=todaySales("USD"),expK=dayExp("KHR"),expU=dayExp("USD"),depK=dayDep("KHR"),depU=dayDep("USD"),sep=S.ui.reportSeparator;return `<div class="page-head"><div><h1>${L("reportTitle")}</h1><div class="muted">${d}</div></div><div class="action-row"><button id="copyReport" class="btn">${L("copy")}</button><button id="exportReport" class="btn">${L("export")}</button><button id="printReport" class="btn">${L("print")}</button></div></div><section class="panel"><div class="stats"><div class="stat"><small>${L("salesKHR")}</small><strong>${moneyKHR(salesK)}</strong></div><div class="stat"><small>${L("salesUSD")}</small><strong>${moneyUSD(salesU)}</strong></div><div class="stat"><small>${L("expensesKHR")}</small><strong>${moneyKHR(expK)}</strong></div><div class="stat"><small>${L("expensesUSD")}</small><strong>${moneyUSD(expU)}</strong></div></div><div class="report-separator"></div><div class="form-grid"><div><b>${L("depositKHR")}</b><div>${moneyKHR(depK)}</div></div><div><b>${L("depositUSD")}</b><div>${moneyUSD(depU)}</div></div><div><b>${L("expected")} KHR</b><div>${moneyKHR(currentExpected("KHR"))}</div></div><div><b>${L("expected")} USD</b><div>${moneyUSD(currentExpected("USD"))}</div></div><div><b>${L("cups")}</b><div>${todayCups()}</div></div><div><b>${L("bestSeller")}</b><div>${esc(bestSeller()||"—")}</div></div><div><b>${L("staff")}</b><div>${esc(S.user.name)}</div></div><div><b>${L("exchange")}</b><div>1 USD = ${Number(S.settings.rate).toLocaleString()} KHR</div></div></div><div class="report-separator"></div><pre id="telegramPreview" class="receipt-preview">${esc(buildTelegram())}</pre></section>`}
+function renderReport(){const d=today(),salesK=todaySales("KHR"),salesU=todaySales("USD"),expK=dayExp("KHR"),expU=dayExp("USD"),depK=dayDep("KHR"),depU=dayDep("USD"),sep=S.ui.reportSeparator;return `<div class="page-head"><div><h1>${L("reportTitle")}</h1><div class="muted">${d}</div></div><div class="action-row"><button id="copyReport" class="btn">${L("copy")}</button><button id="saveReportImage" class="btn">🖼️ ${L("saveImage")}</button><button id="exportReport" class="btn">${L("export")}</button><button id="printReport" class="btn">${L("print")}</button></div></div><section id="dailyReportCaptureV22" class="panel"><div class="stats"><div class="stat"><small>${L("salesKHR")}</small><strong>${moneyKHR(salesK)}</strong></div><div class="stat"><small>${L("salesUSD")}</small><strong>${moneyUSD(salesU)}</strong></div><div class="stat"><small>${L("expensesKHR")}</small><strong>${moneyKHR(expK)}</strong></div><div class="stat"><small>${L("expensesUSD")}</small><strong>${moneyUSD(expU)}</strong></div></div><div class="report-separator"></div><div class="form-grid"><div><b>${L("depositKHR")}</b><div>${moneyKHR(depK)}</div></div><div><b>${L("depositUSD")}</b><div>${moneyUSD(depU)}</div></div><div><b>${L("expected")} KHR</b><div>${moneyKHR(currentExpected("KHR"))}</div></div><div><b>${L("expected")} USD</b><div>${moneyUSD(currentExpected("USD"))}</div></div><div><b>${L("cups")}</b><div>${todayCups()}</div></div><div><b>${L("bestSeller")}</b><div>${esc(bestSeller()||"—")}</div></div><div><b>${L("staff")}</b><div>${esc(S.user.name)}</div></div><div><b>${L("exchange")}</b><div>1 USD = ${Number(S.settings.rate).toLocaleString()} KHR</div></div></div><div class="report-separator"></div><pre id="telegramPreview" class="receipt-preview">${esc(buildTelegram())}</pre></section>`}
 function dayExp(c){return S.expenses.filter(x=>x.date===today()&&x.currency===c).reduce((a,x)=>a+x.amount,0)}
 function dayDep(c){return S.deposits.filter(x=>x.date===today()&&x.currency===c).reduce((a,x)=>a+x.amount,0)}
 function bestSeller(){const m={};S.sales.filter(x=>x.date===today()).forEach(s=>s.items.forEach(i=>m[i.id]=(m[i.id]||0)+i.qty));const id=Object.entries(m).sort((a,b)=>b[1]-a[1])[0]?.[0];return S.products.find(p=>p.id===id)?.[S.lang]}
 function buildTelegram(){const sep=S.ui.reportSeparator;const val=(label,v)=>`${label}: ${v}`;return [`☕ ${S.cms.shopName}`,`📊 ${L("reportTitle")}`,`📅 ${today()}`,sep,`💰 ${L("sales")}`,`${L("currency")} KHR: ${moneyKHR(todaySales("KHR"))}`,`${L("currency")} USD: ${moneyUSD(todaySales("USD"))}`,sep,`💸 ${L("expenses")}`,`${L("currency")} KHR: ${moneyKHR(dayExp("KHR"))}`,`${L("currency")} USD: ${moneyUSD(dayExp("USD"))}`,sep,`🏦 ${L("deposit")}`,`${L("currency")} KHR: ${moneyKHR(dayDep("KHR"))}`,`${L("currency")} USD: ${moneyUSD(dayDep("USD"))}`,sep,`💵 ${L("expected")}`,`${L("currency")} KHR: ${moneyKHR(currentExpected("KHR"))}`,`${L("currency")} USD: ${moneyUSD(currentExpected("USD"))}`,sep,`☕ ${L("cups")}: ${todayCups()}`,`🏆 ${L("bestSeller")}: ${bestSeller()||"—"}`,`👤 ${L("staff")}: ${S.user.name}`,`💱 ${L("exchange")}: 1 USD = ${Number(S.settings.rate).toLocaleString()} KHR`].join("\n")}
-function bindReport(){$("copyReport").onclick=async()=>{await navigator.clipboard.writeText(buildTelegram());alert(L("copied"))};$("exportReport").onclick=()=>downloadText("nona-me-daily-report.csv",buildCSV());$("printReport").onclick=()=>printText(buildTelegram())}
+async function saveDailyReportImageV22(){
+ const target=$("dailyReportCaptureV22")||$("telegramPreview");
+ if(!target)return;
+ if(typeof html2canvas==="undefined"){return alert(S.lang==="kh"?"មិនអាចបង្កើតរូបភាពបានទេ។":"Could not create the image.");}
+ const old=target.style.background;
+ target.style.background=S.theme==="dark"?"#211d1b":"#ffffff";
+ const canvas=await html2canvas(target,{scale:2,backgroundColor:S.theme==="dark"?"#211d1b":"#ffffff",useCORS:true});
+ target.style.background=old;
+ const link=document.createElement("a");
+ link.download=`nona-me-daily-report-${today()}.png`;
+ link.href=canvas.toDataURL("image/png");
+ link.click();
+}
+function bindReport(){$("copyReport").onclick=async()=>{await navigator.clipboard.writeText(buildTelegram());alert(L("copied"))};$("saveReportImage").onclick=saveDailyReportImageV22;$("exportReport").onclick=()=>downloadText("nona-me-daily-report.csv",buildCSV());$("printReport").onclick=()=>printText(buildTelegram())}
 function buildCSV(){const rows=[["date","staff","currency","payment","amount","cups"]];S.sales.filter(x=>x.date===today()).forEach(x=>rows.push([x.date,x.user,x.currency,x.payment,x.amount,x.cups]));const ex=[["expenses"],...S.expenses.filter(x=>x.date===today()).map(x=>[x.date,x.user,x.currency,x.method,x.amount,x.desc])];return [...rows,[],...ex].map(r=>r.join(",")).join("\n")}
 function downloadText(name,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/plain;charset=utf-8"}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function printText(text){const w=window.open("","_blank");w.document.write(`<pre style="font-family:monospace;white-space:pre-wrap">${esc(text)}</pre>`);w.document.close();w.print()}
@@ -256,8 +300,46 @@ function saveAppearance(){saveCMS()}
 function adminProducts(){return `<section class="panel"><div class="row-between"><h2>${L("products")}</h2><button class="btn btn-primary" id="addProduct">${L("addProduct")}</button></div><div class="form-grid" style="margin-top:10px"><div class="field"><label>${L("englishName")}</label><input id="newPEn"></div><div class="field"><label>${L("khmerName")}</label><input id="newPKh"></div><div class="field"><label>${L("priceKHR")}</label><input id="newPPrice" type="number"></div><div class="field"><label>${L("category")}</label><input id="newPCat"></div><div class="field full"><label>${L("image")}</label><input id="newPImage" type="file" accept="image/*"></div></div><div style="margin-top:16px">${S.products.map((p,i)=>`<div class="list-row"><img class="stock-thumb" src="${esc(p.image||"assets/nona-me-logo.png")}"><div><b>${esc(p[S.lang])}</b><div class="small muted">${esc(p[S.lang==="kh"?"en":"kh"])} · ${esc(p.category)} · ${moneyKHR(p.price)}</div></div><div class="row-actions"><button class="btn" data-subaction="toggleProduct" data-id="${i}">${p.active===false?L("enable"):L("disable")}</button><button class="btn btn-danger" data-subaction="deleteProduct" data-id="${i}">🗑</button></div></div>`).join("")}</div></section>`}
 function readFile(id,cb){const f=$(id).files[0];if(!f)return cb("");const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(f)}
 function addProductAdmin(){const en=$("newPEn").value.trim(),kh=$("newPKh").value.trim(),price=Number($("newPPrice").value||0),cat=$("newPCat").value.trim()||"Other";if(!en||!kh||price<0)return alert(L("required"));readFile("newPImage",img=>{S.products.push({id:uid("p"),en,kh,price,category:cat,image:img,active:true});saveState();renderPage()})}
-function adminPromotions(){return `<section class="panel"><div class="row-between"><h2>${L("promotions")}</h2></div><div class="form-grid"><div class="field"><label>${L("englishName")}</label><input id="promoEn"></div><div class="field"><label>${L("khmerName")}</label><input id="promoKh"></div><div class="field"><label>${L("buyCups")}</label><input id="promoQty" type="number" min="2"></div><div class="field"><label>${L("promoPrice")}</label><input id="promoPrice" type="number" min="0"></div></div><button id="addPromo" class="btn btn-primary" style="margin-top:10px">${L("addPromo")}</button><div style="margin-top:16px">${S.promotions.map((p,i)=>`<div class="promo-row"><div><b>${esc(p[S.lang])}</b><div class="small muted">${p.qty} ${L("cups")} → ${moneyKHR(p.price)}</div></div><div class="row-actions"><button class="btn" data-subaction="togglePromo" data-id="${i}">${p.active?L("disable"):L("enable")}</button><button class="btn btn-danger" data-subaction="deletePromo" data-id="${i}">🗑</button></div></div>`).join("")}</div></section>`}
-function addPromoAdmin(){const en=$("promoEn").value.trim(),kh=$("promoKh").value.trim(),qty=Number($("promoQty").value||0),price=Number($("promoPrice").value||0);if(!en||!kh||qty<2||price<0)return alert(L("required"));S.promotions.push({id:uid("pr"),en,kh,qty,price,active:true,products:"ALL"});saveState();renderPage()}
+function adminPromotions(){
+ const kh=S.lang==="kh";
+ const rows=S.promotions.map((p,i)=>`<div class="promo-row">
+   <div><b>${esc(p[S.lang])}</b><div class="small muted">${p.qty} ${L("cups")} → ${moneyKHR(p.price)} · ${p.active?L("active"):L("disabled")}</div></div>
+   <div class="row-actions">
+     <button class="btn" data-subaction="editPromo" data-id="${i}">✏️ ${L("edit")}</button>
+     <button class="btn" data-subaction="togglePromo" data-id="${i}">${p.active?L("disable"):L("enable")}</button>
+     <button class="btn btn-danger" data-subaction="deletePromo" data-id="${i}">🗑️ ${L("delete")}</button>
+   </div>
+ </div>`).join("");
+ return `<section class="panel">
+ <div class="row-between"><div><h2>${L("promotions")}</h2><div class="muted">${kh?"បន្ថែម កែ បើក/បិទ និងលុបប្រូម៉ូសិន":"Add, edit, enable/disable and delete promotions."}</div></div></div>
+ <div class="form-grid">
+   <div class="field"><label>${L("englishName")}</label><input id="promoEn"></div>
+   <div class="field"><label>${L("khmerName")}</label><input id="promoKh"></div>
+   <div class="field"><label>${L("buyCups")}</label><input id="promoQty" type="number" min="2" value="2"></div>
+   <div class="field"><label>${L("promoPrice")}</label><input id="promoPrice" type="number" min="0" value="6000"></div>
+ </div>
+ <div class="field" style="margin-top:10px"><label>${L("applies")}</label><select id="promoProducts">${S.products.map((p,i)=>`<option value="${i}">${esc(p[S.lang])}</option>`).join("")}<option value="ALL" selected>${kh?"មុខទំនិញទាំងអស់":"All Products"}</option></select></div>
+ <button id="addPromo" class="btn btn-primary" style="margin-top:10px">➕ ${L("addPromo")}</button>
+ <div style="margin-top:16px">${rows||`<div class="empty">${L("noRecords")}</div>`}</div>
+ </section>`
+}
+function addPromoAdmin(){
+ const en=$("promoEn").value.trim(),kh=$("promoKh").value.trim(),qty=Number($("promoQty").value||0),price=Number($("promoPrice").value||0);
+ if(!en||!kh||qty<2||price<0)return alert(L("required"));
+ S.promotions.push({id:uid("pr"),en,kh,qty,price,active:true,products:$("promoProducts").value});
+ saveState();renderPage();
+}
+function editPromotionV26(index){
+ const p=S.promotions[index]; if(!p)return;
+ const en=prompt(L("englishName"),p.en||""); if(en===null)return;
+ const kh=prompt(L("khmerName"),p.kh||""); if(kh===null)return;
+ const qty=prompt(L("buyCups"),String(p.qty||2)); if(qty===null)return;
+ const price=prompt(L("promoPrice"),String(p.price||0)); if(price===null)return;
+ const enVal=en.trim(),khVal=kh.trim(),qtyVal=Number(qty),priceVal=Number(price);
+ if(!enVal||!khVal||qtyVal<2||priceVal<0)return alert(L("required"));
+ p.en=enVal;p.kh=khVal;p.qty=qtyVal;p.price=priceVal;
+ saveState();renderPage();
+}
 function adminInventory(){return `<section class="panel"><h2>${L("inventory")}</h2><div>${(S.stock||[]).map(x=>`<div class="stock-row"><img class="stock-thumb" src="${esc(x.image||"assets/nona-me-logo.png")}"><div><b>${esc(x.name)}</b><div class="small muted">${x.qty} ${esc(x.unit||"")} · min ${x.min}</div></div><span class="badge ${x.qty<=x.min?"red":"green"}">${x.qty<=x.min?L("inventoryAlert"):L("active")}</span></div>`).join("")||`<div class="empty">${L("noRecords")}</div>`}</div></section>`}
 function adminUsers(){return `<section class="panel"><div class="row-between"><h2>${L("staffUsers")}</h2></div><div class="form-grid"><div class="field"><label>${L("name")}</label><input id="userName"></div><div class="field"><label>${L("username")}</label><input id="userUsername"></div><div class="field"><label>${L("password")}</label><input id="userPassword"></div><div class="field"><label>${L("role")}</label><select id="userRole"><option>staff</option><option>admin</option></select></div></div><button id="addUser" class="btn btn-primary" style="margin-top:10px">${L("addUser")}</button><div style="margin-top:16px">${S.users.map((u,i)=>`<div class="user-row"><div><b>${esc(u.name)}</b><div class="small muted">${esc(u.username)} · ${u.role}</div></div><div class="row-actions"><span class="badge ${u.active===false?"red":"green"}">${u.active===false?L("disabled"):L("active")}</span><button class="btn" data-subaction="toggleUser" data-id="${i}">${u.active===false?L("enable"):L("disable")}</button>${u.username!=="admin"?`<button class="btn btn-danger" data-subaction="deleteUser" data-id="${i}">🗑</button>`:""}</div></div>`).join("")}</div></section>`}
 function addUserAdmin(){const name=$("userName").value.trim(),username=$("userUsername").value.trim(),password=$("userPassword").value,role=$("userRole").value;if(!name||!username||!password)return alert(L("required"));if(S.users.some(u=>u.username===username))return alert("Username exists");S.users.push({id:uid("u"),name,username,password,role,active:true});saveState();renderPage()}
@@ -267,7 +349,7 @@ function adminAudit(){const logs=[...S.sales.map(x=>({t:x.date+" "+x.time,u:x.us
 function adminAction(a,id){
  if(a==="themeLight"){S.theme="light";saveState();renderPage()} if(a==="themeDark"){S.theme="dark";saveState();renderPage()} if(a==="themeAuto"){S.theme="auto";saveState();renderPage()}
  if(a==="toggleProduct"){S.products[id].active=S.products[id].active===false;saveState();renderPage()} if(a==="deleteProduct"){S.products.splice(id,1);saveState();renderPage()}
- if(a==="togglePromo"){S.promotions[id].active=!S.promotions[id].active;saveState();renderPage()} if(a==="deletePromo"){S.promotions.splice(id,1);saveState();renderPage()}
+ if(a==="editPromo"){editPromotionV26(Number(id));return} if(a==="togglePromo"){S.promotions[id].active=!S.promotions[id].active;saveState();renderPage()} if(a==="deletePromo"){S.promotions.splice(id,1);saveState();renderPage()}
  if(a==="toggleUser"){S.users[id].active=S.users[id].active===false;saveState();renderPage()} if(a==="deleteUser"){S.users.splice(id,1);saveState();renderPage()}
  if(a==="exportAll"){downloadText("nona-me-all-data.csv",buildCSV())}
  if(a==="overviewDay"||a==="overviewWeek"||a==="overviewMonth"){goto(a==="overviewDay"?"report":"period")}
@@ -280,3 +362,39 @@ function $(id){return document.getElementById(id)}
 
 window.addEventListener("storage",()=>{S=loadState();render()});
 window.addEventListener("DOMContentLoaded",()=>{window.addEventListener("online",()=>{});render()});
+
+/* ========================= V23 PRODUCTS / MENU VISIBILITY FIX ========================= */
+function renderMenuV23(){
+  const q=S.ui.search||"";
+  const cats=[L("all"),...new Set(activeProducts().map(p=>p.category))];
+  const list=activeProducts().filter(p=>(S.ui.category===L("all")||S.ui.category===p.category) &&
+    ((p.en||"").toLowerCase().includes(q.toLowerCase()) || (p.kh||"").includes(q)));
+  return `<div class="page-head"><div><h1>☕ ${S.lang==="kh"?"មីនុយ":"Menu"}</h1><div class="muted">${S.lang==="kh"?"ជ្រើសរើសមុខទំនិញ":"Choose a product"}</div></div>
+  <div class="action-row"><select id="menuCategoryV23" class="category-select">${cats.map(c=>`<option ${S.ui.category===c?"selected":""}>${esc(c)}</option>`).join("")}</select>
+  <button id="menuViewV23" class="btn">${S.ui.menuView==="grid"?"☷":"▦"} ${S.ui.menuView==="grid"?L("list"):L("grid")}</button></div></div>
+  <section class="panel"><input id="menuSearchV23" class="search" placeholder="${L("search")}">
+  <div class="product-grid ${S.ui.menuView==="list"?"list-view":""}" id="menuGridV23">
+  ${list.map(p=>`<button class="product-card" data-menu-add-v23="${p.id}"><img class="product-image" src="${esc(p.image||"assets/nona-me-logo.png")}"><div><div class="product-name">${esc(p[S.lang])}</div><div class="product-kh">${esc(S.lang==="kh"?p.en:p.kh)}</div></div><div class="price">${moneyKHR(p.price)}</div></button>`).join("")||`<div class="empty">${L("noRecords")}</div>`}</div></section>`;
+}
+function bindMenuV23(){
+  const c=$("menuCategoryV23"),q=$("menuSearchV23"),v=$("menuViewV23");
+  if(c)c.onchange=()=>{S.ui.category=c.value;saveState();renderPage()};
+  if(q){q.value=S.ui.search||"";q.oninput=()=>{S.ui.search=q.value;renderPage()}};
+  if(v)v.onclick=()=>{S.ui.menuView=S.ui.menuView==="grid"?"list":"grid";saveState();renderPage()};
+  document.querySelectorAll("[data-menu-add-v23]").forEach(b=>b.onclick=()=>{addCart(b.dataset.menuAddV23);});
+}
+const _renderPageV23 = renderPage;
+renderPage = function(){
+  if(S.page==="menu"){ $("page").innerHTML=renderMenuV23(); bindMenuV23(); return; }
+  _renderPageV23();
+};
+const _navItemsV23 = navItems;
+navItems = function(){
+  const base=_navItemsV23();
+  const out=[];
+  base.forEach(item=>{
+    out.push(item);
+    if(item[0]==="sales") out.push(["menu","☕"]);
+  });
+  return out;
+};
