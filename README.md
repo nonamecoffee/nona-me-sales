@@ -1,25 +1,18 @@
-# Nona-me Sales — Master 1.5
+# Nona-me Sales — Master 1.6
 
-Full Replacement build with Supabase Cloud Authentication and shared cloud data.
+Full replacement build based on Master 1.5.
 
-## Supabase setup
-1. Supabase Project URL is already configured in `app.js`.
-2. The browser uses the Supabase publishable key only; never use a service-role key in frontend code.
-3. Open Supabase → SQL Editor → New Query.
-4. Copy the complete `supabase_schema.sql` from this ZIP and Run it.
-5. Enable Email provider in Supabase Auth if it is not already enabled.
-6. Create the first Cloud account from the website. The SQL trigger makes the first Cloud user an Admin and later users Staff.
+## Asset reliability
+The official Nona-me logo is included in BOTH locations:
+- `logo.png` (root — primary path)
+- `assets/nona-me-logo.png` (compatibility copy)
 
-## Cloud data
-Operational data is synced to Supabase tables for:
-- Sales + sale items
-- Expenses
-- Bank deposits
-- Cash counts
-- Stock items
-- Shared catalog/settings state (Admin writes; authenticated users read)
+The login/header logo uses `./logo.png` and includes a browser fallback so the UI does not show a broken image when an asset path fails.
 
-Product images and stock images are kept as square data URLs for this prototype.
+## Supabase
+- Project URL is configured in `app.js`.
+- Publishable key is configured in `app.js`.
+- Do not add a service-role key to the browser.
 
-## Important
-The Demo login is still available for offline testing. Demo data is local to the current browser and is not the same as Cloud accounts.
+## Deployment
+Replace the existing project files in GitHub with the entire contents of this package, then let Vercel deploy.
