@@ -1,1227 +1,282 @@
-const KEY = {
-  sales: "nm_sales_v7",
-  expenses: "nm_expenses_v7",
-  deposits: "nm_deposits_v7",
-  cash: "nm_cashcounts_v7",
-  settings: "nm_settings_v7",
-  rate: "nm_rate_v7",
-  session: "nm_session_v7"
+
+const DB="nona_me_master_v20";
+const defaultState={
+  lang:"en", theme:"light", user:null, remember:false, page:"sales",
+  products:[], promotions:[{id:"promo1",en:"2 Cups Special",kh:"ប្រូម៉ូសិន ២ កែវ",qty:2,price:6000,active:true,products:"ALL"}],
+  users:[
+    {id:"u-admin",name:"Admin",username:"admin",password:"admin",role:"admin",active:true},
+    {id:"u-staff",name:"Staff 01",username:"staff01",password:"1234",role:"staff",active:true}
+  ],
+  sales:[], expenses:[], deposits:[], cashCounts:[], stock:[],
+  settings:{shopName:"nona-me coffee",phone:"",address:"",telegram:"",rate:4000},
+  cms:{shopName:"nona-me coffee",tagline:"Daily Sales System",announcement:"",footer:"Thank you",logo:"",primary:"#8B2E23",accent:"#C4563B",beige:"#E2C9A8",cream:"#F8F6F1",dark:"#3A2A24",green:"#5A7D5B"},
+  ui:{category:"All",menuView:"grid",currency:"KHR",payment:"Cash",cart:[], reportSeparator:"━━━━━━━━━━━━━━━━━━"}
 };
-
-const I18N = {
-  kh: {
-    sales: "ការលក់", expenses: "ចំណាយ", cash: "លុយក្នុងតុ", deposit: "ដាក់ធនាគារ", report: "របាយការណ៍", history: "ប្រវត្តិ", admin: "គ្រប់គ្រង",
-    todaySales: "ការលក់ថ្ងៃនេះ", menu: "មីនុយ", currentSale: "ការលក់បច្ចុប្បន្ន", selectDrink: "សូមជ្រើសភេសជ្ជៈ", item: "មុខទំនិញ", qty: "ចំនួន", total: "សរុប",
-    expense: "ការចំណាយ", spentOn: "ចំណាយលើអ្វី?", amount: "ចំនួនទឹកប្រាក់", payment: "វិធីបង់", note: "កំណត់សម្គាល់", addExpense: "បញ្ចូលការចំណាយ",
-    previous: "សល់ពីមុន", expected: "គួរសល់", actual: "រាប់បានជាក់ស្តែង", difference: "ខុសគ្នា", cashResult: "លទ្ធផលសាច់ប្រាក់",
-    bankDeposit: "ដាក់ចូលធនាគារ", bank: "ធនាគារ", depositNote: "ដាក់ចូលធនាគារ", addDeposit: "បញ្ចូលការដាក់ធនាគារ",
-    dailyReport: "របាយការណ៍ប្រចាំថ្ងៃ", staff: "បុគ្គលិក", cups: "ចំនួនកែវ", bestSeller: "មុខលក់ដាច់ជាងគេ", rate: "អត្រាប្តូរប្រាក់",
-    salesSection: "ការលក់", expensesSection: "ចំណាយ", cashMovement: "ចលនាសាច់ប្រាក់", actualCash: "សាច់ប្រាក់រាប់បាន", cashCountMissing: "មិនទាន់រាប់លុយ",
-    salesKHR: "ការលក់ KHR", salesUSD: "ការលក់ USD", expenseKHR: "ចំណាយ KHR", expenseUSD: "ចំណាយ USD", cashSales: "ការលក់សាច់ប្រាក់", cashExpenses: "ចំណាយសាច់ប្រាក់", bankDeposits: "ប្រាក់ដាក់ធនាគារ",
-    expectedTable: "សាច់ប្រាក់រំពឹងទុកក្នុងតុ", actualKHR: "សាច់ប្រាក់ជាក់ស្តែង KHR", actualUSD: "សាច់ប្រាក់ជាក់ស្តែង USD", best: "មុខលក់ដាច់",
-    noRecords: "មិនទាន់មានទិន្នន័យ", invalid: "ឈ្មោះអ្នកប្រើ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ", chooseDrink: "សូមជ្រើសភេសជ្ជៈជាមុនសិន",
-    saved: "រក្សាទុករួច", copied: "ចម្លងរួច", noCount: "មិនទាន់បញ្ចូលការរាប់លុយ", login: "ចូលប្រើ", logout: "ចេញ", remember: "ចងចាំការចូលប្រើ"
-  },
-  en: {
-    sales: "Sales", expenses: "Expenses", cash: "Daily Cash", deposit: "Bank Deposit", report: "Daily Report", history: "History", admin: "Admin",
-    todaySales: "Today's Sales", menu: "Menu", currentSale: "Current Sale", selectDrink: "Select drinks", item: "Item", qty: "Qty", total: "Total",
-    expense: "Expenses", spentOn: "Spent on", amount: "Amount", payment: "Payment", note: "Note", addExpense: "Add Expense",
-    previous: "Previous", expected: "Expected", actual: "Actual", difference: "Difference", cashResult: "Cash Result",
-    bankDeposit: "Bank Deposit", bank: "Bank", depositNote: "Note", addDeposit: "Add Deposit",
-    dailyReport: "Daily Report", staff: "Staff", cups: "Total Cups", bestSeller: "Best Seller", rate: "Exchange Rate",
-    salesSection: "SALES", expensesSection: "EXPENSES", cashMovement: "CASH MOVEMENT", actualCash: "ACTUAL CASH", cashCountMissing: "Not counted yet",
-    salesKHR: "Sales KHR", salesUSD: "Sales USD", expenseKHR: "Expenses KHR", expenseUSD: "Expenses USD", cashSales: "Cash Sales", cashExpenses: "Cash Expenses", bankDeposits: "Bank Deposit",
-    expectedTable: "Expected Cash in Table", actualKHR: "Actual Cash KHR", actualUSD: "Actual Cash USD", best: "Best Seller",
-    noRecords: "No records yet", invalid: "Invalid username or password", chooseDrink: "Please select a drink first",
-    saved: "Saved", copied: "Copied", noCount: "Cash count not submitted", login: "Login", logout: "Logout", remember: "Remember login"
-  }
+const T={
+ en:{
+  sales:"Sales",expenses:"Expenses",cash:"Cash Drawer",deposit:"Bank Deposit",stock:"Stock",admin:"Admin",report:"Daily Report",period:"Reports",history:"History",
+  today:"Today's Sales",menu:"Menu",current:"Current Sale",search:"Search menu...",all:"All",save:"Save",cancel:"Cancel",add:"Add",edit:"Edit",delete:"Delete",enable:"Enable",disable:"Disable",
+  category:"Category",currency:"Currency",rate:"Rate",payment:"Payment",cash:"Cash",aba:"ABA",other:"Other",total:"Total",cups:"Cups",
+  promotion:"Promotion",none:"No Promotion",normalPrice:"Normal price",saveSale:"Save Sale",savePrint:"Save & Print",print:"Print",
+  expense:"Expense",expenseOn:"What was it spent on?",amount:"Amount",note:"Note",method:"Payment method",
+  prevCash:"Previous Cash",cashSales:"Cash Sales",cashExpenses:"Cash Expenses",bankDeposit:"Bank Deposit",expected:"Expected Cash",actual:"Actual Cash",difference:"Difference",
+  reportTitle:"Daily Report",date:"Date",staff:"Staff",bestSeller:"Best Seller",exchange:"Exchange Rate",copy:"Copy Text",export:"Export CSV",clear:"Clear",
+  overview:"Overview",website:"Website Control",products:"Products & Menu",promotions:"Promotions",inventory:"Inventory",staffUsers:"Staff & Users",settings:"Shop Settings",audit:"Audit Log",appearance:"Appearance",
+  displayMode:"Display Mode",light:"Light",dark:"Dark",auto:"Auto",primary:"Primary",accent:"Accent",beige:"Beige",cream:"Cream",darkColor:"Dark",green:"Green",chooseColor:"Choose color",
+  logo:"Official Logo",uploadLogo:"Upload Logo",navigation:"Navigation",show:"Show",hide:"Hide",view:"View",grid:"Grid",list:"List",separator:"Report Separator",
+  addProduct:"Add Product",englishName:"English Name",khmerName:"Khmer Name",priceKHR:"Price KHR",image:"Image",
+  addPromo:"Add Promotion",buyCups:"Buy Cups",promoPrice:"Promotion Price",applies:"Applies to",
+  addUser:"Add User",name:"Name",username:"Username",password:"Password",role:"Role",active:"Active",disabled:"Disabled",
+  addStock:"Add Stock",item:"Stock Item",quantity:"Quantity",unit:"Unit",minimum:"Low Stock Level",
+  daily:"Daily",weekly:"Weekly",monthly:"Monthly",viewReport:"View Report",net:"Net",salesKHR:"Sales KHR",salesUSD:"Sales USD",expensesKHR:"Expenses KHR",expensesUSD:"Expenses USD",depositKHR:"Deposit KHR",depositUSD:"Deposit USD",
+  logout:"Logout",login:"Login",remember:"Remember login",noRecords:"No records yet",saved:"Saved",copied:"Copied",loginError:"Invalid login",required:"Please complete required fields.",
+  currentCash:"Current Cash",transactions:"Transactions",inventoryAlert:"Low Stock",exportData:"Export Data",siteTitle:"Website settings",receipt:"Receipt",paper:"Receipt paper",thankYou:"Receipt footer",
+  today:"Today",previous:"Previous",actualCount:"Cash Count"
+ },
+ kh:{
+  sales:"ការលក់",expenses:"ចំណាយ",cash:"លុយក្នុងតុ",deposit:"ដាក់ធនាគារ",stock:"ស្តុក",admin:"គ្រប់គ្រង",report:"របាយការណ៍ប្រចាំថ្ងៃ",period:"របាយការណ៍",history:"ប្រវត្តិ",
+  today:"ការលក់ថ្ងៃនេះ",menu:"មីនុយ",current:"ការលក់បច្ចុប្បន្ន",search:"ស្វែងរកមីនុយ...",all:"ទាំងអស់",save:"រក្សាទុក",cancel:"បោះបង់",add:"បន្ថែម",edit:"កែ",delete:"លុប",enable:"បើក",disable:"បិទ",
+  category:"ប្រភេទ",currency:"រូបិយប័ណ្ណ",rate:"អត្រា",payment:"ការទូទាត់",cash:"សាច់ប្រាក់",aba:"ABA",other:"ផ្សេងៗ",total:"សរុប",cups:"កែវ",
+  promotion:"ប្រូម៉ូសិន",none:"គ្មានប្រូម៉ូសិន",normalPrice:"តម្លៃធម្មតា",saveSale:"រក្សាទុកការលក់",savePrint:"រក្សាទុក និងព្រីន",print:"ព្រីន",
+  expense:"ចំណាយ",expenseOn:"ចំណាយលើអ្វី?",amount:"ចំនួនទឹកប្រាក់",note:"កំណត់សម្គាល់",method:"វិធីទូទាត់",
+  prevCash:"សាច់ប្រាក់ដើម",cashSales:"លក់សាច់ប្រាក់",cashExpenses:"ចំណាយសាច់ប្រាក់",bankDeposit:"ដាក់ធនាគារ",expected:"សាច់ប្រាក់រំពឹងទុក",actual:"សាច់ប្រាក់រាប់បាន",difference:"ខុសគ្នា",
+  reportTitle:"របាយការណ៍ប្រចាំថ្ងៃ",date:"កាលបរិច្ឆេទ",staff:"បុគ្គលិក",bestSeller:"លក់ដាច់ជាងគេ",exchange:"អត្រាប្តូរប្រាក់",copy:"ចម្លងអត្ថបទ",export:"ទាញ CSV",clear:"សម្អាត",
+  overview:"សង្ខេប",website:"គ្រប់គ្រង Website",products:"មុខទំនិញ និងមីនុយ",promotions:"ប្រូម៉ូសិន",inventory:"ស្តុក",staffUsers:"បុគ្គលិក និងអ្នកប្រើ",settings:"កំណត់ហាង",audit:"ប្រវត្តិសកម្មភាព",appearance:"រូបរាង",
+  displayMode:"របៀបបង្ហាញ",light:"ភ្លឺ",dark:"ងងឹត",auto:"ស្វ័យប្រវត្តិ",primary:"ពណ៌មេ",accent:"ពណ៌បន្ថែម",beige:"ត្នោតស្រាល",cream:"ពណ៌ក្រែម",darkColor:"ងងឹត",green:"បៃតង",chooseColor:"ជ្រើសពណ៌",
+  logo:"Logo ផ្លូវការ",uploadLogo:"បញ្ចូល Logo",navigation:"មីនុយ",show:"បង្ហាញ",hide:"លាក់",view:"មើល",grid:"ក្រឡា",list:"បញ្ជី",separator:"បន្ទាត់ខណ្ឌរបាយការណ៍",
+  addProduct:"បន្ថែមមុខទំនិញ",englishName:"ឈ្មោះអង់គ្លេស",khmerName:"ឈ្មោះខ្មែរ",priceKHR:"តម្លៃរៀល",image:"រូបភាព",
+  addPromo:"បន្ថែមប្រូម៉ូសិន",buyCups:"ចំនួនកែវ",promoPrice:"តម្លៃប្រូម៉ូសិន",applies:"ប្រើសម្រាប់",
+  addUser:"បន្ថែមអ្នកប្រើ",name:"ឈ្មោះ",username:"ឈ្មោះអ្នកប្រើ",password:"ពាក្យសម្ងាត់",role:"តួនាទី",active:"ដំណើរការ",disabled:"បិទ",
+  addStock:"បញ្ចូលស្តុក",item:"មុខស្តុក",quantity:"ចំនួន",unit:"ឯកតា",minimum:"កម្រិតព្រមាន",
+  daily:"ប្រចាំថ្ងៃ",weekly:"ប្រចាំសប្តាហ៍",monthly:"ប្រចាំខែ",viewReport:"មើលរបាយការណ៍",net:"សុទ្ធ",salesKHR:"ការលក់រៀល",salesUSD:"ការលក់ដុល្លារ",expensesKHR:"ចំណាយរៀល",expensesUSD:"ចំណាយដុល្លារ",depositKHR:"ដាក់ធនាគាររៀល",depositUSD:"ដាក់ធនាគារដុល្លារ",
+  logout:"ចេញ",login:"ចូលប្រើ",remember:"ចងចាំការចូល",noRecords:"មិនទាន់មានទិន្នន័យ",saved:"បានរក្សាទុក",copied:"បានចម្លង",loginError:"ឈ្មោះអ្នកប្រើ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ",required:"សូមបំពេញព័ត៌មានដែលត្រូវការ។",
+  currentCash:"សាច់ប្រាក់បច្ចុប្បន្ន",transactions:"ប្រតិបត្តិការ",inventoryAlert:"ស្តុកជិតអស់",exportData:"ទាញទិន្នន័យ",siteTitle:"ការកំណត់ Website",receipt:"វិក្កយបត្រ",paper:"ក្រដាសវិក្កយបត្រ",thankYou:"អក្សរខាងក្រោមវិក្កយបត្រ",
+  today:"ថ្ងៃនេះ",previous:"មុន",actualCount:"រាប់សាច់ប្រាក់"
+ }
 };
-
-const $ = id => document.getElementById(id);
-const t = key => I18N[S.lang][key] || key;
-const moneyKHR = n => Number(n || 0).toLocaleString("km-KH") + "៛";
-const moneyUSD = n => "$" + Number(n || 0).toFixed(2);
-const read = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fallback)); } catch { return fallback; } };
-const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-const now = () => new Date();
-const today = () => now().toISOString().slice(0, 10);
-
-const migrate = (freshKey, oldKeys) => {
-  const existing = localStorage.getItem(freshKey);
-  if (existing) return;
-  for (const k of oldKeys) { const v = localStorage.getItem(k); if (v) { localStorage.setItem(freshKey, v); return; } }
-};
-migrate(KEY.sales, ["nm_sales_v6", "nm_sales_v5"]);
-migrate(KEY.expenses, ["nm_expenses_v6", "nm_expenses_v5"]);
-migrate(KEY.deposits, ["nm_deposits_v6", "nm_deposits_v5"]);
-migrate(KEY.cash, ["nm_cashcounts_v6"]);
-migrate(KEY.settings, ["nm_settings_v6", "nm_settings_v5"]);
-if (!localStorage.getItem(KEY.rate) && localStorage.getItem("nm_rate")) localStorage.setItem(KEY.rate, localStorage.getItem("nm_rate"));
-
-const S = {
-  user: null, role: null, lang: localStorage.getItem("nm_lang_v7") || "kh", products: [], category: "All", cart: {}, currency: "KHR", payment: "Cash",
-  rate: Number(localStorage.getItem(KEY.rate) || 4000),
-  sales: read(KEY.sales, []), expenses: read(KEY.expenses, []), deposits: read(KEY.deposits, []), cashCounts: read(KEY.cash, []),
-  settings: read(KEY.settings, { shopName: "nona-me coffee", phone: "", telegram: "", address: "" })
-};
-
-async function boot() {
-  S.products = read("nm_products_v10", null) || await fetch("products.json").then(r => r.json()); write("nm_products_v10", S.products);
-  bindEvents();
-  restoreSession();
-  if (!S.user) showLogin(); else showApp();
-  applyLanguage();
-  renderAll();
-}
-
-function bindEvents() {
-  $("loginBtn").onclick = login;
-  $("password").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
-  $("logoutBtn").onclick = logout;
-  $("langBtn").onclick = () => { S.lang = S.lang === "kh" ? "en" : "kh"; localStorage.setItem("nm_lang_v7", S.lang); applyLanguage(); renderAll(); };
-  $("menuSearch").oninput = renderProducts;
-  $("rateInput").oninput = e => { S.rate = Math.max(1, Number(e.target.value || 4000)); localStorage.setItem(KEY.rate, S.rate); renderProducts(); renderCart(); renderReport(); renderCash(); };
-  $("saveSaleBtn").onclick = saveSale;
-  $("savePrintSaleBtn").onclick = saveSaleAndPrint;
-  $("saveExpenseBtn").onclick = saveExpense;
-  $("saveDepositBtn").onclick = saveDeposit;
-  $("saveCashCountBtn").onclick = saveCashCount;
-  $("exportPng").onclick = exportPng;
-  $("copyText").onclick = copyText;
-  $("downloadTxt").onclick = downloadTxt;
-  $("shareTelegram").onclick = shareTelegram;
-  document.querySelectorAll(".tab").forEach(b => b.onclick = () => showPage(b.dataset.page, b));
-  document.querySelectorAll(".currency-btn").forEach(b => b.onclick = () => { S.currency = b.dataset.currency; document.querySelectorAll(".currency-btn").forEach(x => x.classList.toggle("active", x === b)); renderCart(); });
-  document.querySelectorAll(".pay-btn").forEach(b => b.onclick = () => { S.payment = b.dataset.payment; document.querySelectorAll(".pay-btn").forEach(x => x.classList.toggle("active", x === b)); });
-}
-
-function showLogin() { $("loginScreen").classList.remove("hidden"); $("app").classList.add("hidden"); }
-function showApp() { $("loginScreen").classList.add("hidden"); $("app").classList.remove("hidden"); }
-function restoreSession() {
-  const s = read(KEY.session, null);
-  if (s && s.user && (Date.now() - Number(s.createdAt || 0) < 1000 * 60 * 60 * 24 * 30)) { S.user = s.user; S.role = s.role; }
-}
-function login() {
-  const u = $("username").value.trim(), p = $("password").value;
-  const valid = (u === "admin" && p === "admin") || (u.startsWith("staff") && p === "1234");
-  if (!valid) return alert(t("invalid"));
-  S.user = u; S.role = u === "admin" ? "admin" : "staff";
-  if ($("rememberLogin")?.checked !== false) write(KEY.session, { user: S.user, role: S.role, createdAt: Date.now() });
-  showApp(); updateUserLine(); if (S.role === "admin") $("adminTab").classList.remove("hidden"); else $("adminTab").classList.add("hidden"); renderAll();
-}
-function logout() { localStorage.removeItem(KEY.session); S.user = null; S.role = null; showLogin(); }
-function updateUserLine() { $("userLine").textContent = `${S.user || "—"} · ${(S.role || "").toUpperCase()}`; }
-
-function applyLanguage() {
-  document.documentElement.lang = S.lang === "kh" ? "km" : "en";
-  if ($("rememberLogin")) $("rememberLogin").nextElementSibling.textContent = t("remember");
-  updateUserLine();
-  const map = {
-    "adminTab": t("admin"),
-    "langBtn": "ខ្មែរ / EN", "logoutBtn": t("logout"), "loginBtn": `${t("login")} / ${S.lang === "kh" ? "ចូលប្រើ" : "Login"}`,
-    "saveSaleBtn": `SAVE SALE / ${S.lang === "kh" ? "រក្សាទុក" : "Save Sale"}`,
-    "saveExpenseBtn": `SAVE EXPENSE / ${S.lang === "kh" ? "រក្សាទុក" : "Save Expense"}`,
-    "saveDepositBtn": `SAVE DEPOSIT / ${S.lang === "kh" ? "រក្សាទុក" : "Save Deposit"}`,
-    "saveCashCountBtn": `SAVE CASH COUNT / ${S.lang === "kh" ? "រក្សាទុក" : "Save Cash Count"}`,
-    "exportPng": `🖼 ${S.lang === "kh" ? "រក្សាទុកជារូបភាព / PNG" : "Export Image / PNG"}`,
-    "copyText": `📋 ${S.lang === "kh" ? "ចម្លងអត្ថបទ" : "Copy Text"}`,
-    "downloadTxt": `📄 ${S.lang === "kh" ? "ទាញយក TXT" : "Download TXT"}`,
-    "shareTelegram": `✈️ ${S.lang === "kh" ? "Telegram" : "Telegram"}`
-  };
-  Object.entries(map).forEach(([id, text]) => { if ($(id)) $(id).textContent = text; });
-  const placeholders = { menuSearch: S.lang === "kh" ? "ស្វែងរកមីនុយ..." : "Search menu...", expenseDesc: S.lang === "kh" ? "ឧ. ទិញទឹកកក" : "e.g. ice", expenseNote: S.lang === "kh" ? "មិនបាច់ក៏បាន" : "Optional", depositBank: "ABA / ACLEDA / Other", depositNote: "ដាក់ចូលធនាគារ" };
-  Object.entries(placeholders).forEach(([id, text]) => { if ($(id)) $(id).placeholder = text; });
-}
-
-function showPage(name, btn) {
-  document.querySelectorAll(".page").forEach(x => x.classList.add("hidden"));
-  $(name + "Page").classList.remove("hidden");
-  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active")); btn.classList.add("active");
-  if (name === "expenses") renderExpenses(); if (name === "cash") renderCash(); if (name === "deposit") renderDeposits(); if (name === "report") renderReport(); if (name === "history") renderHistory(); if (name === "admin") renderAdmin("overview");
-}
-function renderAll() { renderCategories(); renderProducts(); renderCart(); renderExpenses(); renderCash(); renderDeposits(); renderReport(); renderHistory(); if (S.role === "admin") renderAdmin("overview"); refreshAll(); updateUserLine(); }
-
-function renderCategories() { ensureProductsLoaded(); const base = ["All", ...productCategories()]; const kh = { All: "ទាំងអស់", Coffee: "កាហ្វេ", Matcha: "Matcha", Cacao: "កាកាវ", Tea: "តែ", Soda: "សូដា" }; const cats = [...new Set(base)]; $("categoryBar").innerHTML = cats.map(c => `<button class="chip ${S.category === c ? "active" : ""}" onclick="setCategory(${JSON.stringify(c)})">${S.lang === "kh" ? (kh[c] || c) : c}</button>`).join(""); }
-function setCategory(c) { S.category = c; renderCategories(); renderProducts(); }
-function renderProducts() { const q = ($("menuSearch").value || "").toLowerCase(); const list = S.products.filter(p => (S.category === "All" || p[3] === S.category) && (`${p[0]} ${p[1]}`).toLowerCase().includes(q)); $("productGrid").innerHTML = list.map(p => { const i = S.products.indexOf(p); return `<button class="product" onclick="addToCart(${i})"><div>${p[0]}</div><span class="kh">${p[1]}</span><span class="price">${moneyKHR(p[2])} / ${moneyUSD(p[2] / S.rate)}</span></button>`; }).join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
-function addToCart(i) { const p = S.products[i]; S.cart[i] = S.cart[i] || { name: p[0], kh: p[1], priceKHR: p[2], qty: 0 }; S.cart[i].qty++; renderCart(); }
-function minus(i) { if (!S.cart[i]) return; S.cart[i].qty--; if (S.cart[i].qty <= 0) delete S.cart[i]; renderCart(); }
-function cartKhr() { return Object.values(S.cart).reduce((s, v) => s + v.priceKHR * v.qty, 0); }
-function renderCart() {
-  const items = Object.entries(S.cart), total = cartKhr();
-  if (!items.length) { $("cart").innerHTML = `<div class="cart-empty">☕ ${t("selectDrink")}</div>`; $("cartTotal").textContent = "0៛"; return; }
-  let rows = "";
-  items.forEach(([i, v]) => rows += `<tr><td>${S.lang === "kh" ? v.kh : v.name}</td><td><button class="qty-btn" onclick="minus(${i})">−</button> ${v.qty} <button class="qty-btn" onclick="addToCart(${i})">+</button></td><td>${S.currency === "KHR" ? moneyKHR(v.priceKHR * v.qty) : moneyUSD(v.priceKHR * v.qty / S.rate)}</td></tr>`);
-  $("cart").innerHTML = `<table class="cart-table"><tr><th>${t("item")}</th><th>${t("qty")}</th><th>${t("total")}</th></tr>${rows}</table>`;
-  $("cartTotal").textContent = S.currency === "KHR" ? moneyKHR(total) : moneyUSD(total / S.rate);
-}
-function createSaleRecord() {
-  const items = Object.values(S.cart); if (!items.length) return null;
-  const d = now(), totalKHR = cartKhr(), cups = items.reduce((s, v) => s + v.qty, 0), amount = S.currency === "KHR" ? totalKHR : totalKHR / S.rate;
-  const sale = { id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, payment: S.payment, currency: S.currency, amount, totalKHR, cups, rate: S.rate, createdAt: Date.now(), items: items.map(v => ({ name: v.name, kh: v.kh, priceKHR: v.priceKHR, qty: v.qty })) };
-  S.sales.push(sale); write(KEY.sales, S.sales); S.cart = {}; return sale;
-}
-function saveSale() {
-  const sale = createSaleRecord();
-  if (!sale) return alert(t("chooseDrink"));
-  renderCart(); refreshAll(); renderReport(); alert(t("saved"));
-}
-function saveSaleAndPrint() {
-  const sale = createSaleRecord();
-  if (!sale) return alert(t("chooseDrink"));
-  renderCart(); refreshAll(); renderReport();
-  printReceipt(sale);
-}
-function printReceipt(sale) {
-  const c = S.cms || {};
-  const shop = escAttr(c.shopName || S.settings.shopName || "nona-me coffee");
-  const phone = escAttr(S.settings.phone || "");
-  const address = escAttr(S.settings.address || "");
-  const rows = (sale.items || []).map(i => `<tr><td>${S.lang==='kh' ? (i.kh || i.name) : i.name}</td><td>${i.qty}</td><td>${sale.currency==='KHR' ? moneyKHR(i.priceKHR*i.qty) : moneyUSD((i.priceKHR*i.qty)/sale.rate)}</td></tr>`).join("");
-  const total = sale.currency==='KHR' ? moneyKHR(sale.amount) : moneyUSD(sale.amount);
-  const html = `<!doctype html><html lang="km"><head><meta charset="utf-8"><title>Receipt ${sale.id}</title><style>@page{size:80mm auto;margin:4mm}*{box-sizing:border-box}body{font-family:Arial,'Noto Sans Khmer',sans-serif;width:72mm;margin:0 auto;color:#222;font-size:12px}.center{text-align:center}.brand{font-size:18px;font-weight:800}.muted{color:#666;font-size:10px}.line{border-top:1px dashed #777;margin:7px 0}table{width:100%;border-collapse:collapse}th,td{padding:4px 0;text-align:left;vertical-align:top}th:last-child,td:last-child{text-align:right}.total{font-size:16px;font-weight:800;display:flex;justify-content:space-between;margin-top:8px}.thanks{text-align:center;margin-top:12px;font-weight:700}</style></head><body><div class="center"><div class="brand">${shop}</div>${phone?`<div>${phone}</div>`:''}${address?`<div>${address}</div>`:''}<div class="line"></div><div><b>Receipt / វិក័យប័ត្រ</b></div><div class="muted">${sale.date} · ${sale.time}</div><div class="muted">${sale.user} · ${sale.payment}</div></div><div class="line"></div><table><thead><tr><th>Item / មុខទំនិញ</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><div class="line"></div><div class="total"><span>Total / សរុប</span><span>${total}</span></div><div class="muted">Currency: ${sale.currency} · Rate: ${Number(sale.rate).toLocaleString()}៛/$1</div><div class="thanks">Thank you / សូមអរគុណ</div><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script></body></html>`;
-  const w=window.open('', '_blank', 'width=420,height=700');
-  if(!w){ alert(S.lang==='kh' ? 'Browser បានរារាំង Print Window។ សូមអនុញ្ញាត Pop-ups។' : 'Print window was blocked. Please allow pop-ups.'); return; }
-  w.document.open(); w.document.write(html); w.document.close();
-}
-
-function saveExpense() { const desc = $("expenseDesc").value.trim(), amount = Number($("expenseAmount").value || 0); if (!desc || amount <= 0) return alert(`${t("spentOn")} + ${t("amount")}`); const d = now(); S.expenses.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, desc, amount, currency: $("expenseCurrency").value, payment: $("expensePayment").value, note: $("expenseNote").value.trim(), rate: S.rate, createdAt: Date.now() }); write(KEY.expenses, S.expenses); $("expenseDesc").value = ""; $("expenseAmount").value = ""; $("expenseNote").value = ""; renderAll(); alert(t("saved")); }
-function saveDeposit() { const amount = Number($("depositAmount").value || 0); if (amount <= 0) return alert(t("amount")); const d = now(); S.deposits.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, amount, currency: $("depositCurrency").value, bank: $("depositBank").value.trim(), note: $("depositNote").value.trim(), rate: S.rate, createdAt: Date.now() }); write(KEY.deposits, S.deposits); $("depositAmount").value = ""; $("depositBank").value = ""; $("depositNote").value = ""; renderAll(); alert(t("saved")); }
-function saveCashCount() { const d = now(), expected = expectedCurrentCash(); S.cashCounts.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, actualKhr: Number($("actualKhr").value || 0), actualUsd: Number($("actualUsd").value || 0), expectedKhr: expected.khr, expectedUsd: expected.usd, currencySummary: true, createdAt: Date.now() }); write(KEY.cash, S.cashCounts); renderAll(); alert(t("saved")); }
-
-function summary() {
-  const o = { salesKHR: 0, salesUSD: 0, cashKHR: 0, cashUSD: 0, abaKHR: 0, abaUSD: 0, otherKHR: 0, otherUSD: 0, expenseKHR: 0, expenseUSD: 0, cashExpKHR: 0, cashExpUSD: 0, depositKHR: 0, depositUSD: 0, cups: 0, tx: 0, items: {} };
-  S.sales.filter(s => s.date === today()).forEach(s => { o.tx++; o.cups += Number(s.cups || 0); if (s.currency === "KHR") { o.salesKHR += Number(s.amount); if (s.payment === "Cash") o.cashKHR += Number(s.amount); else if (s.payment === "ABA") o.abaKHR += Number(s.amount); else o.otherKHR += Number(s.amount); } else { o.salesUSD += Number(s.amount); if (s.payment === "Cash") o.cashUSD += Number(s.amount); else if (s.payment === "ABA") o.abaUSD += Number(s.amount); else o.otherUSD += Number(s.amount); } (s.items || []).forEach(i => o.items[i.kh || i.name] = (o.items[i.kh || i.name] || 0) + Number(i.qty || 0)); });
-  S.expenses.filter(e => e.date === today()).forEach(e => { if (e.currency === "KHR") { o.expenseKHR += Number(e.amount); if (e.payment === "Cash") o.cashExpKHR += Number(e.amount); } else { o.expenseUSD += Number(e.amount); if (e.payment === "Cash") o.cashExpUSD += Number(e.amount); } });
-  S.deposits.filter(d => d.date === today()).forEach(d => { if (d.currency === "KHR") o.depositKHR += Number(d.amount); else o.depositUSD += Number(d.amount); });
-  return o;
-}
-function previousBalance() {
-  // Running cash: all cash movements strictly before today. KHR and USD remain separate.
-  let khr = 0, usd = 0;
-  S.sales.filter(s => s.date < today() && s.payment === "Cash").forEach(s => s.currency === "KHR" ? khr += Number(s.amount) : usd += Number(s.amount));
-  S.expenses.filter(e => e.date < today() && e.payment === "Cash").forEach(e => e.currency === "KHR" ? khr -= Number(e.amount) : usd -= Number(e.amount));
-  S.deposits.filter(d => d.date < today()).forEach(d => d.currency === "KHR" ? khr -= Number(d.amount) : usd -= Number(d.amount));
-  // Latest prior verified cash count is a better starting point than rebuilding history only when it exists.
-  const priorCounts = S.cashCounts.filter(c => c.date < today()).sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
-  if (priorCounts.length) { const c = priorCounts[priorCounts.length - 1]; return { khr: Number(c.actualKhr || 0), usd: Number(c.actualUsd || 0) }; }
-  return { khr, usd };
-}
-function expectedCurrentCash() { const p = previousBalance(), o = summary(); return { khr: p.khr + o.cashKHR - o.cashExpKHR - o.depositKHR, usd: p.usd + o.cashUSD - o.cashExpUSD - o.depositUSD }; }
-function latestCash() { return S.cashCounts.filter(c => c.date === today()).sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0)).slice(-1)[0]; }
-
-function renderExpenses() { const rows = S.expenses.filter(x => x.date === today()).slice().reverse(); $("expenseList").innerHTML = rows.map(x => `<div class="list-row"><span><b>${x.desc}</b><br><small>${x.user} · ${x.time} · ${x.payment}${x.note ? " · " + x.note : ""}</small></span><b>${x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount)}</b></div>`).join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
-function renderDeposits() { const rows = S.deposits.filter(x => x.date === today()).slice().reverse(); $("depositList").innerHTML = rows.map(x => `<div class="list-row"><span><b>${x.bank || "Bank"}</b><br><small>${x.user} · ${x.time}${x.note ? " · " + x.note : ""}</small></span><b>${x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount)}</b></div>`).join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
-function renderCash() { const p = previousBalance(), e = expectedCurrentCash(), c = latestCash(); $("prevCashKhr").textContent = moneyKHR(p.khr); $("expectedCashKhr").textContent = moneyKHR(e.khr); $("prevCashUsd").textContent = moneyUSD(p.usd); $("expectedCashUsd").textContent = moneyUSD(e.usd); $("cashResult").innerHTML = `<div class="result-box"><div class="result-line"><span>${t("actualKHR")}</span><b>${c ? moneyKHR(c.actualKhr) : t("cashCountMissing")}</b></div><div class="result-line"><span>${t("actualUSD")}</span><b>${c ? moneyUSD(c.actualUsd) : t("cashCountMissing")}</b></div><div class="result-line"><span>${t("difference")} KHR</span><b class="${c && c.actualKhr - e.khr === 0 ? "matched" : "short"}">${c ? moneyKHR(c.actualKhr - e.khr) : "—"}</b></div><div class="result-line"><span>${t("difference")} USD</span><b class="${c && c.actualUsd - e.usd === 0 ? "matched" : "short"}">${c ? moneyUSD(c.actualUsd - e.usd) : "—"}</b></div></div>`; }
-function refreshAll() { const o = summary(); $("kpiKhr").textContent = moneyKHR(o.salesKHR); $("kpiUsd").textContent = moneyUSD(o.salesUSD); $("kpiCashKhr").textContent = moneyKHR(o.cashKHR); $("kpiCups").textContent = o.cups; }
-
-function reportData() { const o = summary(), p = previousBalance(), e = expectedCurrentCash(), c = latestCash(), best = Object.entries(o.items).sort((a, b) => b[1] - a[1])[0]; return { o, p, e, c, best }; }
-function reportText() { const { o, p, e, c, best } = reportData(); return `${S.settings.shopName || "nona-me coffee"}\n${t("dailyReport")} / DAILY REPORT\n${S.lang === "kh" ? "កាលបរិច្ឆេទ" : "Date"}: ${new Date().toLocaleDateString("en-GB")}\n${t("staff")}: ${S.user || "—"}\n\n${t("salesSection")}\nKHR: ${moneyKHR(o.salesKHR)}\nUSD: ${moneyUSD(o.salesUSD)}\n${t("cups")}: ${o.cups}\n\n${t("expensesSection")}\nKHR: ${moneyKHR(o.expenseKHR)}\nUSD: ${moneyUSD(o.expenseUSD)}\n\n${t("cashMovement")}\n${t("previous")} KHR: ${moneyKHR(p.khr)}\n${t("cashSales")} KHR: ${moneyKHR(o.cashKHR)}\n${t("cashExpenses")} KHR: ${moneyKHR(o.cashExpKHR)}\n${t("bankDeposits")} KHR: ${moneyKHR(o.depositKHR)}\n${t("expectedTable")} KHR: ${moneyKHR(e.khr)}\n\n${t("previous")} USD: ${moneyUSD(p.usd)}\n${t("cashSales")} USD: ${moneyUSD(o.cashUSD)}\n${t("cashExpenses")} USD: ${moneyUSD(o.cashExpUSD)}\n${t("bankDeposits")} USD: ${moneyUSD(o.depositUSD)}\n${t("expectedTable")} USD: ${moneyUSD(e.usd)}\n\n${t("actualCash")}\nKHR: ${c ? moneyKHR(c.actualKhr) : t("noCount")}\nUSD: ${c ? moneyUSD(c.actualUsd) : t("noCount")}\n${t("difference")} KHR: ${c ? moneyKHR(c.actualKhr - e.khr) : "—"}\n${t("difference")} USD: ${c ? moneyUSD(c.actualUsd - e.usd) : "—"}\n\n${t("bestSeller")}: ${best ? `${best[0]} (${best[1]} ${t("cups")})` : "—"}\n${t("rate")}: ${Number(S.rate).toLocaleString()}៛ = $1`; }
-function renderReport() { const { o, p, e, c, best } = reportData(); $("reportDate").textContent = `${new Date().toLocaleDateString("en-GB")} · ${S.user || "—"}`; $("reportPreview").innerHTML = `<div class="report-brand">${S.settings.shopName || "nona-me coffee"}</div><div class="report-title">${t("dailyReport")} / DAILY REPORT</div><p class="muted">${new Date().toLocaleDateString("en-GB")} · ${S.user || "—"}</p><div class="report-section-title">${t("salesSection")}</div>${line(t("salesKHR"), moneyKHR(o.salesKHR))}${line(t("salesUSD"), moneyUSD(o.salesUSD))}${line(t("cups"), o.cups)}<div class="report-section-title">${t("expensesSection")}</div>${line(t("expenseKHR"), moneyKHR(o.expenseKHR))}${line(t("expenseUSD"), moneyUSD(o.expenseUSD))}<div class="report-section-title">${t("cashMovement")}</div>${line(`${t("previous")} KHR`, moneyKHR(p.khr))}${line(`${t("cashSales")} KHR`, moneyKHR(o.cashKHR))}${line(`${t("cashExpenses")} KHR`, moneyKHR(o.cashExpKHR))}${line(`${t("bankDeposits")} KHR`, moneyKHR(o.depositKHR))}${line(`${t("expectedTable")} KHR`, moneyKHR(e.khr), true)}${line(`${t("previous")} USD`, moneyUSD(p.usd))}${line(`${t("cashSales")} USD`, moneyUSD(o.cashUSD))}${line(`${t("cashExpenses")} USD`, moneyUSD(o.cashExpUSD))}${line(`${t("bankDeposits")} USD`, moneyUSD(o.depositUSD))}${line(`${t("expectedTable")} USD`, moneyUSD(e.usd), true)}<div class="report-section-title">${t("actualCash")}</div>${line(t("actualKHR"), c ? moneyKHR(c.actualKhr) : `— ${t("noCount")}`)}${line(t("actualUSD"), c ? moneyUSD(c.actualUsd) : `— ${t("noCount")}`)}${line(`${t("difference")} KHR`, c ? moneyKHR(c.actualKhr - e.khr) : "—")}${line(`${t("difference")} USD`, c ? moneyUSD(c.actualUsd - e.usd) : "—")}${line(t("bestSeller"), best ? `${best[0]} (${best[1]} ${t("cups")})` : "—")}${line(t("rate"), `${Number(S.rate).toLocaleString()}៛ = $1`)}`; }
-function line(a, b, total = false) { return `<div class="report-line ${total ? "report-total" : ""}"><span>${a}</span><b>${b}</b></div>`; }
-
-async function exportPng() {
-  // SVG -> PNG keeps Khmer text rendered by the browser instead of canvas's limited font assumptions.
-  const text = reportText().split("\n"); const width = 1000, lineH = 34, height = Math.max(1450, 180 + text.length * lineH);
-  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const lines = text.map((s, i) => `<text x="80" y="${110 + i * lineH}" class="${i === 0 ? "brand" : i % 4 === 1 ? "title" : "body"}">${esc(s || " ")}</text>`).join("");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="#F8F6F1"/><rect x="45" y="45" width="910" height="${height - 90}" rx="28" fill="#fff" stroke="#E9E0DB"/><style>.brand{font:700 40px 'Noto Sans Khmer',Arial,sans-serif;fill:#3A2A24}.title{font:700 24px 'Noto Sans Khmer',Arial,sans-serif;fill:#8B2E23}.body{font:20px 'Noto Sans Khmer',Arial,sans-serif;fill:#4B3A32}</style>${lines}</svg>`;
-  const img = new Image(); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
-  const can = document.createElement("canvas"); can.width = width; can.height = height; const ctx = can.getContext("2d"); ctx.fillStyle = "#F8F6F1"; ctx.fillRect(0, 0, width, height); ctx.drawImage(img, 0, 0); can.toBlob(blob => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `nona-me-report-${today()}.png`; a.click(); URL.revokeObjectURL(a.href); });
-}
-function copyText() { navigator.clipboard?.writeText(reportText()).then(() => alert(t("copied"))).catch(() => alert(reportText())); }
-function downloadTxt() { const b = new Blob([reportText()], { type: "text/plain;charset=utf-8" }), a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `nona-me-report-${today()}.txt`; a.click(); URL.revokeObjectURL(a.href); }
-function shareTelegram() { const text = encodeURIComponent(reportText()); window.open(`https://t.me/share/url?url=&text=${text}`, "_blank"); }
-
-function renderHistory() { const a = [...S.sales].reverse().map(s => `<div class="history-item"><div>🧾 <b>${s.date}</b> · ${s.time}<br><small>${s.user} · ${s.payment} · ${s.currency} · ${s.cups} ${t("cups")}</small></div><div class="history-total">${s.currency === "KHR" ? moneyKHR(s.amount) : moneyUSD(s.amount)}</div></div>`); const b = [...S.expenses].reverse().map(e => `<div class="history-item"><div>💸 <b>${e.date}</b> · ${e.time}<br><small>${e.user} · ${e.desc} · ${e.payment}</small></div><div class="history-total">${e.currency === "KHR" ? moneyKHR(e.amount) : moneyUSD(e.amount)}</div></div>`); const d = [...S.deposits].reverse().map(x => `<div class="history-item"><div>🏦 <b>${x.date}</b> · ${x.time}<br><small>${x.user} · ${x.bank || "Bank"}${x.note ? " · " + x.note : ""}</small></div><div class="history-total">${x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount)}</div></div>`); const c = [...S.cashCounts].reverse().map(x => `<div class="history-item"><div>💵 <b>${x.date}</b> · ${x.time}<br><small>${x.user} · ${t("actualCash")}</small></div><div class="history-total">${moneyKHR(x.actualKhr)} / ${moneyUSD(x.actualUsd)}</div></div>`); $("historyList").innerHTML = [...a, ...b, ...d, ...c].join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
-
-function renderAdminLegacy(section) { if (S.role !== "admin") return; const o = summary(); let content = ""; if (section === "overview") content = `<div class="admin-grid"><section class="panel"><h2>📊 Overview / សង្ខេប</h2><div class="admin-kpi">${moneyKHR(o.salesKHR)}</div><p class="muted">${t("salesKHR")}</p><div class="bar"><i style="width:${Math.min(100, o.salesKHR ? (o.cashKHR / o.salesKHR) * 100 : 0)}%"></i></div><p class="muted small">${o.tx} transactions · ${o.cups} cups</p></section><section class="panel"><h2>💰 Cash / សាច់ប្រាក់</h2><div class="result-line"><span>KHR</span><b>${moneyKHR(expectedCurrentCash().khr)}</b></div><div class="result-line"><span>USD</span><b>${moneyUSD(expectedCurrentCash().usd)}</b></div></section></div>`; else if (section === "products") content = `<div class="panel"><h2>☕ Products / Menu</h2>${S.products.map(p => `<div class="list-row"><span>${p[0]}<br><small>${p[1]} · ${p[3]}</small></span><b>${moneyKHR(p[2])}</b></div>`).join("")}</div>`; else if (section === "staff") content = `<div class="panel"><h2>👥 Staff / Users</h2><div class="user-row"><span>Admin<br><small>Owner</small></span><b class="role admin-role">ADMIN</b></div><div class="user-row"><span>Staff 01</span><b class="role">STAFF</b></div><div class="user-row"><span>Staff 02</span><b class="role">STAFF</b></div></div>`; else if (section === "settings") content = `<div class="panel"><h2>⚙️ Shop Settings / ព័ត៌មានហាង</h2><div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="setShop" value="${escAttr(S.settings.shopName)}"></div><div><label>Phone / ទូរស័ព្ទ</label><input id="setPhone" value="${escAttr(S.settings.phone)}"></div><div><label>Telegram</label><input id="setTelegram" value="${escAttr(S.settings.telegram)}"></div><div><label>Address / អាសយដ្ឋាន</label><input id="setAddress" value="${escAttr(S.settings.address)}"></div></div><label>Default Exchange Rate / អត្រាប្តូរប្រាក់</label><input id="setRate" type="number" value="${S.rate}"><button class="save-btn" onclick="saveSettings()">SAVE SETTINGS / រក្សាទុក</button></div>`; else if (section === "audit") { const logs = [...S.sales.map(x => ({ t: x.time, a: "SALE / ការលក់", u: x.user, d: x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount) })), ...S.expenses.map(x => ({ t: x.time, a: "EXPENSE / ចំណាយ", u: x.user, d: x.desc })), ...S.deposits.map(x => ({ t: x.time, a: "DEPOSIT / ដាក់ធនាគារ", u: x.user, d: x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount) }))].slice(-30).reverse(); content = `<div class="panel"><h2>🛡️ Audit Log / ប្រវត្តិសកម្មភាព</h2>${logs.map(l => `<div class="log-row"><span>${l.t} · ${l.a}<br><small>${l.u}</small></span><b>${l.d}</b></div>`).join("") || `<div class="cart-empty">${t("noRecords")}</div>`}</div>`; }
-  $("adminContent").innerHTML = `<div class="admin-menu">${["overview", "products", "staff", "settings", "audit"].map(x => `<button class="admin-menu-btn ${x === section ? "active" : ""}" onclick="renderAdmin('${x}')">${x === "overview" ? "📊 " : x === "products" ? "☕ " : x === "staff" ? "👥 " : x === "settings" ? "⚙️ " : "🛡️ "}${x}</button>`).join("")}</div>${content}`;
-}
-function escAttr(v) { return String(v || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-function saveSettings() { S.settings = { shopName: $("setShop").value.trim(), phone: $("setPhone").value.trim(), telegram: $("setTelegram").value.trim(), address: $("setAddress").value.trim() }; S.rate = Math.max(1, Number($("setRate").value || 4000)); write(KEY.settings, S.settings); localStorage.setItem(KEY.rate, S.rate); $("rateInput").value = S.rate; renderAll(); alert(t("saved")); }
-
-
-/* boot moved to final line so V14 overrides load first */
-
-/* ========================= V10 ADMIN CONTROLS ========================= */
-const USER_KEY = "nm_users_v10";
-const PRODUCT_KEY = "nm_products_v10";
-const defaultUsers = [
-  {id:"u-admin", username:"admin", password:"admin", name:"Admin", role:"admin", active:true},
-  {id:"u-staff01", username:"staff01", password:"1234", name:"Staff 01", role:"staff", active:true},
-  {id:"u-staff02", username:"staff02", password:"1234", name:"Staff 02", role:"staff", active:true}
-];
-S.users = read(USER_KEY, defaultUsers);
-
-// Use the editable product list once it has been loaded from products.json.
-function ensureProductsLoaded(){
-  if(!Array.isArray(S.products) || !S.products.length){ S.products = read(PRODUCT_KEY, []); }
-}
-function saveProducts(){ write(PRODUCT_KEY, S.products); }
-function saveUsers(){ write(USER_KEY, S.users); }
-function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-function productCategories(){ ensureProductsLoaded(); return [...new Set(S.products.map(p=>p[3]).filter(Boolean))].sort(); }
-
-// Replace login with the Admin-managed user list.
-function login() {
-  const u = $("username").value.trim(), p = $("password").value;
-  const user = (S.users || defaultUsers).find(x => x.username === u && x.password === p && x.active !== false);
-  if (!user) return alert(t("invalid"));
-  S.user = user.username; S.role = user.role;
-  if ($("rememberLogin")?.checked !== false) write(KEY.session, { user:S.user, role:S.role, createdAt:Date.now() });
-  showApp(); updateUserLine(); $("adminTab").classList.toggle("hidden", S.role !== "admin"); renderAll();
-}
-
-// Make product rendering use admin-edited products.
-const renderProductsOriginal = renderProducts;
-renderProducts = function(){
-  ensureProductsLoaded();
-  const q = ($("menuSearch")?.value || "").toLowerCase();
-  const list = S.products.filter(p => p[4] !== false && (S.category === "All" || p[3] === S.category) && (`${p[0]} ${p[1]}`).toLowerCase().includes(q));
-  $("productGrid").innerHTML = list.map(p => { const i=S.products.indexOf(p); return `<button class="product" onclick="addToCart(${i})"><div>${esc(p[0])}</div><span class="kh">${esc(p[1])}</span><span class="price">${moneyKHR(p[2])} / ${moneyUSD(p[2]/S.rate)}</span></button>`; }).join("") || `<div class="cart-empty">${t("noRecords")}</div>`;
-};
-
-function overviewRange(type, date){ const d=date || today(); return type==='day' ? {start:d,end:d} : periodRange(type,d); }
-function overviewAggregate(type, date){ const r=overviewRange(type,date); const g=aggregateRange(r); return {r,...g}; }
-function dayLabel(d){ return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
-function rangeDates(r){ const out=[]; let d=v8Date(r.start), e=v8Date(r.end); while(d<=e){out.push(isoDate(d)); d.setDate(d.getDate()+1);} return out; }
-function renderOverview(){
-  const type=$("overviewType")?.value || 'day', date=$("overviewDate")?.value || today();
-  const {r,a,sales,expenses,deposits}=overviewAggregate(type,date);
-  const netKHR=a.salesKHR-a.expenseKHR, netUSD=a.salesUSD-a.expenseUSD;
-  const cash=expectedCurrentCash();
-  const dailyRows=rangeDates(r).map(d=>{
-    const ds=sales.filter(x=>x.date===d), de=expenses.filter(x=>x.date===d);
-    const k=ds.filter(x=>x.currency==='KHR').reduce((n,x)=>n+Number(x.amount||0),0), u=ds.filter(x=>x.currency==='USD').reduce((n,x)=>n+Number(x.amount||0),0), cups=ds.reduce((n,x)=>n+Number(x.cups||0),0);
-    return `<tr><td>${dayLabel(d)}</td><td>${moneyKHR(k)}</td><td>${moneyUSD(u)}</td><td>${moneyKHR(de.filter(x=>x.currency==='KHR').reduce((n,x)=>n+Number(x.amount||0),0))}</td><td>${cups}</td></tr>`;
-  }).join('');
-  $("adminContent").innerHTML=`
-    <div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
-    <div class="panel overview-controls">
-      <div class="form-grid">
-        <div><label>View / មើលជា</label><select id="overviewType"><option value="day" ${type==='day'?'selected':''}>Daily / ប្រចាំថ្ងៃ</option><option value="week" ${type==='week'?'selected':''}>Weekly / ប្រចាំសប្តាហ៍</option><option value="month" ${type==='month'?'selected':''}>Monthly / ប្រចាំខែ</option></select></div>
-        <div><label>Date / កាលបរិច្ឆេទ</label><input id="overviewDate" type="date" value="${esc(date)}"></div>
-      </div>
-      <div class="export-grid" style="margin-top:12px"><button class="save-btn" onclick="renderOverview()">VIEW / មើលរបាយការណ៍</button><button class="export-btn" onclick="exportOverviewCSV()">📥 Export Data / ទាញទិន្នន័យ CSV</button></div>
-    </div>
-    <div class="stats admin-overview-stats">
-      <div class="stat"><small>Sales KHR / ការលក់ KHR</small><strong>${moneyKHR(a.salesKHR)}</strong></div>
-      <div class="stat"><small>Sales USD / ការលក់ USD</small><strong>${moneyUSD(a.salesUSD)}</strong></div>
-      <div class="stat"><small>Expenses KHR / ចំណាយ KHR</small><strong>${moneyKHR(a.expenseKHR)}</strong></div>
-      <div class="stat"><small>Expenses USD / ចំណាយ USD</small><strong>${moneyUSD(a.expenseUSD)}</strong></div>
-      <div class="stat"><small>Net KHR / សល់ក្រោយចំណាយ</small><strong>${moneyKHR(netKHR)}</strong></div>
-      <div class="stat"><small>Net USD / សល់ក្រោយចំណាយ</small><strong>${moneyUSD(netUSD)}</strong></div>
-      <div class="stat"><small>Cups / ចំនួនកែវ</small><strong>${a.cups}</strong></div>
-      <div class="stat"><small>Current Cash / សាច់ប្រាក់ក្នុងតុ</small><strong>${moneyKHR(cash.khr)}<br>${moneyUSD(cash.usd)}</strong></div>
-    </div>
-    <div class="admin-grid">
-      <section class="panel"><h2>📈 Overview / សង្ខេប ${type==='day'?'ប្រចាំថ្ងៃ':type==='week'?'ប្រចាំសប្តាហ៍':'ប្រចាំខែ'}</h2>
-        <p class="muted">${r.start} → ${r.end}</p>
-        <div class="table-wrap"><table class="report-table"><thead><tr><th>Date / ថ្ងៃ</th><th>Sales KHR</th><th>Sales USD</th><th>Expenses KHR</th><th>Cups / កែវ</th></tr></thead><tbody>${dailyRows || `<tr><td colspan="5">${t('noRecords')}</td></tr>`}</tbody></table></div>
-      </section>
-      <section class="panel"><h2>🏆 Best Seller / មុខលក់ដាច់</h2>${Object.entries(a.items).sort((x,y)=>y[1]-x[1]).slice(0,8).map(([name,n],i)=>`<div class="list-row"><span>${i+1}. ${esc(name)}</span><b>${n} ${t('cups')}</b></div>`).join('') || `<div class="cart-empty">${t('noRecords')}</div>`}</section>
-    </div>`;
-  $("overviewType").onchange=renderOverview; $("overviewDate").onchange=renderOverview;
-}
-function exportOverviewCSV(){
-  const type=$("overviewType")?.value||'day', date=$("overviewDate")?.value||today(), {r,sales,expenses,deposits}=overviewAggregate(type,date);
-  const rows=[['Date','Type','Staff','Item / Description','Currency','Payment','Amount','Cups','Bank','Note']];
-  sales.forEach(x=>rows.push([x.date,'SALE',x.user,x.name,x.currency,x.payment,x.amount,x.cups||0,'',x.note||'']));
-  expenses.forEach(x=>rows.push([x.date,'EXPENSE',x.user,x.desc,x.currency,x.payment,x.amount,'','',x.note||'']));
-  deposits.forEach(x=>rows.push([x.date,'DEPOSIT',x.user,'Bank Deposit',x.currency,'Cash',x.amount,'',x.bank||'',x.note||'']));
-  const csv=rows.map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n');
-  const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`nona-me-overview-${type}-${r.start}-to-${r.end}.csv`; a.click(); URL.revokeObjectURL(a.href); audit('EXPORT OVERVIEW / ទាញទិន្នន័យ',`${type} ${r.start} to ${r.end}`);
-}
-function adminMenu(section){
-  const labels={overview:'📊 Overview / សង្ខេប',products:'☕ Products / Menu',inventory:'📦 Stock / ស្តុក',staff:'👥 Staff / Users',settings:'⚙️ Settings / កំណត់',audit:'🛡️ Audit Log / ប្រវត្តិសកម្មភាព'};
-  return `<button class="admin-menu-btn ${section==='overview'?'active':''}" onclick="renderAdmin('${section}')">${labels[section]}</button>`;
-}
-
-function renderProductsAdmin(){
-  ensureProductsLoaded(); const cats=productCategories();
-  $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
-  <section class="panel"><h2>☕ Products / Menu · មីនុយ</h2><p class="muted">Add, edit, hide or delete menu items.</p>
-    <div class="form-grid product-form"><div><label>English Name / ឈ្មោះអង់គ្លេស</label><input id="prodEn" placeholder="Iced Latte"></div><div><label>Khmer Name / ឈ្មោះខ្មែរ</label><input id="prodKh" placeholder="ឡាតេទឹកកក"></div><div><label>Price KHR / តម្លៃ</label><input id="prodPrice" type="number" min="0" placeholder="5000"></div><div><label>Category / ប្រភេទ</label><input id="prodCat" list="productCats" placeholder="Coffee / កាហ្វេ"><datalist id="productCats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div>
-    <button class="save-btn" onclick="addProductAdmin()">➕ ADD PRODUCT / បន្ថែមមុខទំនិញ</button>
-    <div class="admin-table-list" style="margin-top:15px">${S.products.map((p,i)=>`<div class="admin-edit-row"><div><b>${esc(p[0])}</b><br><span class="muted">${esc(p[1])} · ${esc(p[3]||'Other')} · ${moneyKHR(p[2])}</span></div><div class="row-actions"><button class="mini-btn" onclick="editProductAdmin(${i})">✏️ Edit</button><button class="mini-btn" onclick="toggleProductAdmin(${i})">${p[4]===false?'▶️ Show':'⏸ Hide'}</button><button class="mini-btn danger" onclick="deleteProductAdmin(${i})">🗑 Delete</button></div></div>`).join('')}</div>
-  </section>`;
-}
-function addProductAdmin(){ const en=$("prodEn").value.trim(), kh=$("prodKh").value.trim(), price=Number($("prodPrice").value||0), cat=$("prodCat").value.trim()||'Other'; if(!en||!kh||price<=0)return alert('Please enter English, Khmer, price / សូមបញ្ចូលឈ្មោះ តម្លៃ'); S.products.push([en,kh,price,cat,true]); saveProducts(); audit('ADD PRODUCT / បន្ថែមមុខទំនិញ',`${en} / ${kh}`); renderProductsAdmin(); renderAll(); }
-function editProductAdmin(i){ const p=S.products[i]; const en=prompt('English Name / ឈ្មោះអង់គ្លេស',p[0]); if(en===null)return; const kh=prompt('Khmer Name / ឈ្មោះខ្មែរ',p[1]); if(kh===null)return; const pr=prompt('Price KHR / តម្លៃ',p[2]); if(pr===null)return; const cat=prompt('Category / ប្រភេទ',p[3]); if(cat===null)return; S.products[i]=[en.trim()||p[0],kh.trim()||p[1],Math.max(0,Number(pr)||p[2]),cat.trim()||p[3],p[4]!==false]; saveProducts(); audit('EDIT PRODUCT / កែសម្រួលមុខទំនិញ',S.products[i][0]); renderProductsAdmin(); renderAll(); }
-function toggleProductAdmin(i){ S.products[i][4]=S.products[i][4]===false; saveProducts(); audit(S.products[i][4]?'SHOW PRODUCT':'HIDE PRODUCT',S.products[i][0]); renderProductsAdmin(); renderAll(); }
-function deleteProductAdmin(i){ const p=S.products[i]; if(!confirm(`Delete ${p[0]} / លុបមុខទំនិញនេះ?`))return; S.products.splice(i,1); saveProducts(); audit('DELETE PRODUCT / លុបមុខទំនិញ',p[0]); renderProductsAdmin(); renderAll(); }
-
-function renderStaffAdmin(){
-  $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
-  <section class="panel"><h2>👥 Staff / Users · បុគ្គលិក</h2><p class="muted">Create staff accounts and enable/disable access. Prototype stores credentials locally; production should use Supabase Auth.</p>
-    <div class="form-grid"><div><label>Username / ឈ្មោះអ្នកប្រើ</label><input id="newUser" placeholder="staff03"></div><div><label>Password / ពាក្យសម្ងាត់</label><input id="newPass" placeholder="1234"></div><div><label>Name / ឈ្មោះ</label><input id="newName" placeholder="Staff 03"></div><div><label>Role / តួនាទី</label><select id="newRole"><option value="staff">STAFF</option><option value="admin">ADMIN</option></select></div></div>
-    <button class="save-btn" onclick="addUserAdmin()">➕ ADD USER / បន្ថែមអ្នកប្រើ</button>
-    <div style="margin-top:15px">${S.users.map((u,i)=>`<div class="admin-edit-row"><div><b>${esc(u.name)} · ${esc(u.username)}</b><br><span class="muted">${u.role.toUpperCase()} · ${u.active===false?'Disabled / បិទ':'Active / ដំណើរការ'}</span></div><div class="row-actions"><button class="mini-btn" onclick="editUserAdmin(${i})">✏️ Edit</button>${u.username!=='admin'?`<button class="mini-btn" onclick="toggleUserAdmin(${i})">${u.active===false?'▶️ Enable':'⏸ Disable'}</button><button class="mini-btn danger" onclick="deleteUserAdmin(${i})">🗑 Delete</button>`:''}</div></div>`).join('')}</div>
-  </section>`;
-}
-function addUserAdmin(){ const username=$("newUser").value.trim(),password=$("newPass").value,name=$("newName").value.trim()||username,role=$("newRole").value; if(!username||!password)return alert('Username + password required / ត្រូវការឈ្មោះអ្នកប្រើ និងពាក្យសម្ងាត់'); if(S.users.some(u=>u.username===username))return alert('Username already exists / ឈ្មោះនេះមានរួចហើយ'); S.users.push({id:'u-'+Date.now(),username,password,name,role,active:true}); saveUsers(); audit('ADD USER / បន្ថែមអ្នកប្រើ',username); renderStaffAdmin(); }
-function editUserAdmin(i){ const u=S.users[i]; const name=prompt('Name / ឈ្មោះ',u.name); if(name===null)return; const pass=prompt('Password / ពាក្យសម្ងាត់',u.password); if(pass===null)return; u.name=name.trim()||u.name; u.password=pass||u.password; saveUsers(); audit('EDIT USER / កែសម្រួលអ្នកប្រើ',u.username); renderStaffAdmin(); }
-function toggleUserAdmin(i){ S.users[i].active=S.users[i].active===false; saveUsers(); audit(S.users[i].active?'ENABLE USER / បើកអ្នកប្រើ':'DISABLE USER / បិទអ្នកប្រើ',S.users[i].username); renderStaffAdmin(); }
-function deleteUserAdmin(i){ const u=S.users[i]; if(!confirm(`Delete ${u.username}?`))return; S.users.splice(i,1); saveUsers(); audit('DELETE USER / លុបអ្នកប្រើ',u.username); renderStaffAdmin(); }
-
-
-function renderSettingsAdmin(){
-  $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
-  <section class="panel"><h2>⚙️ Shop Settings / ព័ត៌មានហាង</h2>
-    <div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="setShop" value="${escAttr(S.settings.shopName)}"></div><div><label>Phone / ទូរស័ព្ទ</label><input id="setPhone" value="${escAttr(S.settings.phone)}"></div><div><label>Telegram</label><input id="setTelegram" value="${escAttr(S.settings.telegram)}"></div><div><label>Address / អាសយដ្ឋាន</label><input id="setAddress" value="${escAttr(S.settings.address)}"></div></div>
-    <label>Default Exchange Rate / អត្រាប្តូរប្រាក់</label><input id="setRate" type="number" value="${S.rate}" min="1">
-    <button class="save-btn" onclick="saveSettings()">SAVE SETTINGS / រក្សាទុក</button>
-  </section>`;
-}
-function renderAuditAdmin(){
-  const logs=[...S.sales.map(x=>({date:x.date,time:x.time,a:'SALE / ការលក់',u:x.user,d:x.currency==='KHR'?moneyKHR(x.amount):moneyUSD(x.amount)})),...S.expenses.map(x=>({date:x.date,time:x.time,a:'EXPENSE / ចំណាយ',u:x.user,d:x.desc})),...S.deposits.map(x=>({date:x.date,time:x.time,a:'DEPOSIT / ដាក់ធនាគារ',u:x.user,d:x.currency==='KHR'?moneyKHR(x.amount):moneyUSD(x.amount)}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(-100).reverse();
-  $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
-  <section class="panel"><h2>🛡️ Audit Log / ប្រវត្តិសកម្មភាព</h2>${logs.map(l=>`<div class="log-row"><span>${esc(l.date)} · ${esc(l.time)}<br><small>${esc(l.u)} · ${esc(l.a)}</small></span><b>${esc(l.d)}</b></div>`).join('')||`<div class="cart-empty">${t('noRecords')}</div>`}</section>`;
-}
-
-// Unified Admin Control Center with working products/users/overview.
-renderAdmin = function(section){
-
-  if(S.role!=='admin') return;
-  if(section==='overview') return renderOverview();
-  if(section==='products') return renderProductsAdmin();
-  if(section==='staff') return renderStaffAdmin();
-  if(section==='inventory') { $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>${renderInventory()}`; return; }
-  if(section==='settings') return renderSettingsAdmin();
-  if(section==='audit') return renderAuditAdmin();
-  renderOverview();
-};
-
-/* ========================= V8 ENHANCEMENTS ========================= */
-const V8KEY = { stock: "nm_stock_v8", logs: "nm_audit_v8" };
-const stockSeed = [
-  {id:"coffee", name:"Coffee / កាហ្វេ", unit:"kg", qty:10, min:2},
-  {id:"cups", name:"Cups / កែវ", unit:"pcs", qty:2000, min:200},
-  {id:"lids", name:"Lids / គម្រប", unit:"pcs", qty:2000, min:200},
-  {id:"milk", name:"Milk / ទឹកដោះគោ", unit:"L", qty:10, min:2},
-  {id:"condensed", name:"Condensed Milk / ទឹកដោះគោខាប់", unit:"kg", qty:5, min:1}
-];
-S.stock = read(V8KEY.stock, stockSeed);
-function audit(action, detail){ const logs=read(V8KEY.logs,[]); logs.push({id:String(Date.now()),date:today(),time:now().toLocaleTimeString(),user:S.user,action,detail}); write(V8KEY.logs,logs.slice(-500)); }
-function v8Date(d){return new Date(d+"T00:00:00");}
-function isoDate(d){return d.toISOString().slice(0,10);}
-function periodRange(type,start){
-  const s=v8Date(start||today()); let e=new Date(s);
-  if(type==='month'){ e=new Date(s.getFullYear(),s.getMonth()+1,0); }
-  else { const day=s.getDay(); const monday=new Date(s); monday.setDate(s.getDate()-(day===0?6:day-1)); const sunday=new Date(monday); sunday.setDate(monday.getDate()+6); return {start:isoDate(monday),end:isoDate(sunday)}; }
-  return {start:isoDate(s),end:isoDate(e)};
-}
-function inRange(date,r){return date>=r.start&&date<=r.end;}
-function aggregateRange(r){
-  const sales=S.sales.filter(x=>inRange(x.date,r)); const expenses=S.expenses.filter(x=>inRange(x.date,r)); const deposits=S.deposits.filter(x=>inRange(x.date,r));
-  const a={salesKHR:0,salesUSD:0,expenseKHR:0,expenseUSD:0,depositKHR:0,depositUSD:0,cups:0,cashKHR:0,cashUSD:0,items:{},staff:{}};
-  sales.forEach(x=>{if(x.currency==='KHR')a.salesKHR+=Number(x.amount||0);else a.salesUSD+=Number(x.amount||0);if(x.payment==='Cash'){if(x.currency==='KHR')a.cashKHR+=Number(x.amount||0);else a.cashUSD+=Number(x.amount||0);}a.cups+=Number(x.cups||0);a.items[x.name]=(a.items[x.name]||0)+Number(x.cups||0);a.staff[x.user]=a.staff[x.user]||{salesKHR:0,salesUSD:0,cups:0};a.staff[x.user][x.currency==='KHR'?'salesKHR':'salesUSD']+=Number(x.amount||0);a.staff[x.user].cups+=Number(x.cups||0);});
-  expenses.forEach(x=>{if(x.currency==='KHR')a.expenseKHR+=Number(x.amount||0);else a.expenseUSD+=Number(x.amount||0);});
-  deposits.forEach(x=>{if(x.currency==='KHR')a.depositKHR+=Number(x.amount||0);else a.depositUSD+=Number(x.amount||0);});
-  return {sales,expenses,deposits,a};
-}
-function renderPeriodReport(){ if(S.role!=='admin') return; const type=$("periodType")?.value||'week', start=$("periodStart")?.value||today(), r=periodRange(type,start), {a}=aggregateRange(r); const best=Object.entries(a.items).sort((x,y)=>y[1]-x[1])[0];
-  $("periodPreview").innerHTML=`<div class="report-brand">${S.settings.shopName||'nona-me coffee'}</div><div class="report-title">${type==='week'?'របាយការណ៍ប្រចាំសប្តាហ៍ / WEEKLY REPORT':'របាយការណ៍ប្រចាំខែ / MONTHLY REPORT'}</div><p class="muted">${r.start} → ${r.end}</p><div class="period-summary">${mini('Sales KHR / ការលក់ KHR',moneyKHR(a.salesKHR))}${mini('Sales USD / ការលក់ USD',moneyUSD(a.salesUSD))}${mini('Expenses KHR / ចំណាយ KHR',moneyKHR(a.expenseKHR))}${mini('Expenses USD / ចំណាយ USD',moneyUSD(a.expenseUSD))}${mini('Bank KHR / ធនាគារ KHR',moneyKHR(a.depositKHR))}${mini('Bank USD / ធនាគារ USD',moneyUSD(a.depositUSD))}${mini('Cups / កែវ',a.cups)}${mini('Best Seller / លក់ដាច់',best?best[0]+' · '+best[1]:'—')}</div><div class="report-section-title">Staff Performance / លទ្ធផលបុគ្គលិក</div><div class="table-wrap"><table class="report-table"><thead><tr><th>Staff / បុគ្គលិក</th><th>KHR Sales</th><th>USD Sales</th><th>Cups / កែវ</th></tr></thead><tbody>${Object.entries(a.staff).map(([u,x])=>`<tr><td>${u}</td><td>${moneyKHR(x.salesKHR)}</td><td>${moneyUSD(x.salesUSD)}</td><td>${x.cups}</td></tr>`).join('')||'<tr><td colspan="4">'+t('noRecords')+'</td></tr>'}</tbody></table></div>`;
-}
-function mini(a,b){return `<div class="mini-kpi"><small>${a}</small><b>${b}</b></div>`;}
-function exportPeriodCSV(){ if(S.role!=='admin')return; const type=$("periodType").value,start=$("periodStart").value||today(),r=periodRange(type,start); const {sales,expenses,deposits}=aggregateRange(r); const rows=[['Date','Type','Staff','Description / Item','Currency','Payment','Amount','Cups','Bank','Note']]; sales.forEach(x=>rows.push([x.date,'SALE',x.user,x.name,x.currency,x.payment,x.amount,x.cups||0,'',x.note||''])); expenses.forEach(x=>rows.push([x.date,'EXPENSE',x.user,x.desc,x.currency,x.payment,x.amount,'','',x.note||''])); deposits.forEach(x=>rows.push([x.date,'DEPOSIT',x.user,'Bank Deposit',x.currency,'Cash',x.amount,'',x.bank||'',x.note||''])); const csv=rows.map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n'); const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`nona-me-${type}-${r.start}-to-${r.end}.csv`;a.click();URL.revokeObjectURL(a.href);audit('EXPORT REPORT / ទាញរបាយការណ៍',`${type} ${r.start} to ${r.end}`);}
-function renderInventory(){ const stock=S.stock||[]; return `<div class="panel"><h2>📦 Stock / Inventory · ស្តុក</h2><p class="muted">Manual stock control for prototype. Recipes/automatic ingredient deduction will be connected with the database later.</p>${stock.map(x=>`<div class="list-row"><span><b>${x.name}</b><br><small>${x.unit} · Min ${x.min}</small></span><span><b class="${x.qty<=x.min?'stock-low':'stock-ok'}">${x.qty}</b> ${x.qty<=x.min?'⚠️ Low Stock / ជិតអស់':''}</span></div>`).join('')}<div class="form-grid" style="margin-top:12px"><div><label>Item / មុខស្តុក</label><input id="stockName" placeholder="Ice / ទឹកកក"></div><div><label>Quantity / ចំនួន</label><input id="stockQty" type="number" min="0" placeholder="10"></div><div><label>Unit / ឯកតា</label><input id="stockUnit" placeholder="kg / pcs / L"></div><div><label>Minimum / កម្រិតជូនដំណឹង</label><input id="stockMin" type="number" min="0" placeholder="2"></div></div><button class="save-btn" onclick="addStock()">ADD STOCK / បន្ថែមស្តុក</button></div>`;}
-function addStock(){const name=$("stockName").value.trim();if(!name)return alert('Item / មុខស្តុក');S.stock.push({id:String(Date.now()),name,qty:Number($("stockQty").value||0),unit:$("stockUnit").value.trim()||'pcs',min:Number($("stockMin").value||0)});write(V8KEY.stock,S.stock);audit('ADD STOCK / បន្ថែមស្តុក',name);renderAdmin('inventory');}
-function renderAdmin(section){ if(S.role!=='admin')return; const o=summary(); let content=''; if(section==='overview'){const todayExp=o.expenseKHR+o.expenseUSD;content=`<div class="admin-grid"><section class="panel"><h2>📊 Owner Dashboard / ផ្ទាំងគ្រប់គ្រង</h2><div class="period-summary">${mini('Sales KHR / លក់',moneyKHR(o.salesKHR))}${mini('Sales USD / លក់',moneyUSD(o.salesUSD))}${mini('Expenses KHR / ចំណាយ',moneyKHR(o.expenseKHR))}${mini('Cups / កែវ',o.cups)}</div><p class="muted">Transactions / ប្រតិបត្តិការ: ${o.tx}</p></section><section class="panel"><h2>💰 Cash Control / គ្រប់គ្រងសាច់ប្រាក់</h2>${line('KHR / រៀល',moneyKHR(expectedCurrentCash().khr),true)}${line('USD / ដុល្លារ',moneyUSD(expectedCurrentCash().usd),true)}<p class="muted small">Cash continues from previous days and is reduced by bank deposits.</p></section></div>`;} else if(section==='products'){content=`<div class="panel"><h2>☕ Products / Menu</h2>${S.products.map(p=>`<div class="list-row"><span>${p[0]}<br><small>${p[1]} · ${p[3]}</small></span><b>${moneyKHR(p[2])}</b></div>`).join('')}</div>`;} else if(section==='inventory'){content=renderInventory();} else if(section==='staff'){content=`<div class="panel"><h2>👥 Staff / Users</h2><div class="user-row"><span>Admin<br><small>Owner</small></span><b class="role admin-role">ADMIN</b></div><div class="user-row"><span>Staff 01<br><small>Sales / Expenses / Deposit / Cash Count</small></span><b class="role">STAFF</b></div><div class="user-row"><span>Staff 02<br><small>Sales / Expenses / Deposit / Cash Count</small></span><b class="role">STAFF</b></div><p class="muted small">Production version will connect these users to Supabase Auth and allow Admin to add/disable accounts.</p></div>`;} else if(section==='settings'){content=`<div class="panel"><h2>⚙️ Shop Settings / ព័ត៌មានហាង</h2><div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="setShop" value="${escAttr(S.settings.shopName)}"></div><div><label>Phone / ទូរស័ព្ទ</label><input id="setPhone" value="${escAttr(S.settings.phone)}"></div><div><label>Telegram</label><input id="setTelegram" value="${escAttr(S.settings.telegram)}"></div><div><label>Address / អាសយដ្ឋាន</label><input id="setAddress" value="${escAttr(S.settings.address)}"></div></div><label>Default Exchange Rate / អត្រាប្តូរប្រាក់</label><input id="setRate" type="number" value="${S.rate}"><button class="save-btn" onclick="saveSettings()">SAVE SETTINGS / រក្សាទុក</button></div>`;} else if(section==='audit'){const logs=read(V8KEY.logs,[]).slice().reverse();content=`<div class="panel"><h2>🛡️ Audit Log / ប្រវត្តិសកម្មភាព</h2>${logs.map(l=>`<div class="log-row"><span>${l.date} · ${l.time}<br><small>${l.user} · ${l.action}</small></span><b>${l.detail}</b></div>`).join('')||`<div class="cart-empty">${t('noRecords')}</div>`}</div>`;} $("adminContent").innerHTML=`<div class="admin-menu">${[['overview','📊 Overview / សង្ខេប'],['products','☕ Products / Menu'],['inventory','📦 Stock / ស្តុក'],['staff','👥 Staff / Users'],['settings','⚙️ Settings / កំណត់'],['audit','🛡️ Audit Log / ប្រវត្តិ']].map(([x,label])=>`<button class="admin-menu-btn ${x===section?'active':''}" onclick="renderAdmin('${x}')">${label}</button>`).join('')}</div>${content}`;}
-
-// Add admin-only period report access and inventory to the navigation after the base bindings are installed.
-(function v8Bind(){
-  const oldBootNote = true;
-  document.addEventListener('click', e=>{ const b=e.target.closest('.tab'); if(!b)return; if(b.dataset.page==='periodReport'){ if(S.role!=='admin')return; $("periodReportTab").classList.remove('hidden'); setTimeout(()=>{if(!$("periodStart").value)$("periodStart").value=today();renderPeriodReport();},0);} });
-  setTimeout(()=>{ if(S.role==='admin')$("periodReportTab")?.classList.remove('hidden'); $("generatePeriod")?.addEventListener('click',renderPeriodReport); $("exportCsv")?.addEventListener('click',exportPeriodCSV); $("periodType")?.addEventListener('change',renderPeriodReport); $("periodStart")?.addEventListener('change',renderPeriodReport); },200);
-})();
-
-/* Re-bind handlers that were attached before the V10 admin overrides loaded. */
-if ($("loginBtn")) $("loginBtn").onclick = login;
-if ($("menuSearch")) $("menuSearch").oninput = renderProducts;
-
-/* ========================= V11 WEBSITE CONTROL CENTER ========================= */
-const CMS_KEY_V11 = 'nm_cms_v11';
-const defaultCMSV11 = {
-  shopName: 'nona-me coffee',
-  tagline: 'Daily Sales System · ប្រព័ន្ធកត់ត្រាការលក់ប្រចាំថ្ងៃ',
-  announcement: 'Welcome to nona-me coffee',
-  footer: 'nona-me coffee · Sales Management System',
-  loginSubtitle: 'Daily Sales System · ប្រព័ន្ធកត់ត្រាការលក់ប្រចាំថ្ងៃ',
-  primary: '#8B2E23', accent: '#C4563B', beige: '#E2C9A8', cream: '#F8F6F1', dark: '#3A2A24', green: '#5A7D5B',
-  logoData: '',
-  nav: {
-    sales: 'Sales / ការលក់', expenses: 'Expenses / ចំណាយ', cash: 'Daily Cash / លុយក្នុងតុ', deposit: 'Deposit / ដាក់ធនាគារ',
-    admin: 'Admin / គ្រប់គ្រង', report: 'Daily Report / របាយការណ៍', periodReport: 'Weekly / Monthly', history: 'History / ប្រវត្តិ'
-  },
-  visible: { sales:true, expenses:true, cash:true, deposit:true, admin:true, report:true, periodReport:true, history:true }
-};
-function readCMSV11(){ return Object.assign({}, defaultCMSV11, read(CMS_KEY_V11, {}), {nav:Object.assign({},defaultCMSV11.nav,read(CMS_KEY_V11,{}).nav||{}), visible:Object.assign({},defaultCMSV11.visible,read(CMS_KEY_V11,{}).visible||{})}); }
-S.cms = readCMSV11();
-function saveCMSV11(){ write(CMS_KEY_V11, S.cms); applyCMSV11(); audit('UPDATE WEBSITE / កែ Website', 'Website settings updated'); }
-function cssSafe(v, fallback){ return /^#[0-9A-Fa-f]{6}$/.test(String(v||'')) ? v : fallback; }
-function applyCMSV11(){
-  S.cms = readCMSV11();
-  const root=document.documentElement;
-  root.style.setProperty('--primary',cssSafe(S.cms.primary,'#8B2E23'));
-  root.style.setProperty('--accent',cssSafe(S.cms.accent,'#C4563B'));
-  root.style.setProperty('--beige',cssSafe(S.cms.beige,'#E2C9A8'));
-  root.style.setProperty('--cream',cssSafe(S.cms.cream,'#F8F6F1'));
-  root.style.setProperty('--dark',cssSafe(S.cms.dark,'#3A2A24'));
-  root.style.setProperty('--green',cssSafe(S.cms.green,'#5A7D5B'));
-  document.title = S.cms.shopName + ' — Sales';
-  const brandEls=document.querySelectorAll('.brand b'); brandEls.forEach(el=>el.textContent=S.cms.shopName);
-  const loginSub=document.querySelector('.login-sub'); if(loginSub) loginSub.textContent=S.cms.loginSubtitle;
-  const tagline=document.querySelector('.brand small'); if(tagline) tagline.textContent='SALES';
-  const footer=document.getElementById('siteFooterV11'); if(footer) footer.textContent=S.cms.footer;
-  document.querySelectorAll('.tab').forEach(b=>{ const k=b.dataset.page; if(S.cms.nav[k]) b.textContent=S.cms.nav[k]; if(S.cms.visible[k]===false) b.classList.add('hidden'); else if(k!=='admin' || S.role==='admin') b.classList.remove('hidden'); });
-  const adminTab=$('adminTab'); if(adminTab) { adminTab.textContent=S.cms.nav.admin; adminTab.classList.toggle('hidden',S.role!=='admin' || S.cms.visible.admin===false); }
-  const logo=document.querySelectorAll('.logo-img-v11'); logo.forEach(img=>{img.src=S.cms.logoData||'icons/icon-192.png';});
-}
-function cmsField(id,label,value,type='text'){ return `<div><label>${label}</label><input id="${id}" type="${type}" value="${escAttr(value??'')}"></div>`; }
-function cmsToggle(id,label,on){ return `<label class="cms-toggle"><input id="${id}" type="checkbox" ${on?'checked':''}><span>${label}</span></label>`; }
-function renderWebsiteControlV11(){
-  const c=S.cms;
-  $('adminContent').innerHTML=`
-  <div class="admin-menu admin-menu-wrap">
-    ${adminMenu('overview')}${adminMenu('site')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}
-  </div>
-  <section class="panel control-hero-v11"><h2>🛠️ Website Control Center / មជ្ឈមណ្ឌលគ្រប់គ្រង Website</h2><p>កែ Website តាម Dashboard ដោយមិនចាំបាច់សរសេរកូដ។ / Edit the visible website configuration without touching code.</p></section>
-  <div class="cms-grid-v11">
-    <section class="panel">
-      <h2>🏪 Website & Home / ទំព័រហាង</h2>
-      <div class="form-grid">
-        ${cmsField('cmsShopName','Shop Name / ឈ្មោះហាង',c.shopName)}
-        ${cmsField('cmsTagline','Tagline / ពាក្យពិពណ៌នា',c.tagline)}
-        ${cmsField('cmsAnnouncement','Announcement / សារជូនដំណឹង',c.announcement)}
-        ${cmsField('cmsFooter','Footer / អក្សរខាងក្រោម',c.footer)}
-        ${cmsField('cmsLoginSubtitle','Login Subtitle / អក្សរទំព័រ Login',c.loginSubtitle)}
-      </div>
-      <div class="cms-logo-row"><div><label>Logo / ឡូហ្គោ</label><img id="cmsLogoPreview" class="cms-logo-preview" src="${c.logoData||'icons/icon-192.png'}" alt="Logo"></div><div><input id="cmsLogoFile" type="file" accept="image/png,image/jpeg,image/webp"><p class="muted small">Logo will be stored in browser for this test build.</p></div></div>
-    </section>
-    <section class="panel">
-      <h2>🎨 Appearance / រូបរាង</h2>
-      <div class="form-grid">
-        ${cmsField('cmsPrimary','Primary Color / ពណ៌មេ',c.primary,'text')}
-        ${cmsField('cmsAccent','Accent / ពណ៌បន្ថែម',c.accent,'text')}
-        ${cmsField('cmsBeige','Beige / ពណ៌ត្នោតស្រាល',c.beige,'text')}
-        ${cmsField('cmsCream','Cream / ផ្ទៃស',c.cream,'text')}
-        ${cmsField('cmsDark','Dark / ពណ៌ងងឹត',c.dark,'text')}
-        ${cmsField('cmsGreen','Green / បៃតង',c.green,'text')}
-      </div>
-      <div class="color-preview-v11" style="background:${cssSafe(c.primary,'#8B2E23')}"><span>Preview / មើលជាមុន</span></div>
-    </section>
-    <section class="panel">
-      <h2>🧭 Navigation / Menu</h2>
-      <div class="cms-nav-editor-v11">
-        ${Object.entries(c.nav).map(([k,v])=>`<div class="cms-nav-row"><label>${k}</label><input id="cmsNav_${k}" value="${escAttr(v)}">${cmsToggle('cmsVis_'+k,'Show / បង្ហាញ',c.visible[k]!==false)}</div>`).join('')}
-      </div>
-    </section>
-    <section class="panel">
-      <h2>🔐 User Experience / ការប្រើប្រាស់</h2>
-      ${cmsToggle('cmsRememberDefault','Remember Login Default / ចងចាំ Login ជាលំនាំដើម',true)}
-      <h3>Printing / ការព្រីន</h3>
-      ${cmsToggle('cmsShowPhone','Show Phone on Receipt / បង្ហាញទូរស័ព្ទលើ Receipt',c.receipt?.showPhone!==false)}
-      ${cmsToggle('cmsShowAddress','Show Address on Receipt / បង្ហាញអាសយដ្ឋានលើ Receipt',c.receipt?.showAddress!==false)}
-      <p class="muted">Staff can use “Save & Print” after each sale. The receipt is formatted for 80mm thermal paper and normal browser printing.</p>
-      <p class="muted">Staff/Admin credentials, permissions and database secrets should be moved to Supabase Auth in production.</p>
-      <div class="danger-box-v11"><b>Reset Website Settings / កំណត់ Website ឡើងវិញ</b><button class="mini-btn danger" onclick="resetCMSV11()">Reset</button></div>
-    </section>
-  </div>
-  <div class="sticky-save-v11"><button class="save-btn" onclick="saveCMSFormV11()">💾 SAVE ALL WEBSITE CHANGES / រក្សាទុកការកែប្រែទាំងអស់</button></div>`;
-  const f=$('cmsLogoFile'); if(f) f.onchange=()=>{ const file=f.files?.[0]; if(!file)return; const r=new FileReader(); r.onload=()=>{$('cmsLogoPreview').src=r.result;}; r.readAsDataURL(file); };
-}
-function saveCMSFormV11(){
-  const c=S.cms;
-  c.shopName=$('cmsShopName').value.trim()||defaultCMSV11.shopName;
-  c.tagline=$('cmsTagline').value.trim(); c.announcement=$('cmsAnnouncement').value.trim(); c.footer=$('cmsFooter').value.trim(); c.loginSubtitle=$('cmsLoginSubtitle').value.trim();
-  c.primary=cssSafe($('cmsPrimary').value,'#8B2E23'); c.accent=cssSafe($('cmsAccent').value,'#C4563B'); c.beige=cssSafe($('cmsBeige').value,'#E2C9A8'); c.cream=cssSafe($('cmsCream').value,'#F8F6F1'); c.dark=cssSafe($('cmsDark').value,'#3A2A24'); c.green=cssSafe($('cmsGreen').value,'#5A7D5B');
-  Object.keys(c.nav).forEach(k=>{const n=$('cmsNav_'+k); if(n)c.nav[k]=n.value.trim()||defaultCMSV11.nav[k]; const tgl=$('cmsVis_'+k); if(tgl)c.visible[k]=tgl.checked;});
-  const preview=$('cmsLogoPreview'); if(preview && preview.src && preview.src.startsWith('data:')) c.logoData=preview.src;
-  saveCMSV11();
-  renderWebsiteControlV11();
-  renderAll();
-  alert(S.lang==='kh'?'រក្សាទុកការកែ Website រួចរាល់':'Website settings saved');
-}
-function resetCMSV11(){ if(!confirm('Reset Website Settings / កំណត់ Website ត្រឡប់ទៅ Default?'))return; S.cms=JSON.parse(JSON.stringify(defaultCMSV11)); write(CMS_KEY_V11,S.cms); applyCMSV11(); renderWebsiteControlV11(); renderAll(); audit('RESET WEBSITE / កំណត់ Website ឡើងវិញ','CMS defaults'); }
-const _adminMenuV11=adminMenu;
-adminMenu=function(section){
-  const labels={overview:'📊 Overview / សង្ខេប',site:'🛠️ Website / Website Control',products:'☕ Products / Menu',inventory:'📦 Stock / ស្តុក',staff:'👥 Staff / Users',settings:'⚙️ Settings / កំណត់',audit:'🛡️ Audit Log / ប្រវត្តិសកម្មភាព'};
-  if(!labels[section]) return '';
-  return `<button class="admin-menu-btn ${section==='site'?'cms-admin-btn':''} ${S.__adminSection===section?'active':''}" onclick="renderAdmin('${section}')">${labels[section]}</button>`;
-}
-const _renderAdminV10 = renderAdmin;
-renderAdmin=function(section){
-  S.__adminSection=section;
-  if(section==='site') return renderWebsiteControlV11();
-  return _renderAdminV10(section);
-};
-applyCMSV11();
-setTimeout(()=>{ if(!$('siteFooterV11')){ const f=document.createElement('div'); f.id='siteFooterV11'; f.className='site-footer-v11'; f.textContent=S.cms.footer; document.querySelector('main.wrap')?.appendChild(f); } applyCMSV11(); },50);
-
-/* ========================= V14: PROMOTIONS + FULL ADMIN CONTROL ========================= */
-const PROMO_KEY_V14='nm_promotions_v14';
-const defaultPromotionsV14=[
-  {id:'promo-2for6000',nameEn:'2 Cups Special',nameKh:'ប្រូម៉ូសិន ២ កែវ',buyQty:2,promoPriceKHR:6000,active:true,products:'ALL'}
-];
-S.promotions=read(PROMO_KEY_V14,defaultPromotionsV14);
-function savePromotions(){write(PROMO_KEY_V14,S.promotions);}
-function activePromos(){return (S.promotions||[]).filter(p=>p.active!==false);}
-function promoForCurrent(){const id=$("promoSelect")?.value||'';return activePromos().find(p=>p.id===id)||null;}
-function promotionItemTotalKHR(item,promo){
-  if(!promo || promo.buyQty<2) return item.priceKHR*item.qty;
-  const applies=promo.products==='ALL' || String(promo.products||'').split(',').includes(String(item.productIndex));
-  if(!applies) return item.priceKHR*item.qty;
-  const groups=Math.floor(item.qty/promo.buyQty), rem=item.qty%promo.buyQty;
-  return groups*Number(promo.promoPriceKHR)+rem*item.priceKHR;
-}
-function cartKhrV14(){const promo=promoForCurrent(); return Object.values(S.cart).reduce((sum,v)=>sum+promotionItemTotalKHR(v,promo),0);}
-function renderPromoSelectV14(){
-  const el=$("promoSelect"); if(!el)return;
-  const current=el.value;
-  el.innerHTML='<option value="">No Promotion / គ្មានប្រូម៉ូសិន</option>'+activePromos().map(p=>`<option value="${escAttr(p.id)}">${esc(p.nameEn)} / ${esc(p.nameKh)} — ${moneyKHR(p.promoPriceKHR)} / ${p.buyQty} cups</option>`).join('');
-  el.value=activePromos().some(p=>p.id===current)?current:'';
-  const promo=promoForCurrent(); const hint=$("promoHint");
-  if(hint) hint.textContent=promo?`${promo.nameKh} · ${promo.buyQty} cups = ${moneyKHR(promo.promoPriceKHR)} / ${promo.nameEn}`:'Normal price / តម្លៃធម្មតា';
-}
-function renderProductsV14(){
-  ensureProductsLoaded(); const q=( $("menuSearch")?.value||'').toLowerCase();
-  const list=S.products.map((p,i)=>({p,i})).filter(({p})=>p[4]!==false && (S.category==='All'||p[3]===S.category) && (`${p[0]} ${p[1]}`).toLowerCase().includes(q));
-  $("productGrid").innerHTML=list.map(({p,i})=>`<button class="product" onclick="addToCart(${i})"><div>${esc(p[0])}</div><span class="kh">${esc(p[1])}</span><span class="price">${moneyKHR(p[2])} / ${moneyUSD(p[2]/S.rate)}</span></button>`).join('') || `<div class="cart-empty">${t('noRecords')}</div>`;
-}
-function addToCartV14(i){const p=S.products[i]; if(!p || p[4]===false)return; S.cart[i]=S.cart[i]||{name:p[0],kh:p[1],priceKHR:p[2],qty:0,productIndex:i}; S.cart[i].qty++; renderCartV14();}
-function minusV14(i){if(!S.cart[i])return;S.cart[i].qty--;if(S.cart[i].qty<=0)delete S.cart[i];renderCartV14();}
-function renderCartV14(){
-  const items=Object.entries(S.cart), promo=promoForCurrent(), total=cartKhrV14();
-  renderPromoSelectV14();
-  if(!items.length){$("cart").innerHTML=`<div class="cart-empty">☕ ${t('selectDrink')}</div>`;$("cartTotal").textContent='0៛';return;}
-  let rows='<table class="cart-table"><thead><tr><th>Item / មុខទំនិញ</th><th>Qty</th><th>Amount / តម្លៃ</th></tr></thead><tbody>';
-  items.forEach(([i,v])=>{const normal=v.priceKHR*v.qty, final=promotionItemTotalKHR(v,promo);const discount=Math.max(0,normal-final);rows+=`<tr><td>${S.lang==='kh'?esc(v.kh):esc(v.name)}${discount>0?`<div class="promo-line">${esc(promo.nameKh)} / ${esc(promo.nameEn)} − ${moneyKHR(discount)}</div>`:''}</td><td><button class="qty-btn" onclick="minusV14(${i})">−</button> ${v.qty} <button class="qty-btn" onclick="addToCartV14(${i})">+</button></td><td>${S.currency==='KHR'?moneyKHR(final):moneyUSD(final/S.rate)}</td></tr>`;});
-  rows+='</tbody></table>';
-  const normal=Object.values(S.cart).reduce((a,v)=>a+v.priceKHR*v.qty,0), discount=Math.max(0,normal-total);
-  $("cart").innerHTML=rows+(discount?`<div class="discount-row"><span>Promotion Discount / បញ្ចុះតម្លៃ</span><b>− ${moneyKHR(discount)}</b></div>`:'');
-  $("cartTotal").textContent=S.currency==='KHR'?moneyKHR(total):moneyUSD(total/S.rate);
-}
-function createSaleRecordV14(){
-  const items=Object.values(S.cart); if(!items.length)return null; const d=now(),promo=promoForCurrent();
-  const grossKHR=items.reduce((s,v)=>s+v.priceKHR*v.qty,0), totalKHR=cartKhrV14(), discountKHR=Math.max(0,grossKHR-totalKHR), cups=items.reduce((s,v)=>s+v.qty,0);
-  const amount=S.currency==='KHR'?totalKHR:totalKHR/S.rate;
-  const sale={id:String(Date.now()),date:today(),time:d.toLocaleTimeString(),user:S.user,payment:S.payment,currency:S.currency,amount,totalKHR,grossKHR,discountKHR,promotion:promo?{id:promo.id,nameEn:promo.nameEn,nameKh:promo.nameKh,buyQty:promo.buyQty,promoPriceKHR:promo.promoPriceKHR}:null,cups,rate:S.rate,createdAt:Date.now(),items:items.map(v=>({name:v.name,kh:v.kh,priceKHR:v.priceKHR,qty:v.qty,productIndex:v.productIndex}))};
-  S.sales.push(sale);write(KEY.sales,S.sales);audit('SALE / ការលក់',promo?`${sale.id} · ${promo.nameEn}`:sale.id);S.cart={};return sale;
-}
-function saveSaleV14(){const sale=createSaleRecordV14();if(!sale)return alert(t('chooseDrink'));renderAll();alert(t('saved'));}
-function saveSaleAndPrintV14(){const sale=createSaleRecordV14();if(!sale)return alert(t('chooseDrink'));renderAll();printReceiptV14(sale);}
-function printReceiptV14(sale){
-  const c=S.cms||{};const shop=escAttr(c.shopName||S.settings.shopName||'nona-me coffee');const phone=escAttr(S.settings.phone||'');const address=escAttr(S.settings.address||'');
-  const rows=(sale.items||[]).map(i=>{const final=promotionItemTotalKHR(i,sale.promotion);return `<tr><td>${S.lang==='kh'?(i.kh||i.name):i.name}${sale.promotion?`<div style="font-size:9px">${esc(sale.promotion.nameKh)} / ${esc(sale.promotion.nameEn)}</div>`:''}</td><td>${i.qty}</td><td>${sale.currency==='KHR'?moneyKHR(final):moneyUSD(final/sale.rate)}</td></tr>`}).join('');
-  const total=sale.currency==='KHR'?moneyKHR(sale.amount):moneyUSD(sale.amount);const discount=sale.discountKHR||0;
-  const html=`<!doctype html><html lang="km"><head><meta charset="utf-8"><title>Receipt ${sale.id}</title><style>@page{size:80mm auto;margin:4mm}*{box-sizing:border-box}body{font-family:Arial,'Noto Sans Khmer',sans-serif;width:72mm;margin:0 auto;color:#222;font-size:12px}.center{text-align:center}.brand{font-size:18px;font-weight:800}.muted{color:#666;font-size:10px}.line{border-top:1px dashed #777;margin:7px 0}table{width:100%;border-collapse:collapse}th,td{padding:4px 0;text-align:left;vertical-align:top}th:last-child,td:last-child{text-align:right}.discount{display:flex;justify-content:space-between;margin-top:6px}.total{font-size:16px;font-weight:800;display:flex;justify-content:space-between;margin-top:8px}.thanks{text-align:center;margin-top:12px;font-weight:700}</style></head><body><div class="center"><div class="brand">${shop}</div>${phone?`<div>${phone}</div>`:''}${address?`<div>${address}</div>`:''}<div class="line"></div><div><b>Receipt / វិក័យប័ត្រ</b></div><div class="muted">${sale.date} · ${sale.time}</div><div class="muted">${sale.user} · ${sale.payment}</div></div><div class="line"></div><table><thead><tr><th>Item / មុខទំនិញ</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>${discount?`<div class="line"></div><div class="discount"><span>Promotion / ប្រូម៉ូសិន</span><b>− ${moneyKHR(discount)}</b></div>`:''}<div class="line"></div><div class="total"><span>Total / សរុប</span><span>${total}</span></div><div class="muted">Currency: ${sale.currency} · Rate: ${Number(sale.rate).toLocaleString()}៛/$1</div><div class="thanks">Thank you / សូមអរគុណ</div><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script></body></html>`;
-  const w=window.open('','_blank','width=420,height=700');if(!w){alert(S.lang==='kh'?'Browser បានរារាំង Print Window។ សូមអនុញ្ញាត Pop-ups។':'Print window was blocked. Please allow pop-ups.');return;}w.document.open();w.document.write(html);w.document.close();
-}
-
-// Full Admin Control Center labels + Website + Promotions.
-function adminMenuV14(section){
-  const L={overview:'📊 Overview / សង្ខេប',site:'🛠️ Website Control / គ្រប់គ្រង Website',products:'☕ Products & Menu / មុខទំនិញ និងមីនុយ',promotions:'🏷️ Promotions / ប្រូម៉ូសិន',inventory:'📦 Inventory / ស្តុក',staff:'👥 Staff & Users / បុគ្គលិក និងអ្នកប្រើ',settings:'⚙️ Shop Settings / កំណត់ហាង',audit:'🛡️ Audit Log / ប្រវត្តិសកម្មភាព'};
-  return `<button class="admin-menu-btn ${section==='overview'?'active':''}" onclick="renderAdmin('${section}')">${L[section]||section}</button>`;
-}
-function adminNavV14(active){return `<div class="admin-menu admin-menu-wrap">${['overview','site','products','promotions','inventory','staff','settings','audit'].map(x=>adminMenuV14(x)).join('')}</div>`;}
-function renderPromotionsAdminV14(){
-  ensureProductsLoaded();
-  $("adminContent").innerHTML=adminNavV14('promotions')+`<section class="panel"><h2>🏷️ Promotions / ប្រូម៉ូសិន</h2><p class="muted">Create a promotion and define the bundle price. Example: 2 cups for 6,000៛.</p>
-  <div class="form-grid"><div><label>English Name / ឈ្មោះអង់គ្លេស</label><input id="promoEn" placeholder="2 Cups Special"></div><div><label>Khmer Name / ឈ្មោះខ្មែរ</label><input id="promoKh" placeholder="ប្រូម៉ូសិន ២ កែវ"></div><div><label>Buy Cups / ចំនួនកែវ</label><input id="promoQty" type="number" min="2" value="2"></div><div><label>Promo Total KHR / តម្លៃសរុបប្រូម៉ូសិន</label><input id="promoPrice" type="number" min="0" value="6000"></div></div>
-  <label>Applies To / ប្រើសម្រាប់</label><select id="promoProducts"><option value="ALL">All Products / មុខទំនិញទាំងអស់</option>${S.products.map((p,i)=>`<option value="${i}">${esc(p[0])} / ${esc(p[1])}</option>`).join('')}</select>
-  <br><br><button class="save-btn" onclick="addPromotionAdminV14()">➕ ADD PROMOTION / បន្ថែមប្រូម៉ូសិន</button>
-  <div style="margin-top:18px">${(S.promotions||[]).map((p,i)=>`<div class="admin-edit-row"><div><b>${esc(p.nameEn)} / ${esc(p.nameKh)}</b><br><span class="muted">${p.buyQty} cups → ${moneyKHR(p.promoPriceKHR)} · ${p.active!==false?'Active / ដំណើរការ':'Disabled / បិទ'}</span></div><div class="row-actions"><button class="mini-btn" onclick="editPromotionAdminV14(${i})">✏️ Edit / កែ</button><button class="mini-btn" onclick="togglePromotionAdminV14(${i})">${p.active!==false?'⏸ Disable / បិទ':'▶️ Enable / បើក'}</button><button class="mini-btn danger" onclick="deletePromotionAdminV14(${i})">🗑 Delete / លុប</button></div></div>`).join('')}</div></section>`;
-}
-function addPromotionAdminV14(){const en=$("promoEn").value.trim(),kh=$("promoKh").value.trim(),qty=Math.max(2,Number($("promoQty").value||2)),price=Math.max(0,Number($("promoPrice").value||0)),products=$("promoProducts").value;if(!en||!kh||price<=0)return alert('Promotion name + price required / ត្រូវការឈ្មោះ និងតម្លៃ');S.promotions.push({id:'promo-'+Date.now(),nameEn:en,nameKh:kh,buyQty:qty,promoPriceKHR:price,active:true,products});savePromotions();audit('ADD PROMOTION / បន្ថែមប្រូម៉ូសិន',en);renderPromotionsAdminV14();}
-function editPromotionAdminV14(i){const p=S.promotions[i];const en=prompt('English Name / ឈ្មោះអង់គ្លេស',p.nameEn);if(en===null)return;const kh=prompt('Khmer Name / ឈ្មោះខ្មែរ',p.nameKh);if(kh===null)return;const qty=prompt('Buy Cups / ចំនួនកែវ',p.buyQty);if(qty===null)return;const price=prompt('Promo Total KHR / តម្លៃសរុប',p.promoPriceKHR);if(price===null)return;p.nameEn=en.trim()||p.nameEn;p.nameKh=kh.trim()||p.nameKh;p.buyQty=Math.max(2,Number(qty)||p.buyQty);p.promoPriceKHR=Math.max(0,Number(price)||p.promoPriceKHR);savePromotions();audit('EDIT PROMOTION / កែប្រូម៉ូសិន',p.nameEn);renderPromotionsAdminV14();}
-function togglePromotionAdminV14(i){S.promotions[i].active=S.promotions[i].active===false;savePromotions();audit(S.promotions[i].active?'ENABLE PROMOTION / បើក':'DISABLE PROMOTION / បិទ',S.promotions[i].nameEn);renderPromotionsAdminV14();renderPromoSelectV14();}
-function deletePromotionAdminV14(i){const p=S.promotions[i];if(!confirm(`Delete ${p.nameEn} / លុបប្រូម៉ូសិននេះ?`))return;S.promotions.splice(i,1);savePromotions();audit('DELETE PROMOTION / លុបប្រូម៉ូសិន',p.nameEn);renderPromotionsAdminV14();}
-
-function renderWebsiteControlV14(){
-  const c=S.cms||{};
-  $("adminContent").innerHTML=adminNavV14('site')+`<section class="panel control-hero-v11"><h2>🛠️ Website Control / គ្រប់គ្រង Website</h2><p>Edit the website without coding. / កែ Website ដោយមិនចាំបាច់សរសេរកូដ។</p></section><div class="cms-grid-v11">
-  <section class="panel"><h2>🏪 Website Content / មាតិកា Website</h2><div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="cmsShopName" value="${escAttr(c.shopName)}"></div><div><label>Tagline / ពាក្យពិពណ៌នា</label><input id="cmsTagline" value="${escAttr(c.tagline)}"></div><div><label>Announcement / សារជូនដំណឹង</label><input id="cmsAnnouncement" value="${escAttr(c.announcement)}"></div><div><label>Footer / អក្សរខាងក្រោម</label><input id="cmsFooter" value="${escAttr(c.footer)}"></div><div><label>Login Subtitle / អក្សរនៅ Login</label><input id="cmsLoginSubtitle" value="${escAttr(c.loginSubtitle)}"></div></div></section>
-  <section class="panel"><h2>🎨 Appearance / រូបរាង</h2><div class="form-grid"><div><label>Primary / ពណ៌មេ</label><input id="cmsPrimary" value="${escAttr(c.primary)}"></div><div><label>Accent / ពណ៌បន្ថែម</label><input id="cmsAccent" value="${escAttr(c.accent)}"></div><div><label>Beige / ត្នោតស្រាល</label><input id="cmsBeige" value="${escAttr(c.beige)}"></div><div><label>Cream / ក្រែម</label><input id="cmsCream" value="${escAttr(c.cream)}"></div><div><label>Dark / ងងឹត</label><input id="cmsDark" value="${escAttr(c.dark)}"></div><div><label>Green / បៃតង</label><input id="cmsGreen" value="${escAttr(c.green)}"></div></div></section>
-  <section class="panel"><h2>🧭 Navigation / Menu</h2>${Object.entries(c.nav||{}).map(([k,v])=>`<div class="cms-nav-row"><label>${k}</label><input id="cmsNav_${k}" value="${escAttr(v)}"><label class="cms-toggle"><input id="cmsVis_${k}" type="checkbox" ${c.visible?.[k]!==false?'checked':''}><span>Show / បង្ហាញ</span></label></div>`).join('')}</section>
-  <section class="panel"><h2>🖨️ Printing / ការព្រីន</h2><p>Receipt printing / ការព្រីនវិក្កយបត្រ: <b>Save & Print</b></p><div class="form-grid"><div><label>Paper / ក្រដាស</label><select id="printPaper"><option>80mm</option><option>58mm</option><option>A4</option></select></div><div><label>Receipt Footer / Footer</label><input id="receiptFooter" value="${escAttr(c.receipt?.footer||'Thank you / សូមអរគុណ')}"></div></div><div class="danger-box-v11"><b>Reset Website Settings / កំណត់ Website ឡើងវិញ</b><button class="mini-btn danger" onclick="resetCMSV14()">Reset</button></div></section>
-  </div><div class="sticky-save-v11"><button class="save-btn" onclick="saveCMSFormV14()">💾 SAVE WEBSITE CHANGES / រក្សាទុកការកែ Website</button></div>`;
-}
-function saveCMSFormV14(){const c=S.cms||{};c.shopName=$("cmsShopName").value.trim();c.tagline=$("cmsTagline").value.trim();c.announcement=$("cmsAnnouncement").value.trim();c.footer=$("cmsFooter").value.trim();c.loginSubtitle=$("cmsLoginSubtitle").value.trim();['Primary','Accent','Beige','Cream','Dark','Green'].forEach(x=>{const id='cms'+x;c[x.toLowerCase()]=cssSafe($(id).value,c[x.toLowerCase()]);});for(const k of Object.keys(c.nav||{})){const n=$("cmsNav_"+k);const v=$("cmsVis_"+k);if(n)c.nav[k]=n.value.trim();if(v)c.visible[k]=v.checked;}c.receipt=c.receipt||{};c.receipt.footer=$("receiptFooter").value.trim();S.cms=c;write(CMS_KEY_V11,c);applyCMSV11();audit('UPDATE WEBSITE / កែ Website','CMS updated');renderWebsiteControlV14();renderAll();alert(S.lang==='kh'?'បានរក្សាទុកការកែ Website':'Website changes saved');}
-function resetCMSV14(){if(!confirm('Reset Website Settings / កំណត់ Website ត្រឡប់ Default?'))return;S.cms=JSON.parse(JSON.stringify(defaultCMSV11));write(CMS_KEY_V11,S.cms);applyCMSV11();renderWebsiteControlV14();}
-
-const renderAdminBaseV14=renderAdmin;
-renderAdmin=function(section){S.__adminSection=section;if(section==='site')return renderWebsiteControlV14();if(section==='promotions')return renderPromotionsAdminV14();return renderAdminBaseV14(section);};
-const createSaleRecordBaseV14=createSaleRecord; // retained reference for compatibility
-createSaleRecord=createSaleRecordV14;
-saveSale=saveSaleV14;saveSaleAndPrint=saveSaleAndPrintV14;
-cartKhr=cartKhrV14;renderCart=renderCartV14;addToCart=addToCartV14;minus=minusV14;renderProducts=renderProductsV14;
-const renderAllBaseV14=renderAll;renderAll=function(){renderPromoSelectV14();renderAllBaseV14();setTimeout(renderPromoSelectV14,0);};
-
-// Ensure admin navigation is bilingual everywhere.
-const oldRenderOverviewV14=renderOverview;
-renderOverview=function(){oldRenderOverviewV14();};
-
-// Bind promo selector after DOM is available.
-function bindV14(){
-  const p=$("promoSelect"); if(p && !p.__bound){p.__bound=true;p.onchange=()=>{renderPromoSelectV14();renderCartV14();};}
-}
-const oldBootV14=boot;
-boot=async function(){await oldBootV14();renderPromoSelectV14();bindV14();};
-
-// Run language and bindings after each page rebuild.
-const oldShowPageV14=showPage;showPage=function(name,btn){oldShowPageV14(name,btn);if(name==='admin'&&S.role==='admin')renderAdmin(S.__adminSection||'overview');bindV14();};
-
-/* Final start */
-boot();
-
-
-/* ========================= V16 FINAL FIXES ========================= */
-const V16_MENU_VIEW_KEY='nm_menu_view_v16';
-const V16_SITE_KEY='nm_site_control_v16';
-function v16ReadSite(){return read(V16_SITE_KEY,{defaultMenuView:'grid',reportSeparator:'━━━━━━━━━━━━━━━━━━',showSalesKpi:true,showCashKpi:true,receiptPaper:'80mm'});}
-S.siteControl=v16ReadSite();
-
-function renderCategoriesV16(){
-  ensureProductsLoaded();
-  const cats=[...new Set(['All',...S.products.map(p=>p[3]).filter(Boolean)])];
-  const kh={All:'ទាំងអស់',Coffee:'កាហ្វេ',Matcha:'Matcha',Cacao:'កាកាវ',Tea:'តែ',Soda:'សូដា'};
-  const bar=$("categoryBar");
-  if(!bar)return;
-  bar.className='sales-toolbar-v16';
-  bar.innerHTML=`<select id="categorySelectV16" class="category-select-v16" aria-label="Category / ប្រភេទ">${cats.map(c=>`<option value="${esc(c)}" ${S.category===c?'selected':''}>${S.lang==='kh'?(kh[c]||c):c}</option>`).join('')}</select><div class="view-toggle-v16"><button type="button" id="menuGridBtnV16" class="mini-btn ${menuViewV16()==='grid'?'active':''}">▦ Grid / ក្រឡា</button><button type="button" id="menuListBtnV16" class="mini-btn ${menuViewV16()==='list'?'active':''}">☷ List / បញ្ជី</button></div>`;
-  const sel=$("categorySelectV16"); if(sel) sel.onchange=()=>{S.category=sel.value;renderCategoriesV16();renderProductsV16();};
-  const gb=$("menuGridBtnV16"); if(gb)gb.onclick=()=>setMenuViewV16('grid');
-  const lb=$("menuListBtnV16"); if(lb)lb.onclick=()=>setMenuViewV16('list');
-}
-function menuViewV16(){return localStorage.getItem(V16_MENU_VIEW_KEY)||S.siteControl.defaultMenuView||'grid';}
-function setMenuViewV16(v){localStorage.setItem(V16_MENU_VIEW_KEY,v);renderCategoriesV16();renderProductsV16();}
-function renderProductsV16(){
-  ensureProductsLoaded();
-  const q=( $("menuSearch")?.value||'').toLowerCase();
-  const list=S.products.map((p,i)=>({p,i})).filter(({p})=>p[4]!==false&&(S.category==='All'||p[3]===S.category)&&(`${p[0]} ${p[1]}`).toLowerCase().includes(q));
-  const grid=$("productGrid"); if(!grid)return;
-  const view=menuViewV16(); grid.classList.toggle('list-view-v16',view==='list');
-  grid.innerHTML=list.map(({p,i})=>{const img=p[5]?`<img class="product-thumb-v16" src="${escAttr(p[5])}" alt="">`:`<div class="product-thumb-v16" aria-hidden="true">☕</div>`;return `<button type="button" class="product" onclick="addToCartV14(${i})">${img}<div><div>${esc(p[0])}</div><span class="kh">${esc(p[1])}</span></div><span class="price">${moneyKHR(p[2])} / ${moneyUSD(p[2]/S.rate)}</span></button>`;}).join('')||`<div class="cart-empty">${t('noRecords')}</div>`;
-}
-renderCategories=renderCategoriesV16;
-renderProducts=renderProductsV16;
-
-function v16Reader(dataId){const f=$(dataId);return new Promise((resolve)=>{const file=f?.files?.[0];if(!file)return resolve('');const r=new FileReader();r.onload=()=>resolve(String(r.result||''));r.readAsDataURL(file);});}
-
-function adminSideV16(active){
-  const items=[['overview','📊','Overview / សង្ខេប'],['site','🛠️','Website Control / គ្រប់គ្រង Website'],['products','☕','Products & Menu / មុខទំនិញ និងមីនុយ'],['promotions','🏷️','Promotions / ប្រូម៉ូសិន'],['inventory','📦','Inventory / ស្តុក'],['staff','👥','Staff & Users / បុគ្គលិក និងអ្នកប្រើ'],['settings','⚙️','Shop Settings / កំណត់ហាង'],['audit','🛡️','Audit Log / ប្រវត្តិសកម្មភាព']];
-  return `<aside class="admin-sidebar-v16"><div class="admin-side-title-v16">⚙️ Admin Control Center<br><span class="muted">មជ្ឈមណ្ឌលគ្រប់គ្រង</span></div>${items.map(([k,ic,l])=>`<button type="button" class="admin-side-btn-v16 ${active===k?'active':''}" onclick="renderAdminV16('${k}')">${ic} ${l}</button>`).join('')}</aside>`;
-}
-function wrapAdminV16(active,body){$("adminContent").innerHTML=`<div class="admin-shell-v16">${adminSideV16(active)}<div class="admin-main-v16">${body}</div></div>`;}
-window.renderAdminV16=renderAdminV16;
-function renderAdminV16(section='overview'){
-  if(S.role!=='admin')return;
-  S.__adminSection=section;
-  if(section==='site')return renderSiteV16();
-  if(section==='products')return renderProductsAdminV16();
-  if(section==='promotions')return renderPromotionsAdminV14();
-  if(section==='inventory')return renderInventoryAdminV16();
-  if(section==='staff')return renderStaffAdminV16();
-  if(section==='settings')return renderSettingsAdminV16();
-  if(section==='audit')return renderAuditAdminV16();
-  return renderOverviewAdminV16();
-}
-
-function renderOverviewAdminV16(){
-  const type=$("overviewTypeV16")?.value||'day',date=$("overviewDateV16")?.value||today();
-  const {r,a}=overviewAggregate(type,date); const netKHR=a.salesKHR-a.expenseKHR,netUSD=a.salesUSD-a.expenseUSD;
-  const days=rangeDates(r); const rows=days.map(d=>{const ds=aDateSales(d),de=aDateExp(d);return `<tr><td>${dayLabel(d)}</td><td>${moneyKHR(ds.k)}</td><td>${moneyUSD(ds.u)}</td><td>${moneyKHR(de.k)}</td><td>${de.u?moneyUSD(de.u):'$0.00'}</td><td>${ds.c}</td></tr>`;}).join('');
-  wrapAdminV16('overview',`<div class="admin-section-toolbar-v16"><div><h2>📊 Overview / សង្ខេប</h2><p class="muted">Daily / Weekly / Monthly · មើលការលក់តាមថ្ងៃ សប្តាហ៍ និងខែ</p></div><button class="export-btn" onclick="exportOverviewCSVV16()">📥 Export Data / ទាញទិន្នន័យ</button></div>
-  <section class="panel"><div class="form-grid"><div><label>Period / រយៈពេល</label><select id="overviewTypeV16"><option value="day" ${type==='day'?'selected':''}>Daily / ប្រចាំថ្ងៃ</option><option value="week" ${type==='week'?'selected':''}>Weekly / ប្រចាំសប្តាហ៍</option><option value="month" ${type==='month'?'selected':''}>Monthly / ប្រចាំខែ</option></select></div><div><label>Date / កាលបរិច្ឆេទ</label><input id="overviewDateV16" type="date" value="${date}"></div></div><button class="save-btn" style="margin-top:10px" onclick="renderOverviewAdminV16()">VIEW / មើល</button></section>
-  <div class="stats admin-overview-stats"><div class="stat"><small>Sales KHR / ការលក់ KHR</small><strong>${moneyKHR(a.salesKHR)}</strong></div><div class="stat"><small>Sales USD / ការលក់ USD</small><strong>${moneyUSD(a.salesUSD)}</strong></div><div class="stat"><small>Expenses KHR / ចំណាយ KHR</small><strong>${moneyKHR(a.expenseKHR)}</strong></div><div class="stat"><small>Expenses USD / ចំណាយ USD</small><strong>${moneyUSD(a.expenseUSD)}</strong></div><div class="stat"><small>Net KHR / សល់ក្រោយចំណាយ</small><strong>${moneyKHR(netKHR)}</strong></div><div class="stat"><small>Net USD / សល់ក្រោយចំណាយ</small><strong>${moneyUSD(netUSD)}</strong></div><div class="stat"><small>Cups / កែវ</small><strong>${a.cups}</strong></div><div class="stat"><small>Current Cash / សាច់ប្រាក់ក្នុងតុ</small><strong>${moneyKHR(expectedCurrentCash().khr)}<br>${moneyUSD(expectedCurrentCash().usd)}</strong></div></div>
-  <section class="panel"><h3>📅 Daily Breakdown / បំបែកតាមថ្ងៃ</h3><div class="table-wrap"><table class="report-table"><thead><tr><th>Date / ថ្ងៃ</th><th>Sales KHR</th><th>Sales USD</th><th>Expense KHR</th><th>Expense USD</th><th>Cups / កែវ</th></tr></thead><tbody>${rows||'<tr><td colspan="6">'+t('noRecords')+'</td></tr>'}</tbody></table></div></section>`);
-  $("overviewTypeV16").onchange=()=>renderOverviewAdminV16();$("overviewDateV16").onchange=()=>renderOverviewAdminV16();
-}
-function aDateSales(d){const xs=S.sales.filter(x=>x.date===d);return {k:xs.filter(x=>x.currency==='KHR').reduce((n,x)=>n+Number(x.amount||0),0),u:xs.filter(x=>x.currency==='USD').reduce((n,x)=>n+Number(x.amount||0),0),c:xs.reduce((n,x)=>n+Number(x.cups||0),0)}}
-function aDateExp(d){const xs=S.expenses.filter(x=>x.date===d);return {k:xs.filter(x=>x.currency==='KHR').reduce((n,x)=>n+Number(x.amount||0),0),u:xs.filter(x=>x.currency==='USD').reduce((n,x)=>n+Number(x.amount||0),0)}}
-function exportOverviewCSVV16(){const type=$("overviewTypeV16")?.value||'day',date=$("overviewDateV16")?.value||today(),{r}=overviewAggregate(type,date);const rows=[['Date / ថ្ងៃ','Type / ប្រភេទ','Staff / បុគ្គលិក','Description / Item','Currency / រូបិយប័ណ្ណ','Payment / វិធីបង់','Amount / ចំនួន','Cups / កែវ','Bank / ធនាគារ','Note / កំណត់សម្គាល់']];S.sales.filter(x=>inRange(x.date,r)).forEach(x=>rows.push([x.date,'SALE / ការលក់',x.user,x.name,x.currency,x.payment,x.amount,x.cups||0,'',x.note||'']));S.expenses.filter(x=>inRange(x.date,r)).forEach(x=>rows.push([x.date,'EXPENSE / ចំណាយ',x.user,x.desc,x.currency,x.payment,x.amount,'','',x.note||'']));S.deposits.filter(x=>inRange(x.date,r)).forEach(x=>rows.push([x.date,'DEPOSIT / ដាក់ធនាគារ',x.user,'Bank Deposit',x.currency,'Cash',x.amount,'',x.bank||'',x.note||'']));const csv=rows.map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n');const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`nona-me-overview-${type}-${r.start}-to-${r.end}.csv`;a.click();URL.revokeObjectURL(a.href);audit('EXPORT DATA / ទាញទិន្នន័យ',`${type} ${r.start} to ${r.end}`);}
-
-function productImg(p){return p?.[5] ? `<img class="thumb-sm-v16" src="${escAttr(p[5])}" alt="">` : `<div class="thumb-sm-v16" style="display:grid;place-items:center">☕</div>`}
-function renderProductsAdminV16(){ensureProductsLoaded();const cats=productCategories();wrapAdminV16('products',`<div class="admin-section-toolbar-v16"><div><h2>☕ Products & Menu / មុខទំនិញ និងមីនុយ</h2><p class="muted">Add, edit, image, hide/show, delete · បន្ថែម កែ រូប លាក់/បង្ហាញ និងលុប</p></div></div><section class="panel"><div class="form-grid"><div><label>English Name / ឈ្មោះអង់គ្លេស</label><input id="prodEnV16" placeholder="Iced Latte"></div><div><label>Khmer Name / ឈ្មោះខ្មែរ</label><input id="prodKhV16" placeholder="ឡាតេទឹកកក"></div><div><label>Price KHR / តម្លៃរៀល</label><input id="prodPriceV16" type="number" min="0" placeholder="5000"></div><div><label>Category / ប្រភេទ</label><input id="prodCatV16" list="prodCatsV16" placeholder="Coffee / កាហ្វេ"><datalist id="prodCatsV16">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div><div class="image-input-v16"><label>Product Image / រូបមុខទំនិញ</label><input id="prodImageV16" type="file" accept="image/png,image/jpeg,image/webp"><span class="muted small">Optional / មិនបាច់ក៏បាន</span></div><button class="save-btn" style="margin-top:10px" onclick="addProductV16()">➕ ADD PRODUCT / បន្ថែមមុខទំនិញ</button></section><section class="panel"><h3>Menu Items / បញ្ជីមុខទំនិញ</h3>${S.products.map((p,i)=>`<div class="product-admin-row-v16">${productImg(p)}<div><b>${esc(p[0])}</b><br><span class="muted">${esc(p[1])} · ${esc(p[3]||'Other')} · ${moneyKHR(p[2])}${p[4]===false?' · DISABLED / បិទ':''}</span></div><div class="row-actions"><button class="mini-btn" onclick="editProductV16(${i})">✏️ Edit / កែ</button><label class="mini-btn">🖼️ Image / រូប<input type="file" accept="image/*" style="display:none" onchange="changeProductImageV16(${i},this.files[0])"></label><button class="mini-btn" onclick="toggleProductV16(${i})">${p[4]===false?'▶️ Show / បើក':'⏸ Hide / លាក់'}</button><button class="mini-btn danger" onclick="deleteProductV16(${i})">🗑 Delete / លុប</button></div></div>`).join('')}</section>`);}
-function addProductV16(){const en=$("prodEnV16").value.trim(),kh=$("prodKhV16").value.trim(),price=Number($("prodPriceV16").value||0),cat=$("prodCatV16").value.trim()||'Other';if(!en||!kh||price<=0)return alert('English + Khmer + price required / សូមបញ្ចូលឈ្មោះ និងតម្លៃ');const file=$("prodImageV16")?.files?.[0];const save=(img='')=>{S.products.push([en,kh,price,cat,true,img]);saveProducts();audit('ADD PRODUCT / បន្ថែមមុខទំនិញ',en);renderProductsAdminV16();renderProductsV16();};if(file){const r=new FileReader();r.onload=()=>save(r.result);r.readAsDataURL(file);}else save('');}
-function editProductV16(i){const p=S.products[i];const en=prompt('English Name / ឈ្មោះអង់គ្លេស',p[0]);if(en===null)return;const kh=prompt('Khmer Name / ឈ្មោះខ្មែរ',p[1]);if(kh===null)return;const price=prompt('Price KHR / តម្លៃរៀល',p[2]);if(price===null)return;const cat=prompt('Category / ប្រភេទ',p[3]||'Other');if(cat===null)return;S.products[i]=[en.trim()||p[0],kh.trim()||p[1],Math.max(0,Number(price)||p[2]),cat.trim()||p[3]||'Other',p[4]!==false,p[5]||''];saveProducts();audit('EDIT PRODUCT / កែមុខទំនិញ',S.products[i][0]);renderProductsAdminV16();renderProductsV16();}
-function changeProductImageV16(i,file){if(!file)return;const r=new FileReader();r.onload=()=>{S.products[i][5]=String(r.result||'');saveProducts();audit('UPDATE PRODUCT IMAGE / ប្តូររូបមុខទំនិញ',S.products[i][0]);renderProductsAdminV16();renderProductsV16();};r.readAsDataURL(file);}
-function toggleProductV16(i){S.products[i][4]=S.products[i][4]===false;saveProducts();renderProductsAdminV16();renderProductsV16();}
-function deleteProductV16(i){const p=S.products[i];if(!confirm(`Delete ${p[0]} / លុបមុខទំនិញនេះ?`))return;S.products.splice(i,1);saveProducts();audit('DELETE PRODUCT / លុបមុខទំនិញ',p[0]);renderProductsAdminV16();renderProductsV16();renderCategoriesV16();}
-
-function renderInventoryAdminV16(){S.stock=S.stock||[];wrapAdminV16('inventory',`<div class="admin-section-toolbar-v16"><div><h2>📦 Inventory / ស្តុក</h2><p class="muted">Add stock with image, quantity, unit and low-stock level.</p></div></div><section class="panel stock-form-v16"><div class="form-grid"><div><label>Item / មុខស្តុក</label><input id="stockNameV16" placeholder="Coffee / កាហ្វេ"></div><div><label>Quantity / ចំនួន</label><input id="stockQtyV16" type="number" min="0" placeholder="10"></div><div><label>Unit / ឯកតា</label><input id="stockUnitV16" placeholder="kg / pcs / L"></div><div><label>Minimum / កម្រិតព្រមាន</label><input id="stockMinV16" type="number" min="0" placeholder="2"></div></div><div class="image-input-v16"><label>Stock Image / រូបស្តុក</label><input id="stockImageV16" type="file" accept="image/png,image/jpeg,image/webp"></div><button class="save-btn" style="margin-top:10px" onclick="addStockV16()">➕ ADD STOCK / បន្ថែមស្តុក</button></section><section class="panel"><h3>Stock List / បញ្ជីស្តុក</h3>${S.stock.map((x,i)=>`<div class="stock-admin-row-v16">${x.image?`<img class="stock-thumb-v16" src="${escAttr(x.image)}" alt="">`:`<div class="stock-thumb-v16" style="display:grid;place-items:center">📦</div>`}<div><b>${esc(x.name)}</b><br><span class="muted">${esc(x.unit||'pcs')} · Min ${Number(x.min||0)} · ${x.qty<=x.min?'⚠️ Low Stock / ជិតអស់':'OK / ល្អ'}</span></div><div class="row-actions"><b class="${x.qty<=x.min?'stock-low':'stock-ok'}">${x.qty}</b> <button class="mini-btn" onclick="editStockV16(${i})">✏️ Edit / កែ</button><label class="mini-btn">🖼️ Image / រូប<input type="file" accept="image/*" style="display:none" onchange="changeStockImageV16(${i},this.files[0])"></label><button class="mini-btn danger" onclick="deleteStockV16(${i})">🗑 Delete / លុប</button></div></div>`).join('')||`<div class="cart-empty">${t('noRecords')}</div>`}</section>`);}
-function addStockV16(){const name=$("stockNameV16").value.trim();if(!name)return alert('Item / មុខស្តុក');const obj={id:String(Date.now()),name,qty:Number($("stockQtyV16").value||0),unit:$("stockUnitV16").value.trim()||'pcs',min:Number($("stockMinV16").value||0),image:''};const file=$("stockImageV16")?.files?.[0];const save=()=>{S.stock.push(obj);write(V8KEY.stock,S.stock);audit('ADD STOCK / បន្ថែមស្តុក',name);renderInventoryAdminV16();};if(file){const r=new FileReader();r.onload=()=>{obj.image=String(r.result||'');save();};r.readAsDataURL(file);}else save();}
-function editStockV16(i){const x=S.stock[i];const n=prompt('Item / មុខស្តុក',x.name);if(n===null)return;const q=prompt('Quantity / ចំនួន',x.qty);if(q===null)return;const u=prompt('Unit / ឯកតា',x.unit||'pcs');if(u===null)return;const m=prompt('Minimum / កម្រិតព្រមាន',x.min||0);if(m===null)return;x.name=n.trim()||x.name;x.qty=Math.max(0,Number(q)||0);x.unit=u.trim()||x.unit||'pcs';x.min=Math.max(0,Number(m)||0);write(V8KEY.stock,S.stock);audit('EDIT STOCK / កែស្តុក',x.name);renderInventoryAdminV16();}
-function changeStockImageV16(i,file){if(!file)return;const r=new FileReader();r.onload=()=>{S.stock[i].image=String(r.result||'');write(V8KEY.stock,S.stock);audit('UPDATE STOCK IMAGE / ប្តូររូបស្តុក',S.stock[i].name);renderInventoryAdminV16();};r.readAsDataURL(file);}
-function deleteStockV16(i){const x=S.stock[i];if(!confirm(`Delete ${x.name} / លុបស្តុកនេះ?`))return;S.stock.splice(i,1);write(V8KEY.stock,S.stock);audit('DELETE STOCK / លុបស្តុក',x.name);renderInventoryAdminV16();}
-
-function renderStaffAdminV16(){S.users=read(USER_KEY,defaultUsers);wrapAdminV16('staff',`<div class="admin-section-toolbar-v16"><div><h2>👥 Staff & Users / បុគ្គលិក និងអ្នកប្រើ</h2><p class="muted">Admin can add, edit, disable and delete users in this test build.</p></div></div><section class="panel staff-form-v16"><div class="form-grid"><div><label>Name / ឈ្មោះ</label><input id="userNameV16" placeholder="Staff 03"></div><div><label>Username / Username</label><input id="userUsernameV16" placeholder="staff03"></div><div><label>Password / ពាក្យសម្ងាត់</label><input id="userPasswordV16" placeholder="1234"></div><div><label>Role / តួនាទី</label><select id="userRoleV16"><option value="staff">Staff / បុគ្គលិក</option><option value="admin">Admin / អ្នកគ្រប់គ្រង</option></select></div></div><button class="save-btn" style="margin-top:10px" onclick="addUserV16()">➕ ADD USER / បន្ថែមអ្នកប្រើ</button></section><section class="panel"><h3>User List / បញ្ជីអ្នកប្រើ</h3>${S.users.map((u,i)=>`<div class="admin-edit-row"><div><b>${esc(u.name||u.username)}</b><br><span class="muted">${esc(u.username)} · ${u.role==='admin'?'ADMIN / អ្នកគ្រប់គ្រង':'STAFF / បុគ្គលិក'} · ${u.active===false?'DISABLED / បិទ':'ACTIVE / ដំណើរការ'}</span></div><div class="row-actions"><button class="mini-btn" onclick="editUserV16(${i})">✏️ Edit / កែ</button><button class="mini-btn" onclick="toggleUserV16(${i})">${u.active===false?'▶️ Enable / បើក':'⏸ Disable / បិទ'}</button>${u.username!=='admin'?'<button class="mini-btn danger" onclick="deleteUserV16('+i+')">🗑 Delete / លុប</button>':''}</div></div>`).join('')}</section>`);}
-function addUserV16(){const name=$("userNameV16").value.trim(),username=$("userUsernameV16").value.trim(),password=$("userPasswordV16").value,role=$("userRoleV16").value;if(!name||!username||!password)return alert('Name + username + password required / ត្រូវបញ្ចូលឈ្មោះ Username និង Password');if(S.users.some(u=>u.username===username))return alert('Username already exists / Username មានរួចហើយ');S.users.push({id:'u-'+Date.now(),username,password,name,role,active:true});saveUsers();audit('ADD USER / បន្ថែមអ្នកប្រើ',username);renderStaffAdminV16();}
-function editUserV16(i){const u=S.users[i];const name=prompt('Name / ឈ្មោះ',u.name);if(name===null)return;const pass=prompt('Password / ពាក្យសម្ងាត់',u.password);if(pass===null)return;u.name=name.trim()||u.name;u.password=pass||u.password;saveUsers();audit('EDIT USER / កែអ្នកប្រើ',u.username);renderStaffAdminV16();}
-function toggleUserV16(i){S.users[i].active=S.users[i].active===false;saveUsers();audit(S.users[i].active?'ENABLE USER / បើកអ្នកប្រើ':'DISABLE USER / បិទអ្នកប្រើ',S.users[i].username);renderStaffAdminV16();}
-function deleteUserV16(i){const u=S.users[i];if(!confirm(`Delete ${u.username} / លុបអ្នកប្រើនេះ?`))return;S.users.splice(i,1);saveUsers();audit('DELETE USER / លុបអ្នកប្រើ',u.username);renderStaffAdminV16();}
-
-function renderSettingsAdminV16(){wrapAdminV16('settings',`<div class="admin-section-toolbar-v16"><div><h2>⚙️ Shop Settings / កំណត់ហាង</h2><p class="muted">Business settings and exchange rate.</p></div></div><section class="panel"><div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="setShopV16" value="${escAttr(S.settings.shopName||'nona-me coffee')}"></div><div><label>Phone / ទូរស័ព្ទ</label><input id="setPhoneV16" value="${escAttr(S.settings.phone||'')}"></div><div><label>Telegram / Telegram</label><input id="setTelegramV16" value="${escAttr(S.settings.telegram||'')}"></div><div><label>Address / អាសយដ្ឋាន</label><input id="setAddressV16" value="${escAttr(S.settings.address||'')}"></div></div><label>Exchange Rate / អត្រាប្តូរប្រាក់</label><input id="setRateV16" type="number" min="1" value="${Number(S.rate||4000)}"><button class="save-btn" style="margin-top:10px" onclick="saveSettingsV16()">💾 SAVE SETTINGS / រក្សាទុក</button></section>`);}
-function saveSettingsV16(){S.settings={shopName:$("setShopV16").value.trim(),phone:$("setPhoneV16").value.trim(),telegram:$("setTelegramV16").value.trim(),address:$("setAddressV16").value.trim()};S.rate=Math.max(1,Number($("setRateV16").value||4000));write(KEY.settings,S.settings);localStorage.setItem(KEY.rate,S.rate);renderAll();renderAdminV16('settings');alert(S.lang==='kh'?'បានរក្សាទុក':'Saved');}
-function renderAuditAdminV16(){const logs=read(V8KEY.logs,[]).slice().reverse();wrapAdminV16('audit',`<div class="admin-section-toolbar-v16"><div><h2>🛡️ Audit Log / ប្រវត្តិសកម្មភាព</h2><p class="muted">Everything changed by users is recorded here.</p></div></div><section class="panel">${logs.map(l=>`<div class="log-row"><span>${l.date} · ${l.time}<br><small>${esc(l.user||'—')} · ${esc(l.action||'')}</small></span><b>${esc(l.detail||'')}</b></div>`).join('')||`<div class="cart-empty">${t('noRecords')}</div>`}</section>`);}
-
-function renderSiteV16(){const c=S.cms||{};const sc=S.siteControl;wrapAdminV16('site',`<div class="admin-section-toolbar-v16"><div><h2>🛠️ Website Control / គ្រប់គ្រង Website</h2><p class="muted">កែ Website និងរបៀបបង្ហាញដោយមិនចាំបាច់កែ Code។ / Control the app from Admin.</p></div></div><div class="cms-big-row-v16"><section class="panel"><h3>🏪 Brand & Content / ម៉ាក និងមាតិកា</h3><div class="cms-settings-grid-v16"><div class="cms-setting-card-v16"><label>Shop Name / ឈ្មោះហាង</label><input id="siteShopNameV16" value="${escAttr(c.shopName||S.settings.shopName)}"></div><div class="cms-setting-card-v16"><label>Tagline / ពាក្យពិពណ៌នា</label><input id="siteTaglineV16" value="${escAttr(c.tagline||'')}"></div><div class="cms-setting-card-v16"><label>Announcement / សារជូនដំណឹង</label><input id="siteAnnouncementV16" value="${escAttr(c.announcement||'')}"></div><div class="cms-setting-card-v16"><label>Footer / បាតទំព័រ</label><input id="siteFooterV16" value="${escAttr(c.footer||'')}"></div></div><div style="margin-top:12px"><label>Official Logo / Logo ផ្លូវការ</label><div class="image-input-v16"><img class="asset-preview-v16" src="assets/nona-me-logo.png" alt="Logo"><input id="siteLogoV16" type="file" accept="image/*"></div><small class="muted">For this test build, uploaded logo is stored on this device. Production will store it in cloud storage.</small></div></section><section class="panel"><h3>🎨 Appearance / រូបរាង</h3><div class="cms-settings-grid-v16">${['primary','accent','beige','cream','dark','green'].map(k=>`<div class="cms-setting-card-v16"><label>${k[0].toUpperCase()+k.slice(1)} / ${k==='primary'?'ពណ៌មេ':k==='accent'?'ពណ៌បន្ថែម':k==='beige'?'ត្នោតស្រាល':k==='cream'?'ក្រែម':k==='dark'?'ងងឹត':'បៃតង'}</label><input id="site_${k}_V16" value="${escAttr(c[k]||'#000000')}"></div>`).join('')}</div></section></div><section class="panel"><h3>🧭 Navigation & Layout / Menu និង Layout</h3>${Object.entries(c.nav||{}).map(([k,v])=>`<div class="cms-nav-row"><label>${k}</label><input id="siteNav_${k}_V16" value="${escAttr(v)}"><label class="cms-toggle"><input id="siteVis_${k}_V16" type="checkbox" ${c.visible?.[k]!==false?'checked':''}><span>Show / បង្ហាញ</span></label></div>`).join('')}<div class="form-grid" style="margin-top:12px"><div><label>Menu Default View / មីនុយលំនាំដើម</label><select id="siteMenuViewV16"><option value="grid" ${menuViewV16()==='grid'?'selected':''}>Grid / ក្រឡា</option><option value="list" ${menuViewV16()==='list'?'selected':''}>List / បញ្ជី</option></select></div><div><label>Report Separator / បន្ទាត់ខណ្ឌ Report</label><input id="siteSeparatorV16" value="${escAttr(sc.reportSeparator)}"></div></div></section><section class="panel"><h3>🖨️ Printing / ការព្រីន</h3><div class="form-grid"><div><label>Receipt Paper / ប្រភេទក្រដាស</label><select id="sitePaperV16"><option ${sc.receiptPaper==='58mm'?'selected':''}>58mm</option><option ${sc.receiptPaper==='80mm'?'selected':''}>80mm</option><option ${sc.receiptPaper==='A4'?'selected':''}>A4</option></select></div><div><label>Receipt Footer / Footer វិក័យប័ត្រ</label><input id="siteReceiptFooterV16" value="${escAttr(c.receipt?.footer||'Thank you / សូមអរគុណ')}"></div></div></section><div class="sticky-save-v11"><button class="save-btn" onclick="saveSiteV16()">💾 SAVE ALL WEBSITE CHANGES / រក្សាទុកការកែ Website ទាំងអស់</button></div>`);}
-async function saveSiteV16(){const c=S.cms||defaultCMSV11;c.shopName=$("siteShopNameV16").value.trim()||defaultCMSV11.shopName;c.tagline=$("siteTaglineV16").value.trim();c.announcement=$("siteAnnouncementV16").value.trim();c.footer=$("siteFooterV16").value.trim();for(const k of ['primary','accent','beige','cream','dark','green'])c[k]=cssSafe($("site_"+k+"_V16").value,c[k]);for(const k of Object.keys(c.nav||{})){c.nav[k]=$("siteNav_"+k+"_V16").value.trim()||defaultCMSV11.nav[k];c.visible[k]=$("siteVis_"+k+"_V16").checked;}c.receipt=c.receipt||{};c.receipt.footer=$("siteReceiptFooterV16").value.trim();S.cms=c;S.siteControl.defaultMenuView=$("siteMenuViewV16").value;S.siteControl.reportSeparator=$("siteSeparatorV16").value||'━━━━━━━━━━━━━━━━━━';S.siteControl.receiptPaper=$("sitePaperV16").value;write(CMS_KEY_V11,c);write(V16_SITE_KEY,S.siteControl);const f=$("siteLogoV16")?.files?.[0];if(f){const r=new FileReader();r.onload=()=>{c.logoData=String(r.result||'');write(CMS_KEY_V11,c);applyCMSV11();finishSaveSiteV16();};r.readAsDataURL(f);}else finishSaveSiteV16();}
-function finishSaveSiteV16(){applyCMSV11();renderCategoriesV16();renderProductsV16();renderSiteV16();alert(S.lang==='kh'?'បានរក្សាទុកការកែ Website រួចរាល់':'Website changes saved');}
-
-/* Compact Telegram-friendly daily report with separator lines. */
-function reportTextV16(){const {o,p,e,c,best}=reportData();const sep=S.siteControl.reportSeparator||'━━━━━━━━━━━━━━━━━━';const D=new Date().toLocaleDateString('en-GB');return `${S.settings.shopName||'nona-me coffee'}\n📊 ${S.lang==='kh'?'របាយការណ៍ប្រចាំថ្ងៃ':'DAILY REPORT'}\n📅 ${S.lang==='kh'?'កាលបរិច្ឆេទ':'Date'}: ${D}\n${sep}\n\n💰 ${S.lang==='kh'?'ការលក់':'SALES'}\n🇰🇭 KHR: ${moneyKHR(o.salesKHR)}\n🇺🇸 USD: ${moneyUSD(o.salesUSD)}\n\n${sep}\n💸 ${S.lang==='kh'?'ចំណាយ':'EXPENSES'}\n🇰🇭 KHR: ${moneyKHR(o.expenseKHR)}\n🇺🇸 USD: ${moneyUSD(o.expenseUSD)}\n\n${sep}\n🏦 ${S.lang==='kh'?'ដាក់ធនាគារ':'BANK DEPOSIT'}\n🇰🇭 KHR: ${moneyKHR(o.depositKHR)}\n🇺🇸 USD: ${moneyUSD(o.depositUSD)}\n\n${sep}\n💵 ${S.lang==='kh'?'សាច់ប្រាក់រំពឹងទុក':'CASH EXPECTED'}\n🇰🇭 KHR: ${moneyKHR(e.khr)}\n🇺🇸 USD: ${moneyUSD(e.usd)}\n\n${sep}\n☕ ${S.lang==='kh'?'ចំនួនកែវ':'CUPS'}: ${o.cups}\n🏆 ${S.lang==='kh'?'លក់ដាច់ជាងគេ':'BEST SELLER'}: ${best?best[0]+' ('+best[1]+' '+t('cups')+')':'—'}\n👤 ${t('staff')}: ${S.user||'—'}\n💱 ${t('rate')}: ${Number(S.rate).toLocaleString()}៛ = $1\n${sep}\n✅ ${S.lang==='kh'?'របាយការណ៍បានបញ្ចប់':'Report completed'}`;}
-function copyTextV16(){const text=reportTextV16();if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>alert(t('copied'))).catch(()=>prompt('Copy / ចម្លង',text));}else prompt('Copy / ចម្លង',text);}
-function renderReportV16(){const {o,p,e,c,best}=reportData();$("reportDate").textContent=`${new Date().toLocaleDateString('en-GB')} · ${S.user||'—'}`;const sep=S.siteControl.reportSeparator||'━━━━━━━━━━━━━━━━━━';$("reportPreview").innerHTML=`<div class="report-brand">${esc(S.settings.shopName||'nona-me coffee')}</div><div class="report-title">${t('dailyReport')} / DAILY REPORT</div><div class="report-copy-note-v16">📋 Copy Text → Telegram: មានបន្ទាត់ខណ្ឌច្បាស់ៗ / Clear separators for Telegram.</div><div class="report-section-title">💰 ${t('salesSection')}</div>${line(t('salesKHR'),moneyKHR(o.salesKHR))}${line(t('salesUSD'),moneyUSD(o.salesUSD))}<div class="report-section-title">💸 ${t('expensesSection')}</div>${line(t('expenseKHR'),moneyKHR(o.expenseKHR))}${line(t('expenseUSD'),moneyUSD(o.expenseUSD))}<div class="report-section-title">🏦 ${t('bankDeposits')}</div>${line('KHR',moneyKHR(o.depositKHR))}${line('USD',moneyUSD(o.depositUSD))}<div class="report-section-title">💵 ${t('expectedTable')}</div>${line('KHR',moneyKHR(e.khr),true)}${line('USD',moneyUSD(e.usd),true)}${line(t('cups'),o.cups)}${line(t('bestSeller'),best?`${esc(best[0])} (${best[1]} ${t('cups')})`:'—')}${line(t('rate'),`${Number(S.rate).toLocaleString()}៛ = $1`)}<div class="report-section-title" style="text-align:center">${sep}</div>`;}
-renderReport=renderReportV16;
-copyText=copyTextV16;
-
-/* Patch the actual admin router and page actions. */
-const _showPageV16=showPage;showPage=function(name,btn){_showPageV16(name,btn);if(name==='admin'&&S.role==='admin')renderAdminV16(S.__adminSection||'overview');if(name==='report')renderReportV16();};
-const _renderAllV16=renderAll;renderAll=function(){_renderAllV16();renderCategoriesV16();renderProductsV16();if(S.role==='admin'&&S.__adminSection)renderAdminV16(S.__adminSection);};
-const _bootV16=boot;boot=async function(){await _bootV16();applyCMSV11();renderCategoriesV16();renderProductsV16();if($('copyText'))$('copyText').onclick=copyTextV16;};
-renderAdmin=renderAdminV16;
-adminMenu=adminMenuV16;
-setTimeout(()=>{if(S.role==='admin')renderAdminV16(S.__adminSection||'overview');renderCategoriesV16();renderProductsV16();if($('copyText'))$('copyText').onclick=copyTextV16;},0);
-
-
-/* ========================= V17 USER-REQUESTED FIXES ========================= */
-const V17_LANG = {
-  kh: {
-    appSubtitle: "ប្រព័ន្ធកត់ត្រាការលក់ប្រចាំថ្ងៃ",
-    sales: "ការលក់", expenses: "ចំណាយ", cash: "លុយក្នុងតុ", deposit: "ដាក់ធនាគារ",
-    stock: "ស្តុក", admin: "គ្រប់គ្រង", report: "របាយការណ៍", period: "សប្តាហ៍ / ខែ", history: "ប្រវត្តិ",
-    todaySales: "ការលក់ថ្ងៃនេះ", menu: "មីនុយ", currentSale: "ការលក់បច្ចុប្បន្ន",
-    search: "ស្វែងរកមីនុយ...", username: "ឈ្មោះអ្នកប្រើ", password: "ពាក្យសម្ងាត់",
-    login: "ចូលប្រើ", logout: "ចេញ", remember: "ចងចាំការចូលប្រើ",
-    daily: "ប្រចាំថ្ងៃ", weekly: "ប្រចាំសប្តាហ៍", monthly: "ប្រចាំខែ",
-    stockHint: "បញ្ចូលស្តុកដែលហាងបានទទួល",
-    addStock: "បន្ថែមស្តុក", stockList: "បញ្ជីស្តុក", item: "មុខស្តុក",
-    qty: "ចំនួន", unit: "ឯកតា", min: "កម្រិតព្រមាន", image: "រូបភាពស្តុក",
-    notes: "កំណត់សម្គាល់", save: "រក្សាទុក", view: "មើល",
-    colors: "ជ្រើសពណ៌", primary: "ពណ៌មេ", accent: "ពណ៌បន្ថែម", beige: "ត្នោតស្រាល",
-    cream: "ពណ៌ក្រែម", dark: "ពណ៌ងងឹត", green: "ពណ៌បៃតង",
-    appearance: "រូបរាង", adminCenter: "មជ្ឈមណ្ឌលគ្រប់គ្រង",
-    website: "គ្រប់គ្រង Website", products: "មុខទំនិញ និងមីនុយ", promotions: "ប្រូម៉ូសិន",
-    staffUsers: "បុគ្គលិក និងអ្នកប្រើ", settings: "កំណត់ហាង", audit: "ប្រវត្តិសកម្មភាព",
-    copied: "ចម្លងរួច", saved: "រក្សាទុករួច", noRecords: "មិនទាន់មានទិន្នន័យ",
-    categoryAll: "ទាំងអស់", grid: "ក្រឡា", list: "បញ្ជី"
-  },
-  en: {
-    appSubtitle: "Daily Sales System",
-    sales: "Sales", expenses: "Expenses", cash: "Cash Drawer", deposit: "Bank Deposit",
-    stock: "Stock", admin: "Admin", report: "Daily Report", period: "Weekly / Monthly", history: "History",
-    todaySales: "Today's Sales", menu: "Menu", currentSale: "Current Sale",
-    search: "Search menu...", username: "Username", password: "Password",
-    login: "Login", logout: "Logout", remember: "Remember login",
-    daily: "Daily", weekly: "Weekly", monthly: "Monthly",
-    stockHint: "Add stock received by the shop",
-    addStock: "Add Stock", stockList: "Stock List", item: "Stock Item",
-    qty: "Quantity", unit: "Unit", min: "Low Stock Level", image: "Stock Image",
-    notes: "Notes", save: "Save", view: "View",
-    colors: "Choose Colors", primary: "Primary", accent: "Accent", beige: "Light Beige",
-    cream: "Cream", dark: "Dark", green: "Green",
-    appearance: "Appearance", adminCenter: "Admin Control Center",
-    website: "Website Control", products: "Products & Menu", promotions: "Promotions",
-    staffUsers: "Staff & Users", settings: "Shop Settings", audit: "Audit Log",
-    copied: "Copied", saved: "Saved", noRecords: "No records yet",
-    categoryAll: "All", grid: "Grid", list: "List"
-  }
-};
-const v17t = k => V17_LANG[S.lang === "kh" ? "kh" : "en"][k] || k;
-
-function v17StripBilingual(root=document.body){
-  const wantKh = S.lang === "kh";
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  const nodes = [];
-  while(walker.nextNode()) nodes.push(walker.currentNode);
-  for(const n of nodes){
-    const raw = n.nodeValue;
-    if(!raw || !raw.includes(" / ")) continue;
-    const parts = raw.split(/\s\/\s/);
-    if(parts.length !== 2) continue;
-    const [left,right] = parts;
-    if(!/[\u1780-\u17FF]/.test(right)) continue;
-    n.nodeValue = wantKh ? right : left;
-  }
-  root.querySelectorAll("input[placeholder],textarea[placeholder]").forEach(el=>{
-    const raw = el.getAttribute("placeholder") || "";
-    const parts = raw.split(/\s\/\s/);
-    if(parts.length===2 && /[\u1780-\u17FF]/.test(parts[1])) {
-      el.placeholder = wantKh ? parts[1] : parts[0];
-    }
-  });
-}
-
-function v17ApplySingleLanguage(){
-  // Dynamic/generated content is translated by its render functions; this pass removes
-  // remaining static "English / Khmer" pairs so only one language is visible.
-  v17StripBilingual(document.body);
-  $("periodReportTab")?.classList.toggle("hidden", S.role !== "admin");
-  $("stockTab")?.classList.remove("hidden");
-}
-
-const _applyLanguageV17Base = applyLanguage;
-applyLanguage = function(){
-  _applyLanguageV17Base();
-  v17ApplySingleLanguage();
-};
-
-function adminSideV17(active){
-  const items = [
-    ['overview','📊',v17t('admin') === 'Admin' ? 'Overview' : 'សង្ខេប'],
-    ['site','🛠️',v17t('website')],
-    ['products','☕',v17t('products')],
-    ['promotions','🏷️',v17t('promotions')],
-    ['inventory','📦',v17t('stock')],
-    ['staff','👥',v17t('staffUsers')],
-    ['settings','⚙️',v17t('settings')],
-    ['audit','🛡️',v17t('audit')]
-  ];
-  return `<aside class="admin-sidebar-v16">
-    <div class="admin-side-title-v16">⚙️ ${v17t('adminCenter')}</div>
-    ${items.map(([k,ic,l])=>`<button type="button" class="admin-side-btn-v16 ${active===k?'active':''}" onclick="renderAdminV17(event,'${k}')">${ic} ${l}</button>`).join('')}
-  </aside>`;
-}
-
-function wrapAdminV17(active,body,restoreY){
-  $("adminContent").innerHTML = `<div class="admin-shell-v16">${adminSideV17(active)}<div class="admin-main-v16">${body}</div></div>`;
-  v17StripBilingual($("adminContent"));
-  if(Number.isFinite(restoreY)){
-    requestAnimationFrame(()=>window.scrollTo(0, restoreY));
-  }
-}
-
-function renderAdminV17(eventOrSection, maybeSection='overview'){
-  if(S.role !== 'admin') return;
-  const section = typeof eventOrSection === 'string' ? eventOrSection : (maybeSection || 'overview');
-  const y = window.scrollY;
-  S.__adminSection = section;
-  const ctx = { fromV17:true, scrollY:y };
-  if(section==='site') renderSiteV17(ctx);
-  else if(section==='products') renderProductsAdminV17(ctx);
-  else if(section==='promotions') renderPromotionsAdminV17Fixed(ctx);
-  else if(section==='inventory') renderInventoryAdminV17(ctx);
-  else if(section==='staff') renderStaffAdminV17(ctx);
-  else if(section==='settings') renderSettingsAdminV17(ctx);
-  else if(section==='audit') renderAuditAdminV17(ctx);
-  else renderOverviewAdminV17(ctx);
-  v17StripBilingual($("adminContent"));
-}
-
-function adminKeepTextPair(){
-  return S.lang==='kh' ? '' : '';
-}
-
-/* Promotion page: render it inside the same sticky sidebar shell so it no longer jumps
-   to the top section created by the old navigation implementation. */
-function renderPromotionsAdminV17Fixed(ctx={}){
-  ensureProductsLoaded();
-  const currentLangKh = S.lang === 'kh';
-  const h = currentLangKh ? {
-    title:"ប្រូម៉ូសិន", desc:"បង្កើតប្រូម៉ូសិន និងកំណត់តម្លៃសរុប",
-    en:"ឈ្មោះអង់គ្លេស", kh:"ឈ្មោះខ្មែរ", cups:"ចំនួនកែវ", price:"តម្លៃសរុបប្រូម៉ូសិន",
-    apply:"ប្រើសម្រាប់", all:"មុខទំនិញទាំងអស់", add:"បន្ថែមប្រូម៉ូសិន",
-    edit:"កែ", disable:"បិទ", enable:"បើក", del:"លុប", active:"ដំណើរការ", disabled:"បិទ"
-  } : {
-    title:"Promotions", desc:"Create promotions and define a bundle price.",
-    en:"English Name", kh:"Khmer Name", cups:"Buy Cups", price:"Promo Total KHR",
-    apply:"Applies To", all:"All Products", add:"Add Promotion",
-    edit:"Edit", disable:"Disable", enable:"Enable", del:"Delete", active:"Active", disabled:"Disabled"
-  };
-  const rows=(S.promotions||[]).map((p,i)=>`<div class="admin-edit-row">
-    <div><b>${esc(p.nameEn)} / ${esc(p.nameKh)}</b><br><span class="muted">${p.buyQty} ${h.cups} → ${moneyKHR(p.promoPriceKHR)} · ${p.active!==false?h.active:h.disabled}</span></div>
-    <div class="row-actions"><button class="mini-btn" onclick="editPromotionAdminV14(${i})">✏️ ${h.edit}</button>
-    <button class="mini-btn" onclick="togglePromotionAdminV14(${i})">${p.active!==false?'⏸️ '+h.disable:'▶️ '+h.enable}</button>
-    <button class="mini-btn danger" onclick="deletePromotionAdminV14(${i})">🗑️ ${h.del}</button></div>
-  </div>`).join('');
-  const body=`<div class="admin-section-toolbar-v17"><div><h2>🏷️ ${h.title}</h2><p class="muted">${h.desc}</p></div></div>
-  <section class="panel"><div class="form-grid">
-    <div><label>${h.en}</label><input id="promoEn" placeholder="2 Cups Special"></div>
-    <div><label>${h.kh}</label><input id="promoKh" placeholder="ប្រូម៉ូសិន ២ កែវ"></div>
-    <div><label>${h.cups}</label><input id="promoQty" type="number" min="2" value="2"></div>
-    <div><label>${h.price}</label><input id="promoPrice" type="number" min="0" value="6000"></div>
-  </div>
-  <label>${h.apply}</label><select id="promoProducts"><option value="ALL">${h.all}</option>${S.products.map((p,i)=>`<option value="${i}">${esc(p[S.lang==='kh'?1:0])}</option>`).join('')}</select>
-  <button class="save-btn" style="margin-top:12px" onclick="addPromotionAdminV14()">➕ ${h.add}</button>
-  <div style="margin-top:18px">${rows || `<div class="cart-empty">${v17t('noRecords')}</div>`}</div></section>`;
-  wrapAdminV17('promotions',body,ctx.scrollY);
-}
-
-function renderOverviewAdminV17(ctx={}){
-  const type=$("overviewTypeV16")?.value||'day',date=$("overviewDateV16")?.value||today();
-  const {r,a}=overviewAggregate(type,date); const netKHR=a.salesKHR-a.expenseKHR,netUSD=a.salesUSD-a.expenseUSD;
-  const days=rangeDates(r);
-  const rows=days.map(d=>{const ds=aDateSales(d),de=aDateExp(d);return `<tr><td>${dayLabel(d)}</td><td>${moneyKHR(ds.k)}</td><td>${moneyUSD(ds.u)}</td><td>${moneyKHR(de.k)}</td><td>${moneyUSD(de.u)}</td><td>${ds.c}</td></tr>`;}).join('');
-  const L = S.lang==='kh' ? {title:'សង្ខេប',desc:'មើលទិន្នន័យប្រចាំថ្ងៃ សប្តាហ៍ និងខែ',period:'រយៈពេល',date:'កាលបរិច្ឆេទ',view:'មើល',export:'ទាញទិន្នន័យ',daily:'ប្រចាំថ្ងៃ',weekly:'ប្រចាំសប្តាហ៍',monthly:'ប្រចាំខែ',break:'បំបែកតាមថ្ងៃ',no:'មិនទាន់មានទិន្នន័យ'} : {title:'Overview',desc:'View data by day, week and month',period:'Period',date:'Date',view:'View',export:'Export Data',daily:'Daily',weekly:'Weekly',monthly:'Monthly',break:'Daily Breakdown',no:'No records yet'};
-  wrapAdminV17('overview',`<div class="admin-section-toolbar-v17"><div><h2>📊 ${L.title}</h2><p class="muted">${L.desc}</p></div><button class="export-btn" onclick="exportOverviewCSVV16()">📥 ${L.export}</button></div>
-  <section class="panel"><div class="form-grid"><div><label>${L.period}</label><select id="overviewTypeV16"><option value="day">${L.daily}</option><option value="week">${L.weekly}</option><option value="month">${L.monthly}</option></select></div><div><label>${L.date}</label><input id="overviewDateV16" type="date" value="${date}"></div></div><button class="save-btn" style="margin-top:10px" onclick="renderAdminV17(event,'overview')">${L.view}</button></section>
-  <div class="stats admin-overview-stats"><div class="stat"><small>Sales KHR</small><strong>${moneyKHR(a.salesKHR)}</strong></div><div class="stat"><small>Sales USD</small><strong>${moneyUSD(a.salesUSD)}</strong></div><div class="stat"><small>Expenses KHR</small><strong>${moneyKHR(a.expenseKHR)}</strong></div><div class="stat"><small>Expenses USD</small><strong>${moneyUSD(a.expenseUSD)}</strong></div><div class="stat"><small>Net KHR</small><strong>${moneyKHR(netKHR)}</strong></div><div class="stat"><small>Net USD</small><strong>${moneyUSD(netUSD)}</strong></div><div class="stat"><small>Cups</small><strong>${a.cups}</strong></div><div class="stat"><small>Current Cash</small><strong>${moneyKHR(expectedCurrentCash().khr)}<br>${moneyUSD(expectedCurrentCash().usd)}</strong></div></div>
-  <section class="panel"><h3>📅 ${L.break}</h3><div class="table-wrap"><table class="report-table"><thead><tr><th>Date</th><th>Sales KHR</th><th>Sales USD</th><th>Expense KHR</th><th>Expense USD</th><th>Cups</th></tr></thead><tbody>${rows||'<tr><td colspan="6">'+L.no+'</td></tr>'}</tbody></table></div></section>`,ctx.scrollY);
-  $("overviewTypeV16").onchange=()=>renderAdminV17(null,'overview');
-  $("overviewDateV16").onchange=()=>renderAdminV17(null,'overview');
-}
-
-function renderProductsAdminV17(ctx={}){
-  ensureProductsLoaded();
-  const cats=productCategories(), kh=S.lang==='kh';
-  wrapAdminV17('products',`<div class="admin-section-toolbar-v17"><div><h2>☕ ${kh?'មុខទំនិញ និងមីនុយ':'Products & Menu'}</h2><p class="muted">${kh?'បន្ថែម កែ រូប លាក់/បង្ហាញ និងលុប':'Add, edit, image, show/hide and delete.'}</p></div></div>
-  <section class="panel"><div class="form-grid"><div><label>${kh?'ឈ្មោះអង់គ្លេស':'English Name'}</label><input id="prodEnV16" placeholder="Iced Latte"></div><div><label>${kh?'ឈ្មោះខ្មែរ':'Khmer Name'}</label><input id="prodKhV16" placeholder="ឡាតេទឹកកក"></div><div><label>${kh?'តម្លៃរៀល':'Price KHR'}</label><input id="prodPriceV16" type="number" min="0" placeholder="5000"></div><div><label>${kh?'ប្រភេទ':'Category'}</label><input id="prodCatV16" list="prodCatsV16" placeholder="Coffee"><datalist id="prodCatsV16">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div><div class="image-input-v16"><label>${kh?'រូបមុខទំនិញ':'Product Image'}</label><input id="prodImageV16" type="file" accept="image/png,image/jpeg,image/webp"></div><button class="save-btn" style="margin-top:10px" onclick="addProductV16()">➕ ${kh?'បន្ថែមមុខទំនិញ':'Add Product'}</button></section>
-  <section class="panel"><h3>${kh?'បញ្ជីមុខទំនិញ':'Menu Items'}</h3>${S.products.map((p,i)=>`<div class="product-admin-row-v16">${productImg(p)}<div><b>${esc(p[kh?1:0])}</b><br><span class="muted">${esc(p[kh?0:1])} · ${esc(p[3]||'Other')} · ${moneyKHR(p[2])}</span></div><div class="row-actions"><button class="mini-btn" onclick="editProductV16(${i})">✏️ ${kh?'កែ':'Edit'}</button><label class="mini-btn">🖼️ ${kh?'រូប':'Image'}<input type="file" accept="image/*" style="display:none" onchange="changeProductImageV16(${i},this.files[0])"></label><button class="mini-btn" onclick="toggleProductV16(${i})">${p[4]===false?'▶️ '+(kh?'បើក':'Show'):'⏸ '+(kh?'លាក់':'Hide')}</button><button class="mini-btn danger" onclick="deleteProductV16(${i})">🗑 ${kh?'លុប':'Delete'}</button></div></div>`).join('')}</section>`,ctx.scrollY);
-}
-
-function renderStaffAdminV17(ctx={}){
-  const kh=S.lang==='kh';
-  wrapAdminV17('staff',`<div class="admin-section-toolbar-v17"><div><h2>👥 ${kh?'បុគ្គលិក និងអ្នកប្រើ':'Staff & Users'}</h2><p class="muted">${kh?'Admin អាចបន្ថែម កែ បិទ និងលុបអ្នកប្រើ':'Admin can add, edit, disable and delete users.'}</p></div></div>
-  <section class="panel"><div class="form-grid"><div><label>${kh?'ឈ្មោះ':'Name'}</label><input id="userNameV16" placeholder="${kh?'Staff 03':'Staff 03'}"></div><div><label>${kh?'Username':'Username'}</label><input id="userUsernameV16" placeholder="staff03"></div><div><label>${kh?'ពាក្យសម្ងាត់':'Password'}</label><input id="userPasswordV16" placeholder="1234"></div><div><label>${kh?'តួនាទី':'Role'}</label><select id="userRoleV16"><option value="staff">${kh?'បុគ្គលិក':'Staff'}</option><option value="admin">${kh?'អ្នកគ្រប់គ្រង':'Admin'}</option></select></div></div><button class="save-btn" style="margin-top:10px" onclick="addUserV16()">➕ ${kh?'បន្ថែមអ្នកប្រើ':'Add User'}</button></section>
-  <section class="panel"><h3>${kh?'បញ្ជីអ្នកប្រើ':'User List'}</h3>${S.users.map((u,i)=>`<div class="admin-edit-row"><div><b>${esc(u.name||u.username)}</b><br><span class="muted">${esc(u.username)} · ${u.role==='admin'?(kh?'អ្នកគ្រប់គ្រង':'Admin'):(kh?'បុគ្គលិក':'Staff')} · ${u.active===false?(kh?'បិទ':'Disabled'):(kh?'ដំណើរការ':'Active')}</span></div><div class="row-actions"><button class="mini-btn" onclick="editUserV16(${i})">✏️ ${kh?'កែ':'Edit'}</button><button class="mini-btn" onclick="toggleUserV16(${i})">${u.active===false?'▶️ '+(kh?'បើក':'Enable'):'⏸ '+(kh?'បិទ':'Disable')}</button>${u.username!=='admin'?'<button class="mini-btn danger" onclick="deleteUserV16('+i+')">🗑 '+(kh?'លុប':'Delete')+'</button>':''}</div></div>`).join('')}</section>`,ctx.scrollY);
-}
-
-function renderInventoryAdminV17(ctx={}){
-  S.stock=S.stock||[];
-  const kh=S.lang==='kh';
-  wrapAdminV17('inventory',`<div class="admin-section-toolbar-v17"><div><h2>📦 ${kh?'ស្តុក':'Inventory'}</h2><p class="muted">${kh?'Admin អាចគ្រប់គ្រងស្តុក និងរូបភាពស្តុក':'Manage stock, quantities, images and low-stock levels.'}</p></div></div>
-  <section class="panel"><div class="form-grid"><div><label>${kh?'មុខស្តុក':'Stock Item'}</label><input id="stockNameV16" placeholder="${kh?'កាហ្វេ':'Coffee'}"></div><div><label>${kh?'ចំនួន':'Quantity'}</label><input id="stockQtyV16" type="number" min="0" placeholder="10"></div><div><label>${kh?'ឯកតា':'Unit'}</label><input id="stockUnitV16" placeholder="kg / pcs / L"></div><div><label>${kh?'កម្រិតព្រមាន':'Low Stock Level'}</label><input id="stockMinV16" type="number" min="0" placeholder="2"></div></div>
-  <div class="image-input-v16"><label>${kh?'រូបភាពស្តុក':'Stock Image'}</label><input id="stockImageV16" type="file" accept="image/png,image/jpeg,image/webp"></div>
-  <button class="save-btn" style="margin-top:10px" onclick="addStockV16()">➕ ${kh?'បន្ថែមស្តុក':'Add Stock'}</button></section>
-  <section class="panel"><h3>${kh?'បញ្ជីស្តុក':'Stock List'}</h3>${S.stock.map((x,i)=>`<div class="stock-admin-row-v16">${x.image?`<img class="stock-thumb-v16" src="${escAttr(x.image)}" alt="">`:`<div class="stock-thumb-v16 stock-placeholder-v17">📦</div>`}<div><b>${esc(x.name)}</b><br><span class="muted">${esc(x.unit||'pcs')} · ${kh?'អប្បបរមា':'Min'} ${Number(x.min||0)} · ${x.qty<=x.min?'⚠️ '+(kh?'ជិតអស់':'Low Stock'):(kh?'ល្អ':'OK')}</span></div><div class="row-actions"><b class="${x.qty<=x.min?'stock-low':'stock-ok'}">${x.qty}</b><button class="mini-btn" onclick="editStockV16(${i})">✏️ ${kh?'កែ':'Edit'}</button><label class="mini-btn">🖼️ ${kh?'រូប':'Image'}<input type="file" accept="image/*" style="display:none" onchange="changeStockImageV16(${i},this.files[0])"></label><button class="mini-btn danger" onclick="deleteStockV16(${i})">🗑 ${kh?'លុប':'Delete'}</button></div></div>`).join('')||`<div class="cart-empty">${v17t('noRecords')}</div>`}</section>`,ctx.scrollY);
-}
-
-function renderStaffStockPageV17(){
-  S.stock=S.stock||[];
-  const kh=S.lang==='kh';
-  $("staffStockContent").innerHTML=`<div class="two-col">
-  <section class="panel"><h2>📦 ${kh?'បញ្ចូលស្តុក':'Add Stock'}</h2>
-    <p class="muted">${kh?'បុគ្គលិកអាចបញ្ចូលស្តុកដែលហាងបានទទួល':'Staff can record stock received by the shop.'}</p>
-    <label>${kh?'មុខស្តុក':'Stock Item'}</label><input id="staffStockName" placeholder="${kh?'កាហ្វេ':'Coffee'}">
-    <div class="form-grid"><div><label>${kh?'ចំនួន':'Quantity'}</label><input id="staffStockQty" type="number" min="0" placeholder="10"></div>
-    <div><label>${kh?'ឯកតា':'Unit'}</label><input id="staffStockUnit" placeholder="kg / pcs / L"></div></div>
-    <label>${kh?'រូបភាពស្តុក':'Stock Image'}</label><input id="staffStockImage" type="file" accept="image/png,image/jpeg,image/webp">
-    <label>${kh?'កំណត់សម្គាល់':'Note'}</label><textarea id="staffStockNote" rows="3" placeholder="${kh?'ឧ. ទិញស្តុកថ្មី':'e.g. new stock received'}"></textarea>
-    <button class="save-btn" style="margin-top:10px" onclick="saveStaffStockV17()">➕ ${kh?'រក្សាទុកស្តុក':'Save Stock'}</button>
-  </section>
-  <section class="panel"><h2>📋 ${kh?'ស្តុកថ្មីៗ':'Recent Stock'}</h2>${(S.stock||[]).slice().reverse().slice(0,12).map(x=>`<div class="stock-admin-row-v16">${x.image?`<img class="stock-thumb-v16" src="${escAttr(x.image)}" alt="">`:`<div class="stock-thumb-v16 stock-placeholder-v17">📦</div>`}<div><b>${esc(x.name)}</b><br><span class="muted">${Number(x.qty||0)} ${esc(x.unit||'pcs')} · ${esc(x.note||'')}</span></div></div>`).join('')||`<div class="cart-empty">${v17t('noRecords')}</div>`}</section>
-  </div>`;
-  v17StripBilingual($("staffStockContent"));
-}
-function saveStaffStockV17(){
-  const name=$("staffStockName")?.value.trim(); const qty=Math.max(0,Number($("staffStockQty")?.value||0)); const unit=$("staffStockUnit")?.value.trim()||'pcs';
-  if(!name||qty<=0)return alert(S.lang==='kh'?'សូមបញ្ចូលមុខស្តុក និងចំនួន':'Please enter stock item and quantity');
-  const note=$("staffStockNote")?.value.trim()||''; const file=$("staffStockImage")?.files?.[0];
-  const save=(img='')=>{
-    S.stock=S.stock||[];
-    const existing=S.stock.find(x=>x.name.trim().toLowerCase()===name.toLowerCase() && (x.unit||'pcs')===unit);
-    if(existing){ existing.qty=Number(existing.qty||0)+qty; if(img)existing.image=img; existing.note=note||existing.note||''; existing.updatedAt=Date.now(); }
-    else S.stock.push({id:'st-'+Date.now(),name,qty,unit,min:0,image:img,note,updatedAt:Date.now(),addedBy:S.user});
-    write(V8KEY.stock,S.stock); audit('STAFF STOCK IN / បុគ្គលិកបញ្ចូលស្តុក',`${name} +${qty} ${unit}`); renderStaffStockPageV17();
-  };
-  if(file){const r=new FileReader();r.onload=()=>save(String(r.result||''));r.readAsDataURL(file);} else save('');
-}
-
-function renderSettingsAdminV17(ctx={}){
-  const kh=S.lang==='kh';
-  wrapAdminV17('settings',`<div class="admin-section-toolbar-v17"><div><h2>⚙️ ${kh?'កំណត់ហាង':'Shop Settings'}</h2><p class="muted">${kh?'ព័ត៌មានមូលដ្ឋាន និងអត្រាប្តូរប្រាក់':'Business information and exchange rate.'}</p></div></div>
-  <section class="panel"><div class="form-grid"><div><label>${kh?'ឈ្មោះហាង':'Shop Name'}</label><input id="setShopV16" value="${escAttr(S.settings.shopName||'nona-me coffee')}"></div><div><label>${kh?'ទូរស័ព្ទ':'Phone'}</label><input id="setPhoneV16" value="${escAttr(S.settings.phone||'')}"></div><div><label>Telegram</label><input id="setTelegramV16" value="${escAttr(S.settings.telegram||'')}"></div><div><label>${kh?'អាសយដ្ឋាន':'Address'}</label><input id="setAddressV16" value="${escAttr(S.settings.address||'')}"></div></div><label>${kh?'អត្រាប្តូរប្រាក់':'Exchange Rate'}</label><input id="setRateV16" type="number" min="1" value="${Number(S.rate||4000)}"><button class="save-btn" style="margin-top:10px" onclick="saveSettingsV16()">💾 ${v17t('save')}</button></section>`,ctx.scrollY);
-}
-
-function renderAuditAdminV17(ctx={}){
-  const kh=S.lang==='kh';
-  const logs=read(V8KEY.logs,[]).slice().reverse();
-  wrapAdminV17('audit',`<div class="admin-section-toolbar-v17"><div><h2>🛡️ ${kh?'ប្រវត្តិសកម្មភាព':'Audit Log'}</h2><p class="muted">${kh?'កំណត់ត្រាសកម្មភាពអ្នកប្រើ':'User activity history.'}</p></div></div><section class="panel">${logs.map(l=>`<div class="log-row"><span>${l.date} · ${l.time}<br><small>${esc(l.user||'—')} · ${esc(l.action||'')}</small></span><b>${esc(l.detail||'')}</b></div>`).join('')||`<div class="cart-empty">${v17t('noRecords')}</div>`}</section>`,ctx.scrollY);
-}
-
-function renderSiteV17(ctx={}){
-  const c=S.cms||{}; const sc=S.siteControl||{};
-  const kh=S.lang==='kh';
-  const colorFields = [
-    ['primary',v17t('primary'),'#8B2E23'],['accent',v17t('accent'),'#C4563B'],['beige',v17t('beige'),'#E2C9A8'],
-    ['cream',v17t('cream'),'#F8F6F1'],['dark',v17t('dark'),'#3A2A24'],['green',v17t('green'),'#5A7D5B']
-  ];
-  const navEntries=Object.entries(c.nav||{});
-  const colorHtml=colorFields.map(([k,label,def])=>`<div class="cms-setting-card-v16 color-picker-card-v17"><label>${label}</label><input type="color" id="site_${k}_V17" value="${escAttr(cssSafe(c[k]||def,def))}" title="${label}"><code id="site_${k}_hex_V17">${esc(c[k]||def)}</code></div>`).join('');
-  const navHtml=navEntries.map(([k,v])=>`<div class="cms-nav-row"><label>${esc(k)}</label><input id="siteNav_${k}_V17" value="${escAttr(v)}"><label class="cms-toggle"><input id="siteVis_${k}_V17" type="checkbox" ${c.visible?.[k]!==false?'checked':''}><span>${kh?'បង្ហាញ':'Show'}</span></label></div>`).join('');
-  wrapAdminV17('site',`<div class="admin-section-toolbar-v17"><div><h2>🛠️ ${kh?'គ្រប់គ្រង Website':'Website Control'}</h2><p class="muted">${kh?'កែ Website ដោយមិនចាំបាច់សរសេរ Code':'Edit the website without coding.'}</p></div></div>
-  <div class="cms-big-row-v16"><section class="panel"><h3>🏪 ${kh?'ម៉ាក និងមាតិកា':'Brand & Content'}</h3><div class="cms-settings-grid-v16"><div class="cms-setting-card-v16"><label>${kh?'ឈ្មោះហាង':'Shop Name'}</label><input id="siteShopNameV17" value="${escAttr(c.shopName||S.settings.shopName)}"></div><div class="cms-setting-card-v16"><label>${kh?'ពាក្យពិពណ៌នា':'Tagline'}</label><input id="siteTaglineV17" value="${escAttr(c.tagline||'')}"></div><div class="cms-setting-card-v16"><label>${kh?'សារជូនដំណឹង':'Announcement'}</label><input id="siteAnnouncementV17" value="${escAttr(c.announcement||'')}"></div><div class="cms-setting-card-v16"><label>${kh?'អក្សរខាងក្រោម':'Footer'}</label><input id="siteFooterV17" value="${escAttr(c.footer||'')}"></div></div>
-  <div class="image-input-v16" style="margin-top:12px"><label>${kh?'Logo ផ្លូវការ':'Official Logo'}</label><img class="asset-preview-v16" src="${escAttr(c.logoData||'assets/nona-me-logo.png')}" alt="Logo"><input id="siteLogoV17" type="file" accept="image/*"></div></section>
-  <section class="panel"><h3>🎨 ${v17t('appearance')}</h3><p class="muted">${v17t('colors')}</p><div class="cms-settings-grid-v16">${colorHtml}</div><div id="appearancePreviewV17" class="color-preview-v11"></div></section></div>
-  <section class="panel"><h3>🧭 ${kh?'Menu និង Layout':'Navigation & Layout'}</h3>${navHtml}<div class="form-grid" style="margin-top:12px"><div><label>${kh?'មីនុយលំនាំដើម':'Default Menu View'}</label><select id="siteMenuViewV17"><option value="grid" ${menuViewV16()==='grid'?'selected':''}>${v17t('grid')}</option><option value="list" ${menuViewV16()==='list'?'selected':''}>${v17t('list')}</option></select></div><div><label>${kh?'បន្ទាត់ខណ្ឌ Report':'Report Separator'}</label><input id="siteSeparatorV17" value="${escAttr(sc.reportSeparator||'━━━━━━━━━━━━━━━━━━')}"></div></div></section>
-  <section class="panel"><h3>🖨️ ${kh?'ការព្រីន':'Printing'}</h3><div class="form-grid"><div><label>${kh?'ប្រភេទក្រដាស Receipt':'Receipt Paper'}</label><select id="sitePaperV17"><option ${sc.receiptPaper==='58mm'?'selected':''}>58mm</option><option ${sc.receiptPaper==='80mm'?'selected':''}>80mm</option><option ${sc.receiptPaper==='A4'?'selected':''}>A4</option></select></div><div><label>${kh?'Footer Receipt':'Receipt Footer'}</label><input id="siteReceiptFooterV17" value="${escAttr(c.receipt?.footer||'Thank you')}"></div></div></section>
-  <div class="sticky-save-v11"><button class="save-btn" onclick="saveSiteV17()">💾 ${kh?'រក្សាទុកការកែ Website ទាំងអស់':'Save All Website Changes'}</button></div>`,ctx.scrollY);
-  colorFields.forEach(([k])=>{const input=$(`site_${k}_V17`),hex=$(`site_${k}_hex_V17`);if(input){input.addEventListener('input',()=>{if(hex)hex.textContent=input.value;const preview=$('appearancePreviewV17');if(preview)preview.style.background=input.value;});}});
-  const p=$('appearancePreviewV17'); if(p){p.style.background=c.primary||'#8B2E23';p.textContent=v17t('appearance');}
-}
-
-async function saveSiteV17(){
-  const c=S.cms||{};
-  c.shopName=$("siteShopNameV17").value.trim()||defaultCMSV11.shopName;
-  c.tagline=$("siteTaglineV17").value.trim();c.announcement=$("siteAnnouncementV17").value.trim();c.footer=$("siteFooterV17").value.trim();
-  ['primary','accent','beige','cream','dark','green'].forEach(k=>{c[k]=cssSafe($(`site_${k}_V17`).value,c[k]||'#8B2E23');});
-  for(const k of Object.keys(c.nav||{})){c.nav[k]=$(`siteNav_${k}_V17`).value.trim()||c.nav[k];c.visible[k]=$(`siteVis_${k}_V17`).checked;}
-  c.receipt=c.receipt||{};c.receipt.footer=$("siteReceiptFooterV17").value.trim();
-  S.cms=c;S.siteControl.defaultMenuView=$("siteMenuViewV17").value;S.siteControl.reportSeparator=$("siteSeparatorV17").value||'━━━━━━━━━━━━━━━━━━';S.siteControl.receiptPaper=$("sitePaperV17").value;
-  write(CMS_KEY_V11,c);write(V16_SITE_KEY,S.siteControl);
-  const f=$("siteLogoV17")?.files?.[0];
-  if(f){const r=new FileReader();r.onload=()=>{c.logoData=String(r.result||'');write(CMS_KEY_V11,c);applyCMSV11();finishSaveSiteV17();};r.readAsDataURL(f);}
-  else finishSaveSiteV17();
-}
-function finishSaveSiteV17(){applyCMSV11();renderCategoriesV16();renderProductsV16();renderSiteV17({scrollY:window.scrollY});alert(v17t('saved'));}
-
-/* Staff should not see or navigate to weekly/monthly reports. */
-const _showPageV17 = showPage;
-showPage = function(name,btn){
-  if(name==='periodReport' && S.role!=='admin') return;
-  if(name==='stock'){ 
-    document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
-    $("stockPage").classList.remove('hidden');
-    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-    btn?.classList.add("active");
-    renderStaffStockPageV17();
-    v17StripBilingual($("stockPage"));
-    return;
-  }
-  _showPageV17(name,btn);
-  if(name==='admin' && S.role==='admin')renderAdminV17(null,S.__adminSection||'overview');
-  v17ApplySingleLanguage();
-  if(name==='report')renderReportV16();
-};
-
-/* Force role-based period tab visibility after login/boot. */
-const _updateUserLineV17 = updateUserLine;
-updateUserLine = function(){_updateUserLineV17();$("periodReportTab")?.classList.toggle("hidden",S.role!=='admin');$("stockTab")?.classList.remove("hidden");};
-
-const _renderAllV17 = renderAll;
-renderAll = function(){_renderAllV17();$("periodReportTab")?.classList.toggle("hidden",S.role!=='admin');$("stockTab")?.classList.remove("hidden");v17ApplySingleLanguage();};
-
-const _bootV17 = boot;
-boot = async function(){await _bootV17();v17ApplySingleLanguage();if($("stockTab"))$("stockTab").classList.remove("hidden");if($("periodReportTab"))$("periodReportTab").classList.toggle("hidden",S.role!=='admin');};
-
-/* Re-route the actual admin renderer to V17, and keep the old function names for compatibility. */
-renderAdmin = renderAdminV17;
-window.renderAdminV17 = renderAdminV17;
-
-/* Ensure generated admin screens use the same single-language rule. */
-const _renderPromotionsAdminV17Original = renderPromotionsAdminV14;
-renderPromotionsAdminV14 = function(){ renderPromotionsAdminV17Fixed({scrollY:window.scrollY}); };
-
-/* Make product/category toolbar single-language after it is rendered. */
-const _renderCategoriesV17 = renderCategories;
-renderCategories = function(){ _renderCategoriesV17(); v17StripBilingual(document.getElementById('categoryBar')||document.body); };
-const _renderProductsV17 = renderProducts;
-renderProducts = function(){ _renderProductsV17(); v17StripBilingual(document.getElementById('productGrid')||document.body); };
-
-/* Keep the visible menu buttons translated to one language. */
-setTimeout(()=>{v17ApplySingleLanguage();},50);
-
-/* ========================= V18: SINGLE LANGUAGE + APPEARANCE ========================= */
-const V18_THEME_KEY = "nm_theme_v18";
-
-function v18Theme(){ return localStorage.getItem(V18_THEME_KEY) || "light"; }
-function applyThemeV18(mode=v18Theme()){
-  mode=["light","dark","auto"].includes(mode)?mode:"light";
-  localStorage.setItem(V18_THEME_KEY,mode);
-  document.documentElement.dataset.theme=mode;
-  document.documentElement.style.colorScheme=mode==="dark"?"dark":"light";
-  const btn=$("themeToggleV18");
-  if(btn){
-    btn.textContent=mode==="dark"?"☀️":mode==="auto"?"🌓":"🌙";
-    btn.title=S.lang==="kh"?(mode==="dark"?"ប្តូរទៅភ្លឺ":"ប្តូរទៅងងឹត"):(mode==="dark"?"Switch to light":"Switch to dark");
-  }
-}
-function cycleThemeV18(){
-  const m=v18Theme();
-  applyThemeV18(m==="light"?"dark":m==="dark"?"auto":"light");
-  v18UpdateModeButtons();
-}
-function v18SetLangButton(){
-  const b=$("langBtn"); if(!b)return;
-  b.textContent=S.lang==="kh"?"EN":"ខ្មែរ";
-  b.title=S.lang==="kh"?"English":"ខ្មែរ";
-}
-function v18SingleLanguage(root=document.body){
-  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
-  const nodes=[]; while(walker.nextNode())nodes.push(walker.currentNode);
-  nodes.forEach(n=>{
-    const raw=n.nodeValue; if(!raw||!raw.includes(" / "))return;
-    const parts=raw.split(/\s\/\s/); if(parts.length!==2)return;
-    const firstKh=/[\u1780-\u17FF]/.test(parts[0]);
-    const kh=firstKh?parts[0]:parts[1], en=firstKh?parts[1]:parts[0];
-    n.nodeValue=S.lang==="kh"?kh:en;
-  });
-  root.querySelectorAll("[placeholder]").forEach(el=>{
-    const raw=el.getAttribute("placeholder")||"",parts=raw.split(/\s\/\s/);
-    if(parts.length!==2)return;
-    const firstKh=/[\u1780-\u17FF]/.test(parts[0]);
-    el.placeholder=S.lang==="kh"?(firstKh?parts[0]:parts[1]):(firstKh?parts[1]:parts[0]);
-  });
-  v18SetLangButton();
-  document.documentElement.lang=S.lang==="kh"?"km":"en";
-}
-const _applyLanguageV18Base = applyLanguage;
-applyLanguage=function(){_applyLanguageV18Base();v18SingleLanguage(document.body);applyThemeV18();};
-const _showPageV18Base = showPage;
-showPage=function(name,btn){
-  if(name==="periodReport" && S.role!=="admin")return;
-  _showPageV18Base(name,btn);
-  requestAnimationFrame(()=>v18SingleLanguage(document.body));
-};
-const _renderAllV18Base = renderAll;
-renderAll=function(){_renderAllV18Base();v18SingleLanguage(document.body);applyThemeV18();};
-
-(function installThemeControlV18(){
-  const install=()=>{
-    if(!$("themeToggleV18")){
-      const actions=document.querySelector(".top-actions");
-      if(actions){
-        const b=document.createElement("button");
-        b.id="themeToggleV18"; b.className="ghost-btn"; b.type="button"; b.onclick=cycleThemeV18;
-        actions.insertBefore(b, actions.firstChild);
-      }
-    }
-    applyThemeV18();
-  };
-  setTimeout(install,100); setTimeout(install,500);
-})();
-
-function v18AddAppearanceModes(){
-  const panel=document.querySelector("#adminContent .panel:has(#appearancePreviewV17)");
-  if(!panel)return;
-  let holder=$("appearanceModeV18");
-  if(!holder){
-    holder=document.createElement("div");
-    holder.id="appearanceModeV18";
-    holder.className="appearance-mode-v18";
-    panel.querySelector("h3")?.after(holder);
-  }
-  holder.innerHTML=`<label>${S.lang==="kh"?"របៀបបង្ហាញ":"Display Mode"}</label>
-  <div class="appearance-mode-buttons-v18">
-    <button type="button" data-theme="light">☀️ ${S.lang==="kh"?"ភ្លឺ":"Light"}</button>
-    <button type="button" data-theme="dark">🌙 ${S.lang==="kh"?"ងងឹត":"Dark"}</button>
-    <button type="button" data-theme="auto">🌓 ${S.lang==="kh"?"ស្វ័យប្រវត្តិ":"Auto"}</button>
-  </div>`;
-  holder.querySelectorAll("button").forEach(b=>b.onclick=()=>{applyThemeV18(b.dataset.theme);v18UpdateModeButtons();});
-  v18UpdateModeButtons();
-}
-function v18UpdateModeButtons(){
-  const m=v18Theme();
-  document.querySelectorAll(".appearance-mode-buttons-v18 button").forEach(b=>b.classList.toggle("active",b.dataset.theme===m));
-}
-const _renderSiteV18Base = renderSiteV17;
-renderSiteV17=function(ctx={}){
-  _renderSiteV18Base(ctx);
-  ["site_primary_V17","site_accent_V17","site_beige_V17","site_cream_V17","site_dark_V17","site_green_V17"].forEach(id=>{
-    const el=$(id); if(el){el.type="color";el.style.padding="2px";}
-  });
-  document.querySelectorAll("#adminContent code").forEach(el=>{
-    if(/^#?[0-9a-f]{6}$/i.test((el.textContent||"").trim()))el.remove();
-  });
-  v18AddAppearanceModes();
-  v18SingleLanguage($("adminContent"));
-};
-
-document.addEventListener("click",e=>{
-  if(e.target?.id==="langBtn"){
-    setTimeout(()=>{v18SingleLanguage(document.body);v18AddAppearanceModes();v18UpdateModeButtons();},80);
-  }
-});
+let S=loadState();
+let DATA = {products:[]};
+fetch("products.json").then(r=>r.json()).then(p=>{DATA.products=p; if(!S.products.length){S.products=p.map((x,i)=>({id:"p"+i,en:x[0],kh:x[1],price:Number(x[2]),category:x[3],active:true,image:""})); saveState(); render();}}).catch(()=>{});
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function loadState(){
+ const raw=localStorage.getItem(DB);
+ if(raw){const x=JSON.parse(raw);return {...defaultState,...x,settings:{...defaultState.settings,...(x.settings||{})},cms:{...defaultState.cms,...(x.cms||{})},ui:{...defaultState.ui,...(x.ui||{})}}}
+ return clone(defaultState);
+}
+function saveState(){localStorage.setItem(DB,JSON.stringify(S));}
+function L(k){return (T[S.lang]&&T[S.lang][k])||k}
+function moneyKHR(n){return `${Math.round(Number(n)||0).toLocaleString()}៛`}
+function moneyUSD(n){return `$${Number(n||0).toFixed(2)}`}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function today(){return new Date().toISOString().slice(0,10)}
+function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function dateTime(){const d=new Date();return {date:d.toISOString().slice(0,10),time:d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}}
+function activeProducts(){return S.products.filter(p=>p.active!==false)}
+function applyTheme(){
+ document.documentElement.classList.toggle("dark",S.theme==="dark"||(S.theme==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches));
+ document.documentElement.style.setProperty("--primary",S.cms.primary);document.documentElement.style.setProperty("--accent",S.cms.accent);
+ document.documentElement.style.setProperty("--beige",S.cms.beige);document.documentElement.style.setProperty("--cream",S.cms.cream);
+ document.documentElement.style.setProperty("--dark",S.cms.dark);document.documentElement.style.setProperty("--green",S.cms.green);
+}
+function logoSrc(){return S.cms.logo||"assets/nona-me-logo.png"}
+function goto(page){S.page=page;saveState();render()}
+function navItems(){
+ return [
+  ["sales","💰"],["expenses","🧾"],["cash","💵"],["deposit","🏦"],["stock","📦"],["report","📊"],
+  ...(S.role==="admin"?[["period","📆"],["admin","⚙️"]]:[]),["history","🗂️"]
+ ]
+}
+function render(){
+ applyTheme();
+ const root=document.getElementById("app");
+ if(!S.user){root.innerHTML=renderLogin();bindLogin();return}
+ root.innerHTML=renderApp();
+ bindGlobal();renderPage();
+}
+function langButton(){return `<button id="langBtn" class="btn btn-ghost">${S.lang==="kh"?"English":"ខ្មែរ"}</button>`}
+function renderLogin(){
+ return `<div class="login-wrap"><div class="login-card panel" style="max-width:420px;margin:8vh auto">
+ <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px"><img src="${logoSrc()}" style="width:130px;height:62px;object-fit:contain;background:#fff;border-radius:14px"><div><h2 style="margin:0">${esc(S.cms.shopName)}</h2><div class="muted">${esc(S.cms.tagline)}</div></div></div>
+ <div class="field"><label>${L("username")}</label><input id="loginUser" autocomplete="username"></div>
+ <div class="field" style="margin-top:10px"><label>${L("password")}</label><input id="loginPass" type="password" autocomplete="current-password"></div>
+ <label style="display:flex;align-items:center;gap:8px;margin:12px 0;font-weight:800"><input id="remember" type="checkbox" ${S.remember?"checked":""} style="width:auto"> ${L("remember")}</label>
+ <button id="doLogin" class="btn btn-primary" style="width:100%;padding:13px">${L("login")}</button>
+ <div class="small muted" style="margin-top:12px">Staff: staff01 / 1234 · Admin: admin / admin</div>
+ <div style="margin-top:12px">${langButton()} <button id="loginTheme" class="btn">${S.theme==="dark"?"☀️":"🌙"}</button></div>
+ </div></div>`
+}
+function bindLogin(){
+ $("langBtn").onclick=()=>{S.lang=S.lang==="kh"?"en":"kh";saveState();render()}
+ $("loginTheme").onclick=()=>{S.theme=S.theme==="dark"?"light":"dark";saveState();render()}
+ $("doLogin").onclick=()=>{
+  const u=$("loginUser").value.trim(),p=$("loginPass").value;
+  const user=S.users.find(x=>x.username===u&&x.password===p&&x.active!==false);
+  if(!user)return alert(L("loginError"));
+  S.user={id:user.id,name:user.name,username:user.username,role:user.role};S.role=user.role;S.remember=$("remember").checked;
+  localStorage.setItem(DB,JSON.stringify(S));render();
+ }
+}
+function renderApp(){
+ const brand=logoSrc();
+ const nav=navItems().map(([k,ic])=>`<button class="tab ${S.page===k?"active":""}" data-page="${k}">${ic} ${L(k)}</button>`).join("");
+ const bottom=navItems().slice(0,5).map(([k,ic])=>`<button class="${S.page===k?"active":""}" data-page="${k}">${ic}<br>${L(k)}</button>`).join("");
+ return `<header class="topbar"><div class="brand"><img src="${brand}" alt=""><div><div class="brand-title">${esc(S.cms.shopName)}</div><div class="brand-sub">Nona-me Sales</div></div></div>
+ <div class="top-actions">${langButton()}<button id="themeBtn" class="btn">${S.theme==="dark"?"☀️":"🌙"}</button><button id="logoutBtn" class="btn">${L("logout")}</button></div></header>
+ <main class="wrap"><nav class="tabs">${nav}</nav><div id="page"></div></main><nav class="bottom-nav">${bottom}</nav>`
+}
+function bindGlobal(){
+ document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>goto(b.dataset.page));
+ $("langBtn").onclick=()=>{S.lang=S.lang==="kh"?"en":"kh";saveState();render()};
+ $("themeBtn").onclick=()=>{S.theme=S.theme==="dark"?"light":"dark";saveState();render()};
+ $("logoutBtn").onclick=()=>{S.user=null;S.role=null;if(!S.remember)localStorage.removeItem(DB);saveState();render();}
+}
+function renderPage(){
+ const p=$("page");
+ if(S.page==="sales")p.innerHTML=renderSales(),bindSales();
+ else if(S.page==="expenses")p.innerHTML=renderExpenses(),bindExpenses();
+ else if(S.page==="cash")p.innerHTML=renderCash(),bindCash();
+ else if(S.page==="deposit")p.innerHTML=renderDeposit(),bindDeposit();
+ else if(S.page==="stock")p.innerHTML=renderStock(),bindStock();
+ else if(S.page==="report")p.innerHTML=renderReport(),bindReport();
+ else if(S.page==="period")p.innerHTML=renderPeriodReport(),bindPeriodReport();
+ else if(S.page==="history")p.innerHTML=renderHistory();
+ else if(S.page==="admin")p.innerHTML=renderAdmin(),bindAdmin();
+}
+function renderSales(){
+ const cats=[L("all"),...new Set(activeProducts().map(p=>p.category))];
+ const q=S.ui.search||"";
+ const list=activeProducts().filter(p=>(S.ui.category===L("all")||S.ui.category===p.category)&&(p.en.toLowerCase().includes(q.toLowerCase())||p.kh.includes(q)));
+ const cards=list.map(p=>`<button class="product-card" data-add="${p.id}"><img class="product-image" src="${esc(p.image||"assets/nona-me-logo.png")}"><div><div class="product-name">${esc(p[S.lang])}</div><div class="product-kh">${S.lang==="kh"?esc(p.en):esc(p.kh)}</div></div><div class="price">${moneyKHR(p.price)}</div></button>`).join("")||`<div class="empty">${L("noRecords")}</div>`;
+ const cartTotal=cartTotalData();
+ const promos=S.promotions.filter(x=>x.active!==false);
+ return `<div class="page-head"><div><h1>${L("today")}</h1><div class="muted">${esc(S.user.name)}</div></div><div class="action-row"><select id="category" class="category-select">${cats.map(c=>`<option ${S.ui.category===c?"selected":""}>${esc(c)}</option>`).join("")}</select><button id="listGrid" class="btn">${S.ui.menuView==="grid"?"☷":"▦"} ${S.ui.menuView==="grid"?L("list"):L("grid")}</button></div></div>
+ <div class="stats"><div class="stat"><small>${L("salesKHR")}</small><strong>${moneyKHR(todaySales("KHR"))}</strong></div><div class="stat"><small>${L("salesUSD")}</small><strong>${moneyUSD(todaySales("USD"))}</strong></div><div class="stat"><small>${L("transactions")}</small><strong>${S.sales.filter(x=>x.date===today()).length}</strong></div><div class="stat"><small>${L("cups")}</small><strong>${todayCups()}</strong></div></div>
+ <div class="sales-grid"><section class="panel"><div class="panel-title"><h2>${L("menu")}</h2><input id="menuSearch" class="search" style="max-width:240px" placeholder="${L("search")}" value="${esc(q)}"></div><div id="productGrid" class="product-grid ${S.ui.menuView==="list"?"list-view":""}">${cards}</div></section>
+ <section class="panel"><h2>${L("current")}</h2><div class="cart-list">${S.ui.cart.length?S.ui.cart.map(item=>`<div class="cart-item"><div><b>${esc((S.products.find(p=>p.id===item.id)||{} )[S.lang]||item.id)}</b><div class="small muted">${moneyKHR(item.price)} × ${item.qty}</div></div><div class="qty"><button data-dec="${item.id}">−</button><b>${item.qty}</b><button data-inc="${item.id}">+</button></div></div>`).join(""):`<div class="empty">${L("noRecords")}</div>`}</div>
+ <div class="field"><label>${L("promotion")}</label><select id="promo"><option value="">${L("none")}</option>${promos.map(x=>`<option value="${x.id}">${esc(x[S.lang])} · ${x.qty} → ${moneyKHR(x.price)}</option>`).join("")}</select></div>
+ <div class="form-grid" style="margin-top:10px"><div class="field"><label>${L("currency")}</label><select id="currency"><option value="KHR" ${S.ui.currency==="KHR"?"selected":""}>KHR</option><option value="USD" ${S.ui.currency==="USD"?"selected":""}>USD</option></select></div><div class="field"><label>${L("rate")}</label><input id="rate" type="number" min="1" value="${S.settings.rate}"></div></div>
+ <div class="field" style="margin-top:10px"><label>${L("payment")}</label><select id="payment"><option>Cash</option><option>ABA</option><option>Other</option></select></div>
+ <div class="total"><span>${L("total")}</span><strong>${cartTotal.display}</strong></div>
+ <div class="action-row"><button id="saveSale" class="btn btn-primary">${L("saveSale")}</button><button id="savePrint" class="btn">${L("savePrint")}</button></div>
+ </section></div>`
+}
+function bindSales(){
+ $("category").onchange=()=>{S.ui.category=$("category").value;saveState();render()}
+ $("menuSearch").oninput=e=>{S.ui.search=e.target.value;document.querySelectorAll("#productGrid .product-card").forEach(()=>{});renderPage()}
+ $("listGrid").onclick=()=>{S.ui.menuView=S.ui.menuView==="grid"?"list":"grid";saveState();renderPage()}
+ document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{addCart(b.dataset.add);renderPage()})
+ document.querySelectorAll("[data-inc]").forEach(b=>b.onclick=()=>{changeCart(b.dataset.inc,1);renderPage()})
+ document.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{changeCart(b.dataset.dec,-1);renderPage()})
+ $("currency").onchange=e=>{S.ui.currency=e.target.value;saveState()}
+ $("payment").value=S.ui.payment;$("payment").onchange=e=>{S.ui.payment=e.target.value;saveState()}
+ $("rate").onchange=e=>{S.settings.rate=Number(e.target.value)||4000;saveState();renderPage()}
+ $("saveSale").onclick=()=>saveSale(false);$("savePrint").onclick=()=>saveSale(true)
+}
+function addCart(id){const p=S.products.find(x=>x.id===id);if(!p)return;const x=S.ui.cart.find(i=>i.id===id);if(x)x.qty++;else S.ui.cart.push({id,qty:1,price:p.price}) ;saveState()}
+function changeCart(id,d){const x=S.ui.cart.find(i=>i.id===id);if(!x)return;x.qty+=d;if(x.qty<=0)S.ui.cart=S.ui.cart.filter(i=>i.id!==id);saveState()}
+function cartTotalData(){let sum=S.ui.cart.reduce((a,i)=>a+i.qty*i.price,0);let promo=$("promo")?.value?S.promotions.find(x=>x.id===$("promo").value):null;if(promo){const totalQty=S.ui.cart.reduce((a,i)=>a+i.qty,0);if(totalQty>=promo.qty){const sets=Math.floor(totalQty/promo.qty);sum-=sets*(promo.qty*cartUnitAvg()-promo.price)}}const cur=S.ui.currency;return {raw:sum,display:cur==="KHR"?moneyKHR(sum):moneyUSD(sum/S.settings.rate)}}
+function cartUnitAvg(){if(!S.ui.cart.length)return 0;const q=S.ui.cart.reduce((a,i)=>a+i.qty,0);const s=S.ui.cart.reduce((a,i)=>a+i.qty*i.price,0);return s/q}
+function saveSale(print){
+ if(!S.ui.cart.length)return alert(L("required"));
+ const total=cartTotalData().raw, dt=dateTime(), promoId=$("promo")?.value||"";
+ const sale={id:uid("sale"),date:dt.date,time:dt.time,user:S.user.name,currency:S.ui.currency,payment:S.ui.payment,rate:Number($("rate").value||S.settings.rate),amount:total,cups:S.ui.cart.reduce((a,i)=>a+i.qty,0),items:clone(S.ui.cart),promotionId:promoId};
+ S.sales.push(sale);S.ui.cart=[];saveState();renderPage();if(print)printReceipt(sale);alert(L("saved"))
+}
+function todaySales(cur){return S.sales.filter(x=>x.date===today()&&x.currency===cur).reduce((a,x)=>a+x.amount,0)}
+function todayCups(){return S.sales.filter(x=>x.date===today()).reduce((a,x)=>a+x.cups,0)}
+function renderExpenses(){
+ return `<div class="page-head"><div><h1>${L("expenses")}</h1></div></div><div class="two-col"><section class="panel"><div class="field"><label>${L("expenseOn")}</label><input id="expenseDesc"></div><div class="form-grid" style="margin-top:10px"><div class="field"><label>${L("amount")}</label><input id="expenseAmount" type="number" min="0"></div><div class="field"><label>${L("currency")}</label><select id="expenseCurrency"><option>KHR</option><option>USD</option></select></div></div><div class="field" style="margin-top:10px"><label>${L("method")}</label><select id="expenseMethod"><option>Cash</option><option>ABA</option><option>Other</option></select></div><div class="field" style="margin-top:10px"><label>${L("note")}</label><textarea id="expenseNote" rows="3"></textarea></div><button id="saveExpense" class="btn btn-primary" style="margin-top:10px">${L("save")}</button></section><section class="panel"><h2>${L("history")}</h2>${S.expenses.slice().reverse().slice(0,20).map(x=>`<div class="user-row"><div><b>${esc(x.desc)}</b><div class="small muted">${x.date} ${x.time} · ${esc(x.user)}</div></div><b>${x.currency==="KHR"?moneyKHR(x.amount):moneyUSD(x.amount)}</b></div>`).join("")||`<div class="empty">${L("noRecords")}</div>`}</section></div>`
+}
+function bindExpenses(){$("saveExpense").onclick=()=>{const d=$("expenseDesc").value.trim(),a=Number($("expenseAmount").value||0);if(!d||a<=0)return alert(L("required"));const t=dateTime();S.expenses.push({id:uid("exp"),date:t.date,time:t.time,user:S.user.name,desc:d,amount:a,currency:$("expenseCurrency").value,method:$("expenseMethod").value,note:$("expenseNote").value});saveState();renderPage()}}
+function previousCash(cur){const prior=S.sales.filter(x=>x.currency===cur&&x.date<today()&&x.payment==="Cash").reduce((a,x)=>a+x.amount,0)-S.expenses.filter(x=>x.currency===cur&&x.date<today()&&x.method==="Cash").reduce((a,x)=>a+x.amount,0)-S.deposits.filter(x=>x.currency===cur&&x.date<today()).reduce((a,x)=>a+x.amount,0);return prior}
+function currentExpected(cur){return previousCash(cur)+S.sales.filter(x=>x.date===today()&&x.currency===cur&&x.payment==="Cash").reduce((a,x)=>a+x.amount,0)-S.expenses.filter(x=>x.date===today()&&x.currency===cur&&x.method==="Cash").reduce((a,x)=>a+x.amount,0)-S.deposits.filter(x=>x.date===today()&&x.currency===cur).reduce((a,x)=>a+x.amount,0)}
+function renderCash(){return `<div class="page-head"><div><h1>${L("cash")}</h1></div></div><div class="stats"><div class="stat"><small>KHR</small><strong>${moneyKHR(currentExpected("KHR"))}</strong></div><div class="stat"><small>USD</small><strong>${moneyUSD(currentExpected("USD"))}</strong></div></div><section class="panel"><h2>${L("actualCount")}</h2><div class="form-grid"><div class="field"><label>KHR</label><input id="countKHR" type="number"></div><div class="field"><label>USD</label><input id="countUSD" type="number" step="0.01"></div></div><button id="saveCount" class="btn btn-primary" style="margin-top:10px">${L("save")}</button><div style="margin-top:18px"><table class="table"><tr><th>${L("currency")}</th><th>${L("expected")}</th><th>${L("actual")}</th><th>${L("difference")}</th></tr><tr><td>KHR</td><td>${moneyKHR(currentExpected("KHR"))}</td><td id="aKHR">—</td><td id="dKHR">—</td></tr><tr><td>USD</td><td>${moneyUSD(currentExpected("USD"))}</td><td id="aUSD">—</td><td id="dUSD">—</td></tr></table></div></section>`}
+function bindCash(){$("saveCount").onclick=()=>{const t=dateTime(),k=Number($("countKHR").value||0),u=Number($("countUSD").value||0);S.cashCounts.push({id:uid("cc"),date:t.date,time:t.time,user:S.user.name,khr:k,usd:u,expKhr:currentExpected("KHR"),expUsd:currentExpected("USD")});saveState();renderPage()}}
+function renderDeposit(){return `<div class="page-head"><div><h1>${L("deposit")}</h1></div></div><section class="panel" style="max-width:720px"><div class="form-grid"><div class="field"><label>${L("amount")}</label><input id="depAmount" type="number" min="0"></div><div class="field"><label>${L("currency")}</label><select id="depCurrency"><option>KHR</option><option>USD</option></select></div><div class="field"><label>${L("method")}</label><input id="depBank" value="Bank"></div><div class="field"><label>${L("note")}</label><input id="depNote"></div></div><button id="saveDep" class="btn btn-primary" style="margin-top:10px">${L("save")}</button></section>`}
+function bindDeposit(){$("saveDep").onclick=()=>{const a=Number($("depAmount").value||0);if(a<=0)return alert(L("required"));const t=dateTime();S.deposits.push({id:uid("dep"),date:t.date,time:t.time,user:S.user.name,amount:a,currency:$("depCurrency").value,bank:$("depBank").value,note:$("depNote").value});saveState();renderPage()}}
+function renderStock(){const low=(S.stock||[]).filter(x=>Number(x.qty)<=Number(x.min||0));return `<div class="page-head"><div><h1>${L("stock")}</h1><div class="muted">${low.length?`⚠️ ${L("inventoryAlert")}: ${low.length}`:""}</div></div></div><div class="two-col"><section class="panel"><div class="form-grid"><div class="field"><label>${L("item")}</label><input id="stockName"></div><div class="field"><label>${L("quantity")}</label><input id="stockQty" type="number" min="0"></div><div class="field"><label>${L("unit")}</label><input id="stockUnit" placeholder="kg / pcs / L"></div><div class="field"><label>${L("minimum")}</label><input id="stockMin" type="number" min="0"></div><div class="field full"><label>${L("image")}</label><input id="stockImage" type="file" accept="image/*"></div><div class="field full"><label>${L("note")}</label><textarea id="stockNote"></textarea></div></div><button id="saveStock" class="btn btn-primary" style="margin-top:10px">${L("addStock")}</button></section><section class="panel">${(S.stock||[]).map((x,i)=>`<div class="list-row"><img class="stock-thumb" src="${esc(x.image||"assets/nona-me-logo.png")}"><div><b>${esc(x.name)}</b><div class="small muted">${x.qty} ${esc(x.unit||"")}${x.note?` · ${esc(x.note)}`:""}</div></div><div class="row-actions"><span class="badge ${x.qty<=x.min?"red":"green"}">${x.qty<=x.min?L("inventoryAlert"):L("active")}</span><button class="btn btn-danger" data-del-stock="${i}">🗑</button></div></div>`).join("")||`<div class="empty">${L("noRecords")}</div>`}</section></div>`}
+function bindStock(){$("saveStock").onclick=()=>{const n=$("stockName").value.trim(),q=Number($("stockQty").value||0);if(!n||q<=0)return alert(L("required"));const f=$("stockImage").files[0],save=(img)=>{S.stock.push({id:uid("st"),name:n,qty:q,unit:$("stockUnit").value,min:Number($("stockMin").value||0),image:img,note:$("stockNote").value});saveState();renderPage()};if(f){const r=new FileReader();r.onload=()=>save(r.result);r.readAsDataURL(f)}else save("")};document.querySelectorAll("[data-del-stock]").forEach(b=>b.onclick=()=>{S.stock.splice(Number(b.dataset.delStock),1);saveState();renderPage()})}
+function renderReport(){const d=today(),salesK=todaySales("KHR"),salesU=todaySales("USD"),expK=dayExp("KHR"),expU=dayExp("USD"),depK=dayDep("KHR"),depU=dayDep("USD"),sep=S.ui.reportSeparator;return `<div class="page-head"><div><h1>${L("reportTitle")}</h1><div class="muted">${d}</div></div><div class="action-row"><button id="copyReport" class="btn">${L("copy")}</button><button id="exportReport" class="btn">${L("export")}</button><button id="printReport" class="btn">${L("print")}</button></div></div><section class="panel"><div class="stats"><div class="stat"><small>${L("salesKHR")}</small><strong>${moneyKHR(salesK)}</strong></div><div class="stat"><small>${L("salesUSD")}</small><strong>${moneyUSD(salesU)}</strong></div><div class="stat"><small>${L("expensesKHR")}</small><strong>${moneyKHR(expK)}</strong></div><div class="stat"><small>${L("expensesUSD")}</small><strong>${moneyUSD(expU)}</strong></div></div><div class="report-separator"></div><div class="form-grid"><div><b>${L("depositKHR")}</b><div>${moneyKHR(depK)}</div></div><div><b>${L("depositUSD")}</b><div>${moneyUSD(depU)}</div></div><div><b>${L("expected")} KHR</b><div>${moneyKHR(currentExpected("KHR"))}</div></div><div><b>${L("expected")} USD</b><div>${moneyUSD(currentExpected("USD"))}</div></div><div><b>${L("cups")}</b><div>${todayCups()}</div></div><div><b>${L("bestSeller")}</b><div>${esc(bestSeller()||"—")}</div></div><div><b>${L("staff")}</b><div>${esc(S.user.name)}</div></div><div><b>${L("exchange")}</b><div>1 USD = ${Number(S.settings.rate).toLocaleString()} KHR</div></div></div><div class="report-separator"></div><pre id="telegramPreview" class="receipt-preview">${esc(buildTelegram())}</pre></section>`}
+function dayExp(c){return S.expenses.filter(x=>x.date===today()&&x.currency===c).reduce((a,x)=>a+x.amount,0)}
+function dayDep(c){return S.deposits.filter(x=>x.date===today()&&x.currency===c).reduce((a,x)=>a+x.amount,0)}
+function bestSeller(){const m={};S.sales.filter(x=>x.date===today()).forEach(s=>s.items.forEach(i=>m[i.id]=(m[i.id]||0)+i.qty));const id=Object.entries(m).sort((a,b)=>b[1]-a[1])[0]?.[0];return S.products.find(p=>p.id===id)?.[S.lang]}
+function buildTelegram(){const sep=S.ui.reportSeparator;const val=(label,v)=>`${label}: ${v}`;return [`☕ ${S.cms.shopName}`,`📊 ${L("reportTitle")}`,`📅 ${today()}`,sep,`💰 ${L("sales")}`,`${L("currency")} KHR: ${moneyKHR(todaySales("KHR"))}`,`${L("currency")} USD: ${moneyUSD(todaySales("USD"))}`,sep,`💸 ${L("expenses")}`,`${L("currency")} KHR: ${moneyKHR(dayExp("KHR"))}`,`${L("currency")} USD: ${moneyUSD(dayExp("USD"))}`,sep,`🏦 ${L("deposit")}`,`${L("currency")} KHR: ${moneyKHR(dayDep("KHR"))}`,`${L("currency")} USD: ${moneyUSD(dayDep("USD"))}`,sep,`💵 ${L("expected")}`,`${L("currency")} KHR: ${moneyKHR(currentExpected("KHR"))}`,`${L("currency")} USD: ${moneyUSD(currentExpected("USD"))}`,sep,`☕ ${L("cups")}: ${todayCups()}`,`🏆 ${L("bestSeller")}: ${bestSeller()||"—"}`,`👤 ${L("staff")}: ${S.user.name}`,`💱 ${L("exchange")}: 1 USD = ${Number(S.settings.rate).toLocaleString()} KHR`].join("\n")}
+function bindReport(){$("copyReport").onclick=async()=>{await navigator.clipboard.writeText(buildTelegram());alert(L("copied"))};$("exportReport").onclick=()=>downloadText("nona-me-daily-report.csv",buildCSV());$("printReport").onclick=()=>printText(buildTelegram())}
+function buildCSV(){const rows=[["date","staff","currency","payment","amount","cups"]];S.sales.filter(x=>x.date===today()).forEach(x=>rows.push([x.date,x.user,x.currency,x.payment,x.amount,x.cups]));const ex=[["expenses"],...S.expenses.filter(x=>x.date===today()).map(x=>[x.date,x.user,x.currency,x.method,x.amount,x.desc])];return [...rows,[],...ex].map(r=>r.join(",")).join("\n")}
+function downloadText(name,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/plain;charset=utf-8"}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function printText(text){const w=window.open("","_blank");w.document.write(`<pre style="font-family:monospace;white-space:pre-wrap">${esc(text)}</pre>`);w.document.close();w.print()}
+function printReceipt(sale){const lines=[S.cms.shopName,`${sale.date} ${sale.time}`,`Order: ${sale.id}`,"------------------------------"];sale.items.forEach(i=>{const p=S.products.find(x=>x.id===i.id);lines.push(`${p?.[S.lang]||i.id} x${i.qty} ${moneyKHR(i.price*i.qty)}`)});lines.push("------------------------------",`${L("total")}: ${sale.currency==="KHR"?moneyKHR(sale.amount):moneyUSD(sale.amount)}`,`${L("payment")}: ${sale.payment}`);printText(lines.join("\n"))}
+function renderPeriodReport(){const type="month";const now=new Date();const month=now.toISOString().slice(0,7);const rows=[...S.sales.filter(x=>x.date.startsWith(month))];return `<div class="page-head"><div><h1>${L("period")}</h1><div class="muted">${month}</div></div><button id="periodExport" class="btn">${L("exportData")}</button></div><section class="panel"><div class="stats"><div class="stat"><small>${L("salesKHR")}</small><strong>${moneyKHR(rows.filter(x=>x.currency==="KHR").reduce((a,x)=>a+x.amount,0))}</strong></div><div class="stat"><small>${L("salesUSD")}</small><strong>${moneyUSD(rows.filter(x=>x.currency==="USD").reduce((a,x)=>a+x.amount,0))}</strong></div><div class="stat"><small>${L("cups")}</small><strong>${rows.reduce((a,x)=>a+x.cups,0)}</strong></div><div class="stat"><small>${L("transactions")}</small><strong>${rows.length}</strong></div></div><div class="table-wrap"><table class="table"><tr><th>${L("date")}</th><th>${L("staff")}</th><th>${L("currency")}</th><th>${L("amount")}</th><th>${L("cups")}</th></tr>${rows.map(x=>`<tr><td>${x.date}</td><td>${esc(x.user)}</td><td>${x.currency}</td><td>${x.currency==="KHR"?moneyKHR(x.amount):moneyUSD(x.amount)}</td><td>${x.cups}</td></tr>`).join("")}</table></div></section>`}
+function bindPeriodReport(){$("periodExport").onclick=()=>downloadText("nona-me-period.csv",buildCSV())}
+function renderHistory(){const all=[...S.sales.map(x=>({...x,type:"sale"})),...S.expenses.map(x=>({...x,type:"expense"})),...S.deposits.map(x=>({...x,type:"deposit"}))].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));return `<div class="page-head"><div><h1>${L("history")}</h1></div></div><section class="panel">${all.slice(0,80).map(x=>`<div class="user-row"><div><b>${x.type==="sale"?L("sales"):x.type==="expense"?L("expenses"):L("deposit")}</b><div class="small muted">${x.date} ${x.time} · ${esc(x.user)}</div></div><b>${x.currency==="KHR"?moneyKHR(x.amount):moneyUSD(x.amount)}</b></div>`).join("")||`<div class="empty">${L("noRecords")}</div>`}</section>`}
+function renderAdmin(){
+ const section=S.ui.adminSection||"overview";
+ const side=[["overview","📊"],["website","🛠️"],["products","☕"],["promotions","🏷️"],["inventory","📦"],["staffUsers","👥"],["settings","⚙️"],["audit","🛡️"]];
+ return `<div class="page-head"><div><h1>${L("admin")}</h1><div class="muted">${L(section)}</div></div></div><div class="admin-layout"><aside class="admin-sidebar">${side.map(([k,ic])=>`<button class="nav-btn ${section===k?"active":""}" data-admin="${k}">${ic} ${L(k)}</button>`).join("")}</aside><section id="adminMain" class="admin-main">${renderAdminSection(section)}</section></div>`
+}
+function renderAdminSection(s){
+ if(s==="overview")return adminOverview();
+ if(s==="website")return adminWebsite();
+ if(s==="products")return adminProducts();
+ if(s==="promotions")return adminPromotions();
+ if(s==="inventory")return adminInventory();
+ if(s==="staffUsers")return adminUsers();
+ if(s==="settings")return adminSettings();
+ return adminAudit();
+}
+function bindAdmin(){
+ document.querySelectorAll("[data-admin]").forEach(b=>b.onclick=()=>{S.ui.adminSection=b.dataset.admin;saveState();renderPage()});
+ document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>adminAction(b.dataset.action,b.dataset.id));
+ bindAdminSection();
+}
+function bindAdminSection(){
+ document.querySelectorAll("[data-subaction]").forEach(b=>b.onclick=()=>adminAction(b.dataset.subaction,b.dataset.id));
+ const el=(id)=>document.getElementById(id);
+ if(el("saveCMS"))el("saveCMS").onclick=saveCMS;
+ if(el("saveAppearance"))el("saveAppearance").onclick=saveAppearance;
+ if(el("addProduct"))el("addProduct").onclick=addProductAdmin;
+ if(el("addPromo"))el("addPromo").onclick=addPromoAdmin;
+ if(el("addUser"))el("addUser").onclick=addUserAdmin;
+ if(el("addStockAdmin"))el("addStockAdmin").onclick=addStockAdmin;
+ if(el("saveSettingsAdmin"))el("saveSettingsAdmin").onclick=saveSettingsAdmin;
+}
+function adminOverview(){
+ const sK=S.sales.filter(x=>x.currency==="KHR").reduce((a,x)=>a+x.amount,0),sU=S.sales.filter(x=>x.currency==="USD").reduce((a,x)=>a+x.amount,0),eK=S.expenses.filter(x=>x.currency==="KHR").reduce((a,x)=>a+x.amount,0),eU=S.expenses.filter(x=>x.currency==="USD").reduce((a,x)=>a+x.amount,0);
+ return `<section class="panel"><div class="row-between"><h2>${L("overview")}</h2><button class="btn" data-subaction="exportAll">${L("exportData")}</button></div><div class="admin-card-grid"><div class="stat"><small>${L("salesKHR")}</small><strong>${moneyKHR(sK)}</strong></div><div class="stat"><small>${L("salesUSD")}</small><strong>${moneyUSD(sU)}</strong></div><div class="stat"><small>${L("expensesKHR")}</small><strong>${moneyKHR(eK)}</strong></div><div class="stat"><small>${L("expensesUSD")}</small><strong>${moneyUSD(eU)}</strong></div></div></section>
+ <section class="panel" style="margin-top:12px"><div class="filters"><button class="btn" data-subaction="overviewDay">${L("daily")}</button><button class="btn" data-subaction="overviewWeek">${L("weekly")}</button><button class="btn" data-subaction="overviewMonth">${L("monthly")}</button></div><p class="muted" style="margin-top:12px">${L("currentCash")}: ${moneyKHR(currentExpected("KHR"))} · ${moneyUSD(currentExpected("USD"))}</p></section>`
+}
+function adminWebsite(){const c=S.cms,u=S.ui;const nav=navItems();return `<section class="panel"><h2>${L("siteTitle")}</h2><div class="form-grid"><div class="field"><label>${L("name")}</label><input id="cmsShop" value="${esc(c.shopName)}"></div><div class="field"><label>${S.lang==="kh"?"ពាក្យពិពណ៌នា":"Tagline"}</label><input id="cmsTag" value="${esc(c.tagline)}"></div><div class="field full"><label>${S.lang==="kh"?"សារជូនដំណឹង":"Announcement"}</label><input id="cmsAnn" value="${esc(c.announcement)}"></div></div><div style="margin-top:12px"><label>${L("logo")}</label><div class="action-row" style="align-items:center;margin-top:8px"><img id="cmsLogoPreview" class="asset-preview" src="${esc(logoSrc())}"><input id="cmsLogo" type="file" accept="image/*"></div></div><h3 style="margin-top:18px">${L("appearance")}</h3><div class="color-grid">${[["primary","primary"],["accent","accent"],["beige","beige"],["cream","cream"],["dark","darkColor"],["green","green"]].map(([k,lk])=>`<div class="color-pick"><input type="color" id="color_${k}" value="${c[k]}"><b>${L(lk)}</b></div>`).join("")}</div><div style="margin-top:12px"><label>${L("displayMode")}</label><div class="segmented" style="margin-top:7px"><button class="btn ${S.theme==="light"?"btn-primary":""}" data-subaction="themeLight">☀️ ${L("light")}</button><button class="btn ${S.theme==="dark"?"btn-primary":""}" data-subaction="themeDark">🌙 ${L("dark")}</button><button class="btn ${S.theme==="auto"?"btn-primary":""}" data-subaction="themeAuto">🌓 ${L("auto")}</button></div></div><div style="margin-top:18px"><h3>${L("navigation")}</h3>${nav.map(([k])=>`<div class="user-row"><span>${L(k)}</span><label><input type="checkbox" id="nav_${k}" checked> ${L("show")}</label></div>`).join("")}</div><div style="margin-top:14px"><label>${L("separator")}</label><input id="separator" value="${esc(S.ui.reportSeparator)}"></div><button id="saveCMS" class="btn btn-primary" style="margin-top:14px">${L("save")}</button></section>`}
+function saveCMS(){
+ S.cms.shopName=$("cmsShop").value.trim()||S.cms.shopName;S.cms.tagline=$("cmsTag").value.trim();S.cms.announcement=$("cmsAnn").value.trim();
+ ["primary","accent","beige","cream","dark","green"].forEach(k=>S.cms[k]=$(("color_"+k)).value);
+ S.ui.reportSeparator=$("separator").value||"━━━━━━━━━━━━━━━━━━";const f=$("cmsLogo").files[0];
+ const done=()=>{saveState();renderPage()};if(f){const r=new FileReader();r.onload=()=>{S.cms.logo=r.result;done()};r.readAsDataURL(f)}else done()
+}
+function saveAppearance(){saveCMS()}
+function adminProducts(){return `<section class="panel"><div class="row-between"><h2>${L("products")}</h2><button class="btn btn-primary" id="addProduct">${L("addProduct")}</button></div><div class="form-grid" style="margin-top:10px"><div class="field"><label>${L("englishName")}</label><input id="newPEn"></div><div class="field"><label>${L("khmerName")}</label><input id="newPKh"></div><div class="field"><label>${L("priceKHR")}</label><input id="newPPrice" type="number"></div><div class="field"><label>${L("category")}</label><input id="newPCat"></div><div class="field full"><label>${L("image")}</label><input id="newPImage" type="file" accept="image/*"></div></div><div style="margin-top:16px">${S.products.map((p,i)=>`<div class="list-row"><img class="stock-thumb" src="${esc(p.image||"assets/nona-me-logo.png")}"><div><b>${esc(p[S.lang])}</b><div class="small muted">${esc(p[S.lang==="kh"?"en":"kh"])} · ${esc(p.category)} · ${moneyKHR(p.price)}</div></div><div class="row-actions"><button class="btn" data-subaction="toggleProduct" data-id="${i}">${p.active===false?L("enable"):L("disable")}</button><button class="btn btn-danger" data-subaction="deleteProduct" data-id="${i}">🗑</button></div></div>`).join("")}</div></section>`}
+function readFile(id,cb){const f=$(id).files[0];if(!f)return cb("");const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(f)}
+function addProductAdmin(){const en=$("newPEn").value.trim(),kh=$("newPKh").value.trim(),price=Number($("newPPrice").value||0),cat=$("newPCat").value.trim()||"Other";if(!en||!kh||price<0)return alert(L("required"));readFile("newPImage",img=>{S.products.push({id:uid("p"),en,kh,price,category:cat,image:img,active:true});saveState();renderPage()})}
+function adminPromotions(){return `<section class="panel"><div class="row-between"><h2>${L("promotions")}</h2></div><div class="form-grid"><div class="field"><label>${L("englishName")}</label><input id="promoEn"></div><div class="field"><label>${L("khmerName")}</label><input id="promoKh"></div><div class="field"><label>${L("buyCups")}</label><input id="promoQty" type="number" min="2"></div><div class="field"><label>${L("promoPrice")}</label><input id="promoPrice" type="number" min="0"></div></div><button id="addPromo" class="btn btn-primary" style="margin-top:10px">${L("addPromo")}</button><div style="margin-top:16px">${S.promotions.map((p,i)=>`<div class="promo-row"><div><b>${esc(p[S.lang])}</b><div class="small muted">${p.qty} ${L("cups")} → ${moneyKHR(p.price)}</div></div><div class="row-actions"><button class="btn" data-subaction="togglePromo" data-id="${i}">${p.active?L("disable"):L("enable")}</button><button class="btn btn-danger" data-subaction="deletePromo" data-id="${i}">🗑</button></div></div>`).join("")}</div></section>`}
+function addPromoAdmin(){const en=$("promoEn").value.trim(),kh=$("promoKh").value.trim(),qty=Number($("promoQty").value||0),price=Number($("promoPrice").value||0);if(!en||!kh||qty<2||price<0)return alert(L("required"));S.promotions.push({id:uid("pr"),en,kh,qty,price,active:true,products:"ALL"});saveState();renderPage()}
+function adminInventory(){return `<section class="panel"><h2>${L("inventory")}</h2><div>${(S.stock||[]).map(x=>`<div class="stock-row"><img class="stock-thumb" src="${esc(x.image||"assets/nona-me-logo.png")}"><div><b>${esc(x.name)}</b><div class="small muted">${x.qty} ${esc(x.unit||"")} · min ${x.min}</div></div><span class="badge ${x.qty<=x.min?"red":"green"}">${x.qty<=x.min?L("inventoryAlert"):L("active")}</span></div>`).join("")||`<div class="empty">${L("noRecords")}</div>`}</div></section>`}
+function adminUsers(){return `<section class="panel"><div class="row-between"><h2>${L("staffUsers")}</h2></div><div class="form-grid"><div class="field"><label>${L("name")}</label><input id="userName"></div><div class="field"><label>${L("username")}</label><input id="userUsername"></div><div class="field"><label>${L("password")}</label><input id="userPassword"></div><div class="field"><label>${L("role")}</label><select id="userRole"><option>staff</option><option>admin</option></select></div></div><button id="addUser" class="btn btn-primary" style="margin-top:10px">${L("addUser")}</button><div style="margin-top:16px">${S.users.map((u,i)=>`<div class="user-row"><div><b>${esc(u.name)}</b><div class="small muted">${esc(u.username)} · ${u.role}</div></div><div class="row-actions"><span class="badge ${u.active===false?"red":"green"}">${u.active===false?L("disabled"):L("active")}</span><button class="btn" data-subaction="toggleUser" data-id="${i}">${u.active===false?L("enable"):L("disable")}</button>${u.username!=="admin"?`<button class="btn btn-danger" data-subaction="deleteUser" data-id="${i}">🗑</button>`:""}</div></div>`).join("")}</div></section>`}
+function addUserAdmin(){const name=$("userName").value.trim(),username=$("userUsername").value.trim(),password=$("userPassword").value,role=$("userRole").value;if(!name||!username||!password)return alert(L("required"));if(S.users.some(u=>u.username===username))return alert("Username exists");S.users.push({id:uid("u"),name,username,password,role,active:true});saveState();renderPage()}
+function adminSettings(){return `<section class="panel"><h2>${L("settings")}</h2><div class="form-grid"><div class="field"><label>${L("name")}</label><input id="setShop" value="${esc(S.settings.shopName)}"></div><div class="field"><label>Phone</label><input id="setPhone" value="${esc(S.settings.phone)}"></div><div class="field"><label>Telegram</label><input id="setTelegram" value="${esc(S.settings.telegram)}"></div><div class="field"><label>${L("exchange")}</label><input id="setRate" type="number" value="${S.settings.rate}"></div><div class="field full"><label>${S.lang==="kh"?"អាសយដ្ឋាន":"Address"}</label><input id="setAddress" value="${esc(S.settings.address)}"></div></div><div class="form-grid" style="margin-top:12px"><div class="field"><label>${L("paper")}</label><select id="paper"><option>58mm</option><option>80mm</option><option>A4</option></select></div><div class="field"><label>${L("thankYou")}</label><input id="footer" value="${esc(S.cms.footer)}"></div></div><button id="saveSettingsAdmin" class="btn btn-primary" style="margin-top:12px">${L("save")}</button></section>`}
+function saveSettingsAdmin(){S.settings.shopName=$("setShop").value.trim();S.settings.phone=$("setPhone").value.trim();S.settings.telegram=$("setTelegram").value.trim();S.settings.address=$("setAddress").value.trim();S.settings.rate=Number($("setRate").value||4000);S.cms.footer=$("footer").value;saveState();renderPage()}
+function adminAudit(){const logs=[...S.sales.map(x=>({t:x.date+" "+x.time,u:x.user,a:L("sales"),d:x.amount})),...S.expenses.map(x=>({t:x.date+" "+x.time,u:x.user,a:L("expenses"),d:x.desc})),...S.deposits.map(x=>({t:x.date+" "+x.time,u:x.user,a:L("deposit"),d:x.amount}))].sort((a,b)=>b.t.localeCompare(a.t));return `<section class="panel"><h2>${L("audit")}</h2>${logs.slice(0,100).map(x=>`<div class="user-row"><div><b>${esc(x.a)}</b><div class="small muted">${esc(x.t)} · ${esc(x.u)}</div></div><b>${esc(x.d)}</b></div>`).join("")||`<div class="empty">${L("noRecords")}</div>`}</section>`}
+function adminAction(a,id){
+ if(a==="themeLight"){S.theme="light";saveState();renderPage()} if(a==="themeDark"){S.theme="dark";saveState();renderPage()} if(a==="themeAuto"){S.theme="auto";saveState();renderPage()}
+ if(a==="toggleProduct"){S.products[id].active=S.products[id].active===false;saveState();renderPage()} if(a==="deleteProduct"){S.products.splice(id,1);saveState();renderPage()}
+ if(a==="togglePromo"){S.promotions[id].active=!S.promotions[id].active;saveState();renderPage()} if(a==="deletePromo"){S.promotions.splice(id,1);saveState();renderPage()}
+ if(a==="toggleUser"){S.users[id].active=S.users[id].active===false;saveState();renderPage()} if(a==="deleteUser"){S.users.splice(id,1);saveState();renderPage()}
+ if(a==="exportAll"){downloadText("nona-me-all-data.csv",buildCSV())}
+ if(a==="overviewDay"||a==="overviewWeek"||a==="overviewMonth"){goto(a==="overviewDay"?"report":"period")}
+}
+function bindAdminSectionAfter(){
+ // kept for future
+}
+function renderAdminSectionStandalone(){return ""}
+function $(id){return document.getElementById(id)}
+
+window.addEventListener("storage",()=>{S=loadState();render()});
+window.addEventListener("DOMContentLoaded",()=>{window.addEventListener("online",()=>{});render()});
