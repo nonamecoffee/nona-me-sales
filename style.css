@@ -52,3 +52,18 @@ input,select,textarea{width:100%;border:1px solid var(--line);border-radius:13px
 
 .report-meta-grid.compact{grid-template-columns:repeat(2,1fr)}
 @media(max-width:700px){.report-meta-grid.compact{grid-template-columns:1fr 1fr}.report-sheet{padding:13px}.report-section{padding:11px 0}.report-divider{margin:0 -2px}}
+
+/* V35: proper edit panels for Menu + Stock */
+.modal-backdrop{position:fixed;inset:0;z-index:100;background:rgba(30,20,16,.38);backdrop-filter:blur(8px);display:grid;place-items:center;padding:16px}
+.modal-card{width:min(680px,100%);max-height:min(88vh,760px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 24px 70px rgba(40,24,18,.22)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);z-index:2}
+.modal-head h3{margin:0;font-size:19px}.icon-btn{width:38px;height:38px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--dark);font-weight:800}.modal-body{padding:18px}.edit-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.modal-image-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.edit-image-preview{width:86px;height:86px;object-fit:cover;border-radius:15px;background:#fff;border:1px solid var(--line)}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+@media(max-width:700px){.modal-backdrop{padding:10px;place-items:end center}.modal-card{border-radius:22px 22px 18px 18px;max-height:92vh}.edit-modal-grid{grid-template-columns:1fr}.modal-body{padding:15px}.modal-head{padding:14px 15px}}
+/* V36: 1:1 stock photo capture + preview */
+.stock-photo-box{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.55)}
+.stock-photo-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.stock-photo-preview-wrap{display:grid;place-items:center;width:100%;max-width:260px;aspect-ratio:1/1;margin:0 auto 11px;border-radius:18px;overflow:hidden;background:#fff;border:1px solid var(--line)}
+.stock-photo-preview{display:block;width:100%;height:100%;object-fit:cover}
+.photo-actions{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
+.edit-photo-box .stock-photo-preview-wrap{max-width:220px}
+@media(max-width:700px){.stock-photo-box{padding:10px}.stock-photo-preview-wrap{max-width:220px}.photo-actions .btn{flex:1 1 130px}}

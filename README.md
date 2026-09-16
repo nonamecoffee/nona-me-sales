@@ -1,27 +1,16 @@
-# Nona-me Sales V32
+# Nona-me Sales V36 — Full Replacement
 
-Full replacement package for the Nona-me Coffee sales system.
+Complete replacement package based on V35.
 
-- Light mode only
-- Khmer / English whole-interface switch
-- Staff and Admin roles
-- Sales, expenses, cash, bank deposit, stock
-- KHR and USD kept separate
-- Menu shows KHR + calculated USD
-- Daily report with previous cash, expected cash, actual count and difference
-- Report image, print, copy text and CSV export
-- Admin Control Center for website, products, promotions, stock, records, users, settings and audit
-- PWA/Home Screen support
+## V36 changes
+- Stock Add form now supports **Upload Photo** and **Take Photo** on phones/tablets.
+- Camera capture uses the device rear camera when supported (`capture="environment"`).
+- Selected/captured images are automatically center-cropped to a **1:1 square** and compressed for local storage.
+- Shows a large **1:1 preview** before saving stock.
+- After preview, user can **Retake Photo**, choose another upload, or remove the image.
+- Stock Edit modal uses the same 1:1 upload/camera/preview/retake flow.
+- V35 features are preserved.
 
-Demo accounts: `staff01 / 1234` and `admin / admin`
-
-This is a browser/localStorage prototype. Production multi-device sync should use Supabase or another backend.
-
-
-## V34 report improvements
-- Cleaner Copy Text format for Telegram and messaging.
-- Print Report uses a clean HTML print layout instead of raw preformatted text.
-- Save Image on supported iPhone/iPad/Android browsers uses the native Share Sheet with the PNG file, so the user can choose Save Image / Save to Photos rather than forcing a browser download.
-- Standard web browsers cannot silently write directly to the phone gallery; the operating system Share Sheet is required for this step.
-
-V34: Menu panel has independent vertical scrolling so dragging inside Menu does not scroll the surrounding page/panels. Horizontal page overflow is locked.
+## Demo login
+Admin: `admin` / `admin`
+Staff: `staff01` / `1234`
