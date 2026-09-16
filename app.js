@@ -107,37 +107,46 @@ function reportData(){
   return {date,sk,su,ek,eu,dk,du,csk,csu,cek,ceu,expectedKhr,expectedUsd,previousKhr,previousUsd,actualKhr,actualUsd,diffKhr,diffUsd,cups,best};
 }
 function cleanReportText(){
-  const r=reportData(), sep=S.separator||"━━━━━━━━━━━━━━━━━━";
-  const line=(label,khr,usd)=>`${label}: ${mKHR(khr)} | ${mUSD(usd)}`;
-  const value=(khr,usd)=>`${mKHR(khr)} | ${mUSD(usd)}`;
-  return [
+  const r=reportData(), sep=S.separator||"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+  const clean=v=>String(v??'').replace(/\s+/g,' ').trim();
+  // Invoice-style columns: description on the left, KHR in the middle, USD on the right.
+  const row=(label,khr='',usd='')=>{
+    const left=clean(label).slice(0,22).padEnd(22,' ');
+    const mid=clean(khr).padStart(14,' ');
+    const right=clean(usd).padStart(11,' ');
+    return `${left}${mid}${right}`;
+  };
+  const one=(label,value)=>clean(label).slice(0,22).padEnd(22,' ')+clean(value).padStart(25,' ');
+  const header=`${'DESCRIPTION'.padEnd(22,' ')}${'KHR'.padStart(14,' ')}${'USD'.padStart(11,' ')}`;
+  const lines=[
     `☕ ${S.cms.shopName}`,
     `${L('report')} — ${r.date}`,
     sep,
-    `💰 ${L('sales')}`,
-    line('',r.sk,r.su),
-    `💸 ${L('expenses')}`,
-    line('',r.ek,r.eu),
-    `📊 ${S.lang==='kh'?'ចំណូលសរុប':'Total Income'}: ${value(r.sk,r.su)}`,
-    `📉 ${S.lang==='kh'?'ចំណាយសរុប':'Total Expenses'}: ${value(r.ek,r.eu)}`,
+    header,
     sep,
-    `🧮 ${S.lang==='kh'?'លុយក្នុងតុ':'Cash in Drawer'}`,
-    `${L('previous')}: ${value(r.previousKhr,r.previousUsd)}`,
-    `${L('cashSales')}: ${value(r.csk,r.csu)}`,
-    `${L('cashExpenses')}: ${value(r.cek,r.ceu)}`,
-    `${L('deposit')}: ${value(r.dk,r.du)}`,
-    `${L('expected')}: ${value(r.expectedKhr,r.expectedUsd)}`,
-    `${L('actual')}: ${r.actualKhr===null?'—':value(r.actualKhr,r.actualUsd)}`,
-    `${L('difference')}: ${r.diffKhr===null?'—':value(r.diffKhr,r.diffUsd)}`,
+    row(L('sales'),mKHR(r.sk),mUSD(r.su)),
+    row(L('expenses'),mKHR(r.ek),mUSD(r.eu)),
+    row(S.lang==='kh'?'ចំណូលសរុប':'TOTAL INCOME',mKHR(r.sk),mUSD(r.su)),
+    row(S.lang==='kh'?'ចំណាយសរុប':'TOTAL EXPENSES',mKHR(r.ek),mUSD(r.eu)),
     sep,
-    `🏦 ${L('deposit')}: ${value(r.dk,r.du)}`,
-    `☕ ${L('cups')}: ${r.cups}`,
-    `⭐ ${L('bestSeller')}: ${r.best}`,
-    `👤 ${L('staff')}: ${S.user?.name||''}`,
-    `💱 1 USD = ${fmt(S.settings.rate)} KHR`,
+    `🧮 ${S.lang==='kh'?'លុយក្នុងតុ':'CASH IN DRAWER'}`,
+    row(L('previous'),mKHR(r.previousKhr),mUSD(r.previousUsd)),
+    row(L('cashSales'),mKHR(r.csk),mUSD(r.csu)),
+    row(L('cashExpenses'),mKHR(r.cek),mUSD(r.ceu)),
+    row(L('deposit'),mKHR(r.dk),mUSD(r.du)),
+    row(L('expected'),mKHR(r.expectedKhr),mUSD(r.expectedUsd)),
+    row(L('actual'),r.actualKhr===null?'—':mKHR(r.actualKhr),r.actualUsd===null?'—':mUSD(r.actualUsd)),
+    row(L('difference'),r.diffKhr===null?'—':mKHR(r.diffKhr),r.diffUsd===null?'—':mUSD(r.diffUsd)),
+    sep,
+    row(`🏦 ${L('deposit')}`,mKHR(r.dk),mUSD(r.du)),
+    one(`☕ ${L('cups')}`,String(r.cups)),
+    one(`⭐ ${L('bestSeller')}`,String(r.best)),
+    one(`👤 ${L('staff')}`,String(S.user?.name||'')),
+    one(`💱 ${S.lang==='kh'?'អត្រាប្តូរប្រាក់':'Exchange Rate'}`,`1 USD = ${fmt(S.settings.rate)} KHR`),
     sep,
     S.cms.footer||''
-  ].filter(Boolean).join("\n");
+  ];
+  return '```text\n'+lines.join('\n')+'\n```';
 }
 function renderReport(){let r=reportData();let moneyGrid=(a,b)=>`<div class="report-two-col"><div><span>KHR</span><b>${mKHR(a)}</b></div><div><span>USD</span><b>${mUSD(b)}</b></div></div>`;return `<div class="page-head"><div><h1>${L("report")}</h1><div class="muted">${today()}</div></div><div class="action-row"><button class="btn" id="copyReport">${L("copy")}</button><button class="btn" id="saveReportImage">🖼️ ${L("saveImage")}</button><button class="btn" id="exportReport">${L("export")}</button><button class="btn" id="printReport">${L("print")}</button></div></div><section class="panel" id="reportCapture"><div class="report-sheet"><div class="report-brand"><img src="${esc(logo())}"><div><div class="report-shop">${esc(S.cms.shopName)}</div><div class="report-title">${L("report")}</div><div class="report-date">${today()}</div></div></div>${S.cms.reportSections?.sales!==false?`<div class="report-section"><div class="report-section-title">💰 ${L("sales")}</div>${moneyGrid(r.sk,r.su)}</div>`:""}<div class="report-divider">${esc(S.separator)}</div>${S.cms.reportSections?.expenses!==false?`<div class="report-section"><div class="report-section-title">💸 ${L("expenses")}</div>${moneyGrid(r.ek,r.eu)}</div>`:""}<div class="report-divider">${esc(S.separator)}</div><div class="report-section report-highlight"><div class="report-section-title">🧾 ${S.lang==='kh'?"សរុបចំណូល / ចំណាយ":"TOTAL INCOME / EXPENSES"}</div><div class="report-total-row"><div><span>${S.lang==='kh'?"ចំណូលសរុប":"TOTAL INCOME"}</span><strong>${mKHR(r.sk)}</strong><em>${mUSD(r.su)}</em></div><div><span>${S.lang==='kh'?"ចំណាយសរុប":"TOTAL EXPENSES"}</span><strong>${mKHR(r.ek)}</strong><em>${mUSD(r.eu)}</em></div><div class="net"><span>${L('netTotal')}</span><strong>${mKHR(r.sk-r.ek)}</strong><em>${mUSD(r.su-r.eu)}</em></div></div></div><div class="report-divider">${esc(S.separator)}</div>${S.cms.reportSections?.cash!==false?`<div class="report-section"><div class="report-section-title">🧮 ${L("cash")}</div><div class="report-cash-grid"><div><span>${L("previous")}</span><b>${mKHR(r.previousKhr)}</b><em>KHR</em></div><div><span>${L("previous")}</span><b>${mUSD(r.previousUsd)}</b><em>USD</em></div><div><span>${L("cashSales")}</span><b>${mKHR(r.csk)}</b><em>KHR</em></div><div><span>${L("cashSales")}</span><b>${mUSD(r.csu)}</b><em>USD</em></div><div><span>${L("cashExpenses")}</span><b>${mKHR(r.cek)}</b><em>KHR</em></div><div><span>${L("cashExpenses")}</span><b>${mUSD(r.ceu)}</b><em>USD</em></div><div><span>${L("deposit")}</span><b>${mKHR(r.dk)}</b><em>KHR</em></div><div><span>${L("deposit")}</span><b>${mUSD(r.du)}</b><em>USD</em></div><div class="strong"><span>${L("expected")}</span><b>${mKHR(r.expectedKhr)}</b><em>KHR</em></div><div class="strong"><span>${L("expected")}</span><b>${mUSD(r.expectedUsd)}</b><em>USD</em></div><div><span>${L("actual")}</span><b>${r.actualKhr===null?'—':mKHR(r.actualKhr)}</b><em>KHR</em></div><div><span>${L("actual")}</span><b>${r.actualUsd===null?'—':mUSD(r.actualUsd)}</b><em>USD</em></div><div class="diff"><span>${L("difference")}</span><b>${r.diffKhr===null?'—':mKHR(r.diffKhr)}</b><em>KHR</em></div><div class="diff"><span>${L("difference")}</span><b>${r.diffUsd===null?'—':mUSD(r.diffUsd)}</b><em>USD</em></div></div></div>`:""}<div class="report-divider">${esc(S.separator)}</div>${S.cms.reportSections?.deposit!==false?`<div class="report-section"><div class="report-section-title">🏦 ${L("deposit")}</div>${moneyGrid(r.dk,r.du)}</div>`:""}<div class="report-divider">${esc(S.separator)}</div>${S.cms.reportSections?.summary!==false?`<div class="report-section"><div class="report-section-title">☕ ${L("cups")} / ${L("bestSeller")}</div><div class="report-meta-grid compact"><div><span>${L("cups")}</span><b>${r.cups}</b></div><div><span>${L("bestSeller")}</span><b>${esc(r.best)}</b></div><div><span>${L("staff")}</span><b>${esc(S.user?.name||'')}</b></div><div><span>${L("rate")}</span><b>1 USD = ${fmt(S.settings.rate)} KHR</b></div></div></div>`:""}${S.cms.showFooter!==false?`<div class="report-footer">${esc(S.cms.footer||"")}</div>`:""}</div></section>`}
 function bindReport(){

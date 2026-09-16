@@ -11,3 +11,6 @@ Changes:
 Demo login:
 - Admin: admin / admin
 - Staff: staff01 / 1234
+
+
+V41: Copy Text uses invoice-style fixed columns: Description / KHR / USD, with Khmer or English labels according to the selected language.
