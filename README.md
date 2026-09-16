@@ -1,35 +1,18 @@
-# Nona-me Sales V30 — Master Full Replacement
+# Nona-me Sales V32
 
-This is a clean, self-contained prototype build. Replace the prior site files with the contents of this package.
+Full replacement package for the Nona-me Coffee sales system.
 
-Included:
-- Single-language UI (Khmer OR English)
-- Light / Dark / Auto
-- Visual color pickers without hex-code UI
-- Official Nona-me logo + PWA icons
-- Remember Login and Switch User
-- Staff/Admin roles
-- Sales / Menu / Category / Grid-List
-- Promotion bundles
-- Expenses
-- Running cash / cash count
-- Bank deposits
-- Staff stock input with image and note
-- Products/Menu admin management + image
-- Staff/User management
-- Admin Website Control
-- Daily / Weekly / Monthly report entry points
-- CSV export
-- Daily Telegram copy with separators
-- Save daily report as PNG
-- Receipt printing
-- Responsive phone / tablet / desktop
+- Light mode only
+- Khmer / English whole-interface switch
+- Staff and Admin roles
+- Sales, expenses, cash, bank deposit, stock
+- KHR and USD kept separate
+- Menu shows KHR + calculated USD
+- Daily report with previous cash, expected cash, actual count and difference
+- Report image, print, copy text and CSV export
+- Admin Control Center for website, products, promotions, stock, records, users, settings and audit
+- PWA/Home Screen support
 
-Prototype storage: browser localStorage. Supabase cloud sync and direct Google Sheets API are not included yet.
+Demo accounts: `staff01 / 1234` and `admin / admin`
 
-
-## V31 Update
-- Removed Dark Mode from the user-facing system; Nona-me uses the Light appearance.
-- Improved Daily Report presentation with a clean report sheet, logo, structured sections and separators.
-- Save Image now captures the styled Daily Report as a PNG using html2canvas.
-- Menu prices now show both KHR and a calculated USD value using the current exchange rate.
+This is a browser/localStorage prototype. Production multi-device sync should use Supabase or another backend.
