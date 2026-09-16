@@ -1,24 +1,14 @@
-# Nona-me Sales — Master System 1.2
+# Nona-me Sales Master 1.3
 
-Full replacement package for the Nona-me sales web app.
+Full Replacement build.
 
-## Supabase
-Project URL is already configured in `app.js`.
-The frontend uses the Supabase Publishable Key only.
+## Supabase setup
+1. Open Supabase Dashboard -> SQL Editor.
+2. Open `supabase_schema.sql` from this package.
+3. Copy the entire file and click Run.
+4. Authentication -> Providers -> Email -> Enable.
+5. Create the first account in the app; the first Auth user is assigned `admin`, later users are `staff`.
 
-### First setup
-1. Open Supabase Dashboard.
-2. Go to **SQL Editor**.
-3. Open `supabase_schema.sql` from this package.
-4. Paste the whole file and click **Run**.
-5. In **Authentication → Providers → Email**, enable Email provider.
-6. For easier first testing, you may disable email confirmation. For production, use your preferred email verification policy.
+If the SQL editor shows an error, send the exact red error message or a screenshot; do not mix SQL from older versions.
 
-### Cloud accounts
-- The first Cloud Account created becomes **Admin**.
-- Later Cloud Accounts become **Staff** by default.
-- Login with Email + Password enables Cloud Sync across devices.
-- Username/password `admin/admin` and `staff01/1234` are kept as local demo fallback and do not provide Cloud Sync.
-
-## Deployment
-Extract the ZIP and replace the project files in GitHub. Vercel will deploy the updated project.
+The browser uses only the Supabase publishable key. Never place a `service_role` key in the frontend.
