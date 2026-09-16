@@ -1,27 +1,25 @@
-# Nona-me Sales V7 – Responsive Khmer/English Prototype
+# Nona-me Coffee Sales V9 — Test Build
 
-This build implements the requested prototype improvements:
-- Responsive UI for iPhone, iPad, Android phone, Android tablet, Windows PC and Mac.
-- Khmer + English language toggle across the main UI and Daily Report.
-- Remember Login using a local session (logout clears it).
-- KHR and USD remain separate; payment method is independent (Cash / ABA / Other).
-- Running cash balance continues across days and supports bank deposits.
-- Daily Report preview, Khmer/English text export, PNG export, TXT download and Telegram share.
-- LocalStorage prototype only; Supabase should be used for production multi-device sync and secure authentication.
+Responsive web/PWA test build for iPhone, iPad, Android phone, Android tablet, Windows PC and Mac.
 
-Demo login:
-- Staff: staff01 / 1234
-- Admin: admin / admin
+## Included
+- Khmer + English UI and daily/weekly/monthly reports
+- Remember Login
+- Sales, expenses, running cash, bank deposits
+- Admin dashboard, staff view, inventory and low-stock alert
+- Audit log
+- Daily PNG/TXT/text sharing and Weekly/Monthly CSV for Google Sheets
+- PWA manifest + branded placeholder app icons
 
+## Demo login
+- Staff: `staff01` / `1234`
+- Admin: `admin` / `admin`
 
-## V8 enhancements
-- Owner Dashboard
-- Weekly and Monthly reports
-- CSV export formatted for Google Sheets import
-- Stock / Inventory with low-stock indicators
-- Audit Log
-- Staff performance summary
-- Responsive target: iPhone, iPad, Android phone/tablet, PC/Mac
-- Khmer + English reporting
+## Important
+This is still a browser/local-storage test build. It is **not yet the production multi-device Supabase version** and it does not directly authenticate to Google Sheets. CSV can be opened/imported by Google Sheets.
 
-Google Sheets direct API sync requires the production Google/Supabase integration; this build provides a safe CSV export that opens in Google Sheets.
+## Deploy
+Upload the extracted files to the root of the GitHub repository connected to Vercel, then commit. Vercel should redeploy automatically.
+
+## App icon
+The package includes a temporary Nona-me branded icon. Replace `icons/icon-192.png` and `icons/icon-512.png` with the official shop logo when the final logo asset is supplied.

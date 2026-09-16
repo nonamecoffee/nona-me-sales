@@ -24,3 +24,10 @@ label{display:block;margin:12px 0 7px;font-size:13px;font-weight:800}input,selec
 @media(min-width:1400px){.wrap{max-width:1450px}}
 .period-preview{max-width:100%;margin-top:16px}.period-actions{max-width:100%;margin-top:12px}.period-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.mini-kpi{background:#faf6f1;border:1px solid #eadfd8;border-radius:12px;padding:12px}.mini-kpi small{display:block;color:var(--secondary)}.mini-kpi b{display:block;color:var(--primary);font-size:19px;margin-top:4px}.table-wrap{overflow:auto}.report-table{width:100%;border-collapse:collapse;min-width:720px}.report-table th,.report-table td{padding:9px 8px;border-bottom:1px solid #eee;text-align:left;font-size:13px}.report-table th{background:#faf6f1;color:var(--dark)}.stock-low{color:var(--error);font-weight:900}.stock-ok{color:var(--success);font-weight:800}
 @media(max-width:700px){.period-summary{grid-template-columns:repeat(2,1fr)}.report-table{font-size:12px}}
+
+/* V9 mobile/tablet polish */
+html{-webkit-text-size-adjust:100%;}body{min-width:0;overflow-x:hidden;}
+button,input,select,textarea{touch-action:manipulation;}
+@media (min-width:561px) and (max-width:1100px){.wrap{padding:0 16px}.product-grid{grid-template-columns:repeat(3,1fr)}.stats{grid-template-columns:repeat(4,1fr)}.sales-grid{grid-template-columns:1.2fr .9fr}.panel{padding:16px}}
+@media (orientation:landscape) and (max-width:900px){.product-grid{max-height:50vh}.cart-panel{position:sticky;top:82px;align-self:start;max-height:calc(100vh - 100px);overflow:auto}}
+@media (max-width:560px){.login-card{padding:24px 18px;border-radius:18px}.screen{padding:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat strong{font-size:19px}.tabs{margin-left:-2px;margin-right:-2px}.tab{padding:10px 12px}.product-grid{gap:7px}.product{min-width:0}.cart-table{font-size:12px}.currency-box{gap:9px}.report-card{padding:16px;border-radius:14px}.period-summary{gap:7px}.mini-kpi{padding:10px}.mini-kpi b{font-size:16px}.export-grid{gap:7px}}
