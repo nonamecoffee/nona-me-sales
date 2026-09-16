@@ -1,17 +1,13 @@
-# nona-me Sales V37 — Full Replacement
+# Nona-me Sales V40 — Full Replacement
 
-This package replaces the previous version completely.
+Full replacement of V39.
 
-## Fixes in V37
-- Fixed Daily Report navigation/rendering by restoring the missing report data/text helpers.
-- Added 1:1 Menu image upload and camera capture when adding a product.
-- Added 1:1 Menu image upload and camera capture when editing a product.
-- Menu photos show preview, Retake, and Remove actions on phone/tablet.
-- Stock photo workflow from V36 is preserved.
+Changes:
+- Daily Report image now has a clear TOTAL INCOME / TOTAL EXPENSES / NET TOTAL section.
+- KHR and USD remain separate; net total is calculated separately in each currency.
+- Printed Daily Report also includes TOTAL INCOME, TOTAL EXPENSES, and NET TOTAL.
+- Preserves V39 features including mobile/tablet menu scrolling, photo upload/take/preview/retake, admin website controls, reports, and PWA assets.
 
-## Demo login
+Demo login:
 - Admin: admin / admin
 - Staff: staff01 / 1234
-
-## Deploy
-Replace all files in the GitHub repository with this ZIP contents, then commit. Vercel will redeploy from GitHub.
