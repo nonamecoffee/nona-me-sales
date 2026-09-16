@@ -34,3 +34,23 @@ The package includes a temporary Nona-me branded icon. Replace `icons/icon-192.p
 - iOS-inspired Liquid Glass visual treatment
 - Glass navigation, panels, cards, controls and mobile bottom navigation
 - Responsive across phone, tablet and desktop
+
+
+## V14 changes
+- Promotion entry and discount accounting (e.g. 2 cups for 6,000 KHR)
+- Promotion is recorded on each sale with gross, discount and net totals
+- Bilingual Admin Control Center navigation
+- Website Control editor for content, colors and navigation
+- Promotion management panel for add/edit/enable/disable/delete
+
+
+## V15 Telegram Report Format
+- Compact daily report
+- Clear separator lines between sections
+- Khmer + English
+- KHR/USD shown compactly
+- Optimized for Copy -> Paste into Telegram
+
+## Official Branding
+- Uses the uploaded official Nona-me Coffee logo for web/PWA branding.
+- App icon files are derived from the official Nona-me symbol.

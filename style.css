@@ -1,3 +1,4 @@
+.official-logo-v15{width:170px;max-height:54px;object-fit:contain;object-position:left center;display:block}.official-logo-small-v15{width:112px;max-height:34px;object-fit:contain;object-position:left center;display:block}@media(max-width:700px){.official-logo-v15{width:132px;max-height:46px}.official-logo-small-v15{width:92px;max-height:30px}}
 
 :root{--primary:#8B2E23;--accent:#C4563B;--beige:#E2C9A8;--cream:#F7F3EE;--dark:#2F2521;--green:#5A7D5B;--white:#fff;--line:rgba(70,50,42,.12);--muted:#7C716B;--glass:rgba(255,255,255,.62);--glass-strong:rgba(255,255,255,.78);--shadow:0 20px 60px rgba(47,37,33,.10);--shadow-soft:0 10px 30px rgba(47,37,33,.07)}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}body{margin:0;color:var(--dark);font-family:"Noto Sans Khmer",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:radial-gradient(900px 500px at 0% 0%,rgba(226,201,168,.45),transparent 55%),radial-gradient(700px 460px at 100% 0%,rgba(196,86,59,.13),transparent 52%),linear-gradient(180deg,#fbf8f5 0,#f2ece6 100%);min-height:100vh}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.24),transparent 45%,rgba(255,255,255,.10));mix-blend-mode:soft-light}button,input,select,textarea{font:inherit}button{cursor:pointer;touch-action:manipulation}.hidden{display:none!important}
@@ -20,3 +21,6 @@
 @media(min-width:701px) and (max-width:1100px){.product-grid{grid-template-columns:repeat(3,1fr)}}
 @media(orientation:landscape) and (max-width:900px){.product-grid{max-height:50vh}}
 @media(prefers-reduced-transparency:reduce){.topbar,.tabs,.panel,.stat,.login-card,.report-card,.admin-menu-wrap,.product,.export-btn{backdrop-filter:none;-webkit-backdrop-filter:none;background:#fff}}
+
+/* V14 promotions + full admin control */
+.promo-box{padding:12px;border-radius:18px;background:rgba(255,255,255,.42);margin:10px 0}.promo-box select{width:100%;margin-top:6px}.promo-line{font-size:11px;opacity:.75;margin-top:2px}.discount-row{display:flex;justify-content:space-between;padding:10px 0;font-size:12px}.admin-menu-wrap{overflow-x:auto;display:flex;gap:8px;flex-wrap:wrap}.admin-menu-btn{white-space:nowrap}.panel-inset{border:1px solid rgba(58,42,36,.08)}

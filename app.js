@@ -242,7 +242,7 @@ function escAttr(v) { return String(v || "").replace(/&/g, "&amp;").replace(/"/g
 function saveSettings() { S.settings = { shopName: $("setShop").value.trim(), phone: $("setPhone").value.trim(), telegram: $("setTelegram").value.trim(), address: $("setAddress").value.trim() }; S.rate = Math.max(1, Number($("setRate").value || 4000)); write(KEY.settings, S.settings); localStorage.setItem(KEY.rate, S.rate); $("rateInput").value = S.rate; renderAll(); alert(t("saved")); }
 
 
-boot();
+/* boot moved to final line so V14 overrides load first */
 
 /* ========================= V10 ADMIN CONTROLS ========================= */
 const USER_KEY = "nm_users_v10";
@@ -559,3 +559,119 @@ renderAdmin=function(section){
 };
 applyCMSV11();
 setTimeout(()=>{ if(!$('siteFooterV11')){ const f=document.createElement('div'); f.id='siteFooterV11'; f.className='site-footer-v11'; f.textContent=S.cms.footer; document.querySelector('main.wrap')?.appendChild(f); } applyCMSV11(); },50);
+
+/* ========================= V14: PROMOTIONS + FULL ADMIN CONTROL ========================= */
+const PROMO_KEY_V14='nm_promotions_v14';
+const defaultPromotionsV14=[
+  {id:'promo-2for6000',nameEn:'2 Cups Special',nameKh:'ប្រូម៉ូសិន ២ កែវ',buyQty:2,promoPriceKHR:6000,active:true,products:'ALL'}
+];
+S.promotions=read(PROMO_KEY_V14,defaultPromotionsV14);
+function savePromotions(){write(PROMO_KEY_V14,S.promotions);}
+function activePromos(){return (S.promotions||[]).filter(p=>p.active!==false);}
+function promoForCurrent(){const id=$("promoSelect")?.value||'';return activePromos().find(p=>p.id===id)||null;}
+function promotionItemTotalKHR(item,promo){
+  if(!promo || promo.buyQty<2) return item.priceKHR*item.qty;
+  const applies=promo.products==='ALL' || String(promo.products||'').split(',').includes(String(item.productIndex));
+  if(!applies) return item.priceKHR*item.qty;
+  const groups=Math.floor(item.qty/promo.buyQty), rem=item.qty%promo.buyQty;
+  return groups*Number(promo.promoPriceKHR)+rem*item.priceKHR;
+}
+function cartKhrV14(){const promo=promoForCurrent(); return Object.values(S.cart).reduce((sum,v)=>sum+promotionItemTotalKHR(v,promo),0);}
+function renderPromoSelectV14(){
+  const el=$("promoSelect"); if(!el)return;
+  const current=el.value;
+  el.innerHTML='<option value="">No Promotion / គ្មានប្រូម៉ូសិន</option>'+activePromos().map(p=>`<option value="${escAttr(p.id)}">${esc(p.nameEn)} / ${esc(p.nameKh)} — ${moneyKHR(p.promoPriceKHR)} / ${p.buyQty} cups</option>`).join('');
+  el.value=activePromos().some(p=>p.id===current)?current:'';
+  const promo=promoForCurrent(); const hint=$("promoHint");
+  if(hint) hint.textContent=promo?`${promo.nameKh} · ${promo.buyQty} cups = ${moneyKHR(promo.promoPriceKHR)} / ${promo.nameEn}`:'Normal price / តម្លៃធម្មតា';
+}
+function renderProductsV14(){
+  ensureProductsLoaded(); const q=( $("menuSearch")?.value||'').toLowerCase();
+  const list=S.products.map((p,i)=>({p,i})).filter(({p})=>p[4]!==false && (S.category==='All'||p[3]===S.category) && (`${p[0]} ${p[1]}`).toLowerCase().includes(q));
+  $("productGrid").innerHTML=list.map(({p,i})=>`<button class="product" onclick="addToCart(${i})"><div>${esc(p[0])}</div><span class="kh">${esc(p[1])}</span><span class="price">${moneyKHR(p[2])} / ${moneyUSD(p[2]/S.rate)}</span></button>`).join('') || `<div class="cart-empty">${t('noRecords')}</div>`;
+}
+function addToCartV14(i){const p=S.products[i]; if(!p || p[4]===false)return; S.cart[i]=S.cart[i]||{name:p[0],kh:p[1],priceKHR:p[2],qty:0,productIndex:i}; S.cart[i].qty++; renderCartV14();}
+function minusV14(i){if(!S.cart[i])return;S.cart[i].qty--;if(S.cart[i].qty<=0)delete S.cart[i];renderCartV14();}
+function renderCartV14(){
+  const items=Object.entries(S.cart), promo=promoForCurrent(), total=cartKhrV14();
+  renderPromoSelectV14();
+  if(!items.length){$("cart").innerHTML=`<div class="cart-empty">☕ ${t('selectDrink')}</div>`;$("cartTotal").textContent='0៛';return;}
+  let rows='<table class="cart-table"><thead><tr><th>Item / មុខទំនិញ</th><th>Qty</th><th>Amount / តម្លៃ</th></tr></thead><tbody>';
+  items.forEach(([i,v])=>{const normal=v.priceKHR*v.qty, final=promotionItemTotalKHR(v,promo);const discount=Math.max(0,normal-final);rows+=`<tr><td>${S.lang==='kh'?esc(v.kh):esc(v.name)}${discount>0?`<div class="promo-line">${esc(promo.nameKh)} / ${esc(promo.nameEn)} − ${moneyKHR(discount)}</div>`:''}</td><td><button class="qty-btn" onclick="minusV14(${i})">−</button> ${v.qty} <button class="qty-btn" onclick="addToCartV14(${i})">+</button></td><td>${S.currency==='KHR'?moneyKHR(final):moneyUSD(final/S.rate)}</td></tr>`;});
+  rows+='</tbody></table>';
+  const normal=Object.values(S.cart).reduce((a,v)=>a+v.priceKHR*v.qty,0), discount=Math.max(0,normal-total);
+  $("cart").innerHTML=rows+(discount?`<div class="discount-row"><span>Promotion Discount / បញ្ចុះតម្លៃ</span><b>− ${moneyKHR(discount)}</b></div>`:'');
+  $("cartTotal").textContent=S.currency==='KHR'?moneyKHR(total):moneyUSD(total/S.rate);
+}
+function createSaleRecordV14(){
+  const items=Object.values(S.cart); if(!items.length)return null; const d=now(),promo=promoForCurrent();
+  const grossKHR=items.reduce((s,v)=>s+v.priceKHR*v.qty,0), totalKHR=cartKhrV14(), discountKHR=Math.max(0,grossKHR-totalKHR), cups=items.reduce((s,v)=>s+v.qty,0);
+  const amount=S.currency==='KHR'?totalKHR:totalKHR/S.rate;
+  const sale={id:String(Date.now()),date:today(),time:d.toLocaleTimeString(),user:S.user,payment:S.payment,currency:S.currency,amount,totalKHR,grossKHR,discountKHR,promotion:promo?{id:promo.id,nameEn:promo.nameEn,nameKh:promo.nameKh,buyQty:promo.buyQty,promoPriceKHR:promo.promoPriceKHR}:null,cups,rate:S.rate,createdAt:Date.now(),items:items.map(v=>({name:v.name,kh:v.kh,priceKHR:v.priceKHR,qty:v.qty,productIndex:v.productIndex}))};
+  S.sales.push(sale);write(KEY.sales,S.sales);audit('SALE / ការលក់',promo?`${sale.id} · ${promo.nameEn}`:sale.id);S.cart={};return sale;
+}
+function saveSaleV14(){const sale=createSaleRecordV14();if(!sale)return alert(t('chooseDrink'));renderAll();alert(t('saved'));}
+function saveSaleAndPrintV14(){const sale=createSaleRecordV14();if(!sale)return alert(t('chooseDrink'));renderAll();printReceiptV14(sale);}
+function printReceiptV14(sale){
+  const c=S.cms||{};const shop=escAttr(c.shopName||S.settings.shopName||'nona-me coffee');const phone=escAttr(S.settings.phone||'');const address=escAttr(S.settings.address||'');
+  const rows=(sale.items||[]).map(i=>{const final=promotionItemTotalKHR(i,sale.promotion);return `<tr><td>${S.lang==='kh'?(i.kh||i.name):i.name}${sale.promotion?`<div style="font-size:9px">${esc(sale.promotion.nameKh)} / ${esc(sale.promotion.nameEn)}</div>`:''}</td><td>${i.qty}</td><td>${sale.currency==='KHR'?moneyKHR(final):moneyUSD(final/sale.rate)}</td></tr>`}).join('');
+  const total=sale.currency==='KHR'?moneyKHR(sale.amount):moneyUSD(sale.amount);const discount=sale.discountKHR||0;
+  const html=`<!doctype html><html lang="km"><head><meta charset="utf-8"><title>Receipt ${sale.id}</title><style>@page{size:80mm auto;margin:4mm}*{box-sizing:border-box}body{font-family:Arial,'Noto Sans Khmer',sans-serif;width:72mm;margin:0 auto;color:#222;font-size:12px}.center{text-align:center}.brand{font-size:18px;font-weight:800}.muted{color:#666;font-size:10px}.line{border-top:1px dashed #777;margin:7px 0}table{width:100%;border-collapse:collapse}th,td{padding:4px 0;text-align:left;vertical-align:top}th:last-child,td:last-child{text-align:right}.discount{display:flex;justify-content:space-between;margin-top:6px}.total{font-size:16px;font-weight:800;display:flex;justify-content:space-between;margin-top:8px}.thanks{text-align:center;margin-top:12px;font-weight:700}</style></head><body><div class="center"><div class="brand">${shop}</div>${phone?`<div>${phone}</div>`:''}${address?`<div>${address}</div>`:''}<div class="line"></div><div><b>Receipt / វិក័យប័ត្រ</b></div><div class="muted">${sale.date} · ${sale.time}</div><div class="muted">${sale.user} · ${sale.payment}</div></div><div class="line"></div><table><thead><tr><th>Item / មុខទំនិញ</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>${discount?`<div class="line"></div><div class="discount"><span>Promotion / ប្រូម៉ូសិន</span><b>− ${moneyKHR(discount)}</b></div>`:''}<div class="line"></div><div class="total"><span>Total / សរុប</span><span>${total}</span></div><div class="muted">Currency: ${sale.currency} · Rate: ${Number(sale.rate).toLocaleString()}៛/$1</div><div class="thanks">Thank you / សូមអរគុណ</div><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script></body></html>`;
+  const w=window.open('','_blank','width=420,height=700');if(!w){alert(S.lang==='kh'?'Browser បានរារាំង Print Window។ សូមអនុញ្ញាត Pop-ups។':'Print window was blocked. Please allow pop-ups.');return;}w.document.open();w.document.write(html);w.document.close();
+}
+
+// Full Admin Control Center labels + Website + Promotions.
+function adminMenuV14(section){
+  const L={overview:'📊 Overview / សង្ខេប',site:'🛠️ Website Control / គ្រប់គ្រង Website',products:'☕ Products & Menu / មុខទំនិញ និងមីនុយ',promotions:'🏷️ Promotions / ប្រូម៉ូសិន',inventory:'📦 Inventory / ស្តុក',staff:'👥 Staff & Users / បុគ្គលិក និងអ្នកប្រើ',settings:'⚙️ Shop Settings / កំណត់ហាង',audit:'🛡️ Audit Log / ប្រវត្តិសកម្មភាព'};
+  return `<button class="admin-menu-btn ${section==='overview'?'active':''}" onclick="renderAdmin('${section}')">${L[section]||section}</button>`;
+}
+function adminNavV14(active){return `<div class="admin-menu admin-menu-wrap">${['overview','site','products','promotions','inventory','staff','settings','audit'].map(x=>adminMenuV14(x)).join('')}</div>`;}
+function renderPromotionsAdminV14(){
+  ensureProductsLoaded();
+  $("adminContent").innerHTML=adminNavV14('promotions')+`<section class="panel"><h2>🏷️ Promotions / ប្រូម៉ូសិន</h2><p class="muted">Create a promotion and define the bundle price. Example: 2 cups for 6,000៛.</p>
+  <div class="form-grid"><div><label>English Name / ឈ្មោះអង់គ្លេស</label><input id="promoEn" placeholder="2 Cups Special"></div><div><label>Khmer Name / ឈ្មោះខ្មែរ</label><input id="promoKh" placeholder="ប្រូម៉ូសិន ២ កែវ"></div><div><label>Buy Cups / ចំនួនកែវ</label><input id="promoQty" type="number" min="2" value="2"></div><div><label>Promo Total KHR / តម្លៃសរុបប្រូម៉ូសិន</label><input id="promoPrice" type="number" min="0" value="6000"></div></div>
+  <label>Applies To / ប្រើសម្រាប់</label><select id="promoProducts"><option value="ALL">All Products / មុខទំនិញទាំងអស់</option>${S.products.map((p,i)=>`<option value="${i}">${esc(p[0])} / ${esc(p[1])}</option>`).join('')}</select>
+  <br><br><button class="save-btn" onclick="addPromotionAdminV14()">➕ ADD PROMOTION / បន្ថែមប្រូម៉ូសិន</button>
+  <div style="margin-top:18px">${(S.promotions||[]).map((p,i)=>`<div class="admin-edit-row"><div><b>${esc(p.nameEn)} / ${esc(p.nameKh)}</b><br><span class="muted">${p.buyQty} cups → ${moneyKHR(p.promoPriceKHR)} · ${p.active!==false?'Active / ដំណើរការ':'Disabled / បិទ'}</span></div><div class="row-actions"><button class="mini-btn" onclick="editPromotionAdminV14(${i})">✏️ Edit / កែ</button><button class="mini-btn" onclick="togglePromotionAdminV14(${i})">${p.active!==false?'⏸ Disable / បិទ':'▶️ Enable / បើក'}</button><button class="mini-btn danger" onclick="deletePromotionAdminV14(${i})">🗑 Delete / លុប</button></div></div>`).join('')}</div></section>`;
+}
+function addPromotionAdminV14(){const en=$("promoEn").value.trim(),kh=$("promoKh").value.trim(),qty=Math.max(2,Number($("promoQty").value||2)),price=Math.max(0,Number($("promoPrice").value||0)),products=$("promoProducts").value;if(!en||!kh||price<=0)return alert('Promotion name + price required / ត្រូវការឈ្មោះ និងតម្លៃ');S.promotions.push({id:'promo-'+Date.now(),nameEn:en,nameKh:kh,buyQty:qty,promoPriceKHR:price,active:true,products});savePromotions();audit('ADD PROMOTION / បន្ថែមប្រូម៉ូសិន',en);renderPromotionsAdminV14();}
+function editPromotionAdminV14(i){const p=S.promotions[i];const en=prompt('English Name / ឈ្មោះអង់គ្លេស',p.nameEn);if(en===null)return;const kh=prompt('Khmer Name / ឈ្មោះខ្មែរ',p.nameKh);if(kh===null)return;const qty=prompt('Buy Cups / ចំនួនកែវ',p.buyQty);if(qty===null)return;const price=prompt('Promo Total KHR / តម្លៃសរុប',p.promoPriceKHR);if(price===null)return;p.nameEn=en.trim()||p.nameEn;p.nameKh=kh.trim()||p.nameKh;p.buyQty=Math.max(2,Number(qty)||p.buyQty);p.promoPriceKHR=Math.max(0,Number(price)||p.promoPriceKHR);savePromotions();audit('EDIT PROMOTION / កែប្រូម៉ូសិន',p.nameEn);renderPromotionsAdminV14();}
+function togglePromotionAdminV14(i){S.promotions[i].active=S.promotions[i].active===false;savePromotions();audit(S.promotions[i].active?'ENABLE PROMOTION / បើក':'DISABLE PROMOTION / បិទ',S.promotions[i].nameEn);renderPromotionsAdminV14();renderPromoSelectV14();}
+function deletePromotionAdminV14(i){const p=S.promotions[i];if(!confirm(`Delete ${p.nameEn} / លុបប្រូម៉ូសិននេះ?`))return;S.promotions.splice(i,1);savePromotions();audit('DELETE PROMOTION / លុបប្រូម៉ូសិន',p.nameEn);renderPromotionsAdminV14();}
+
+function renderWebsiteControlV14(){
+  const c=S.cms||{};
+  $("adminContent").innerHTML=adminNavV14('site')+`<section class="panel control-hero-v11"><h2>🛠️ Website Control / គ្រប់គ្រង Website</h2><p>Edit the website without coding. / កែ Website ដោយមិនចាំបាច់សរសេរកូដ។</p></section><div class="cms-grid-v11">
+  <section class="panel"><h2>🏪 Website Content / មាតិកា Website</h2><div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="cmsShopName" value="${escAttr(c.shopName)}"></div><div><label>Tagline / ពាក្យពិពណ៌នា</label><input id="cmsTagline" value="${escAttr(c.tagline)}"></div><div><label>Announcement / សារជូនដំណឹង</label><input id="cmsAnnouncement" value="${escAttr(c.announcement)}"></div><div><label>Footer / អក្សរខាងក្រោម</label><input id="cmsFooter" value="${escAttr(c.footer)}"></div><div><label>Login Subtitle / អក្សរនៅ Login</label><input id="cmsLoginSubtitle" value="${escAttr(c.loginSubtitle)}"></div></div></section>
+  <section class="panel"><h2>🎨 Appearance / រូបរាង</h2><div class="form-grid"><div><label>Primary / ពណ៌មេ</label><input id="cmsPrimary" value="${escAttr(c.primary)}"></div><div><label>Accent / ពណ៌បន្ថែម</label><input id="cmsAccent" value="${escAttr(c.accent)}"></div><div><label>Beige / ត្នោតស្រាល</label><input id="cmsBeige" value="${escAttr(c.beige)}"></div><div><label>Cream / ក្រែម</label><input id="cmsCream" value="${escAttr(c.cream)}"></div><div><label>Dark / ងងឹត</label><input id="cmsDark" value="${escAttr(c.dark)}"></div><div><label>Green / បៃតង</label><input id="cmsGreen" value="${escAttr(c.green)}"></div></div></section>
+  <section class="panel"><h2>🧭 Navigation / Menu</h2>${Object.entries(c.nav||{}).map(([k,v])=>`<div class="cms-nav-row"><label>${k}</label><input id="cmsNav_${k}" value="${escAttr(v)}"><label class="cms-toggle"><input id="cmsVis_${k}" type="checkbox" ${c.visible?.[k]!==false?'checked':''}><span>Show / បង្ហាញ</span></label></div>`).join('')}</section>
+  <section class="panel"><h2>🖨️ Printing / ការព្រីន</h2><p>Receipt printing / ការព្រីនវិក្កយបត្រ: <b>Save & Print</b></p><div class="form-grid"><div><label>Paper / ក្រដាស</label><select id="printPaper"><option>80mm</option><option>58mm</option><option>A4</option></select></div><div><label>Receipt Footer / Footer</label><input id="receiptFooter" value="${escAttr(c.receipt?.footer||'Thank you / សូមអរគុណ')}"></div></div><div class="danger-box-v11"><b>Reset Website Settings / កំណត់ Website ឡើងវិញ</b><button class="mini-btn danger" onclick="resetCMSV14()">Reset</button></div></section>
+  </div><div class="sticky-save-v11"><button class="save-btn" onclick="saveCMSFormV14()">💾 SAVE WEBSITE CHANGES / រក្សាទុកការកែ Website</button></div>`;
+}
+function saveCMSFormV14(){const c=S.cms||{};c.shopName=$("cmsShopName").value.trim();c.tagline=$("cmsTagline").value.trim();c.announcement=$("cmsAnnouncement").value.trim();c.footer=$("cmsFooter").value.trim();c.loginSubtitle=$("cmsLoginSubtitle").value.trim();['Primary','Accent','Beige','Cream','Dark','Green'].forEach(x=>{const id='cms'+x;c[x.toLowerCase()]=cssSafe($(id).value,c[x.toLowerCase()]);});for(const k of Object.keys(c.nav||{})){const n=$("cmsNav_"+k);const v=$("cmsVis_"+k);if(n)c.nav[k]=n.value.trim();if(v)c.visible[k]=v.checked;}c.receipt=c.receipt||{};c.receipt.footer=$("receiptFooter").value.trim();S.cms=c;write(CMS_KEY_V11,c);applyCMSV11();audit('UPDATE WEBSITE / កែ Website','CMS updated');renderWebsiteControlV14();renderAll();alert(S.lang==='kh'?'បានរក្សាទុកការកែ Website':'Website changes saved');}
+function resetCMSV14(){if(!confirm('Reset Website Settings / កំណត់ Website ត្រឡប់ Default?'))return;S.cms=JSON.parse(JSON.stringify(defaultCMSV11));write(CMS_KEY_V11,S.cms);applyCMSV11();renderWebsiteControlV14();}
+
+const renderAdminBaseV14=renderAdmin;
+renderAdmin=function(section){S.__adminSection=section;if(section==='site')return renderWebsiteControlV14();if(section==='promotions')return renderPromotionsAdminV14();return renderAdminBaseV14(section);};
+const createSaleRecordBaseV14=createSaleRecord; // retained reference for compatibility
+createSaleRecord=createSaleRecordV14;
+saveSale=saveSaleV14;saveSaleAndPrint=saveSaleAndPrintV14;
+cartKhr=cartKhrV14;renderCart=renderCartV14;addToCart=addToCartV14;minus=minusV14;renderProducts=renderProductsV14;
+const renderAllBaseV14=renderAll;renderAll=function(){renderPromoSelectV14();renderAllBaseV14();setTimeout(renderPromoSelectV14,0);};
+
+// Ensure admin navigation is bilingual everywhere.
+const oldRenderOverviewV14=renderOverview;
+renderOverview=function(){oldRenderOverviewV14();};
+
+// Bind promo selector after DOM is available.
+function bindV14(){
+  const p=$("promoSelect"); if(p && !p.__bound){p.__bound=true;p.onchange=()=>{renderPromoSelectV14();renderCartV14();};}
+}
+const oldBootV14=boot;
+boot=async function(){await oldBootV14();renderPromoSelectV14();bindV14();};
+
+// Run language and bindings after each page rebuild.
+const oldShowPageV14=showPage;showPage=function(name,btn){oldShowPageV14(name,btn);if(name==='admin'&&S.role==='admin')renderAdmin(S.__adminSection||'overview');bindV14();};
+
+/* Final start */
+boot();
