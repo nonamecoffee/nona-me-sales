@@ -23,3 +23,14 @@ Upload the extracted files to the root of the GitHub repository connected to Ver
 
 ## App icon
 The package includes a temporary Nona-me branded icon. Replace `icons/icon-192.png` and `icons/icon-512.png` with the official shop logo when the final logo asset is supplied.
+
+
+## V12 Test
+- Save Sale and Save & Print
+- Receipt print layout for 80mm thermal paper / browser printing
+- Admin CMS includes basic receipt display settings
+
+## V13 Liquid Glass UI
+- iOS-inspired Liquid Glass visual treatment
+- Glass navigation, panels, cards, controls and mobile bottom navigation
+- Responsive across phone, tablet and desktop

@@ -66,7 +66,7 @@ const S = {
 };
 
 async function boot() {
-  S.products = await fetch("products.json").then(r => r.json());
+  S.products = read("nm_products_v10", null) || await fetch("products.json").then(r => r.json()); write("nm_products_v10", S.products);
   bindEvents();
   restoreSession();
   if (!S.user) showLogin(); else showApp();
@@ -82,6 +82,7 @@ function bindEvents() {
   $("menuSearch").oninput = renderProducts;
   $("rateInput").oninput = e => { S.rate = Math.max(1, Number(e.target.value || 4000)); localStorage.setItem(KEY.rate, S.rate); renderProducts(); renderCart(); renderReport(); renderCash(); };
   $("saveSaleBtn").onclick = saveSale;
+  $("savePrintSaleBtn").onclick = saveSaleAndPrint;
   $("saveExpenseBtn").onclick = saveExpense;
   $("saveDepositBtn").onclick = saveDeposit;
   $("saveCashCountBtn").onclick = saveCashCount;
@@ -140,7 +141,7 @@ function showPage(name, btn) {
 }
 function renderAll() { renderCategories(); renderProducts(); renderCart(); renderExpenses(); renderCash(); renderDeposits(); renderReport(); renderHistory(); if (S.role === "admin") renderAdmin("overview"); refreshAll(); updateUserLine(); }
 
-function renderCategories() { const cats = ["All", "Coffee", "Matcha", "Cacao", "Tea", "Soda"], kh = { All: "ទាំងអស់", Coffee: "កាហ្វេ", Matcha: "Matcha", Cacao: "កាកាវ", Tea: "តែ", Soda: "សូដា" }; $("categoryBar").innerHTML = cats.map(c => `<button class="chip ${S.category === c ? "active" : ""}" onclick="setCategory('${c}')">${S.lang === "kh" ? kh[c] : c}</button>`).join(""); }
+function renderCategories() { ensureProductsLoaded(); const base = ["All", ...productCategories()]; const kh = { All: "ទាំងអស់", Coffee: "កាហ្វេ", Matcha: "Matcha", Cacao: "កាកាវ", Tea: "តែ", Soda: "សូដា" }; const cats = [...new Set(base)]; $("categoryBar").innerHTML = cats.map(c => `<button class="chip ${S.category === c ? "active" : ""}" onclick="setCategory(${JSON.stringify(c)})">${S.lang === "kh" ? (kh[c] || c) : c}</button>`).join(""); }
 function setCategory(c) { S.category = c; renderCategories(); renderProducts(); }
 function renderProducts() { const q = ($("menuSearch").value || "").toLowerCase(); const list = S.products.filter(p => (S.category === "All" || p[3] === S.category) && (`${p[0]} ${p[1]}`).toLowerCase().includes(q)); $("productGrid").innerHTML = list.map(p => { const i = S.products.indexOf(p); return `<button class="product" onclick="addToCart(${i})"><div>${p[0]}</div><span class="kh">${p[1]}</span><span class="price">${moneyKHR(p[2])} / ${moneyUSD(p[2] / S.rate)}</span></button>`; }).join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
 function addToCart(i) { const p = S.products[i]; S.cart[i] = S.cart[i] || { name: p[0], kh: p[1], priceKHR: p[2], qty: 0 }; S.cart[i].qty++; renderCart(); }
@@ -154,12 +155,36 @@ function renderCart() {
   $("cart").innerHTML = `<table class="cart-table"><tr><th>${t("item")}</th><th>${t("qty")}</th><th>${t("total")}</th></tr>${rows}</table>`;
   $("cartTotal").textContent = S.currency === "KHR" ? moneyKHR(total) : moneyUSD(total / S.rate);
 }
-function saveSale() {
-  const items = Object.values(S.cart); if (!items.length) return alert(t("chooseDrink"));
+function createSaleRecord() {
+  const items = Object.values(S.cart); if (!items.length) return null;
   const d = now(), totalKHR = cartKhr(), cups = items.reduce((s, v) => s + v.qty, 0), amount = S.currency === "KHR" ? totalKHR : totalKHR / S.rate;
-  S.sales.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, payment: S.payment, currency: S.currency, amount, totalKHR, cups, rate: S.rate, createdAt: Date.now(), items: items.map(v => ({ name: v.name, kh: v.kh, priceKHR: v.priceKHR, qty: v.qty })) });
-  write(KEY.sales, S.sales); S.cart = {}; renderCart(); refreshAll(); renderReport(); alert(t("saved"));
+  const sale = { id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, payment: S.payment, currency: S.currency, amount, totalKHR, cups, rate: S.rate, createdAt: Date.now(), items: items.map(v => ({ name: v.name, kh: v.kh, priceKHR: v.priceKHR, qty: v.qty })) };
+  S.sales.push(sale); write(KEY.sales, S.sales); S.cart = {}; return sale;
 }
+function saveSale() {
+  const sale = createSaleRecord();
+  if (!sale) return alert(t("chooseDrink"));
+  renderCart(); refreshAll(); renderReport(); alert(t("saved"));
+}
+function saveSaleAndPrint() {
+  const sale = createSaleRecord();
+  if (!sale) return alert(t("chooseDrink"));
+  renderCart(); refreshAll(); renderReport();
+  printReceipt(sale);
+}
+function printReceipt(sale) {
+  const c = S.cms || {};
+  const shop = escAttr(c.shopName || S.settings.shopName || "nona-me coffee");
+  const phone = escAttr(S.settings.phone || "");
+  const address = escAttr(S.settings.address || "");
+  const rows = (sale.items || []).map(i => `<tr><td>${S.lang==='kh' ? (i.kh || i.name) : i.name}</td><td>${i.qty}</td><td>${sale.currency==='KHR' ? moneyKHR(i.priceKHR*i.qty) : moneyUSD((i.priceKHR*i.qty)/sale.rate)}</td></tr>`).join("");
+  const total = sale.currency==='KHR' ? moneyKHR(sale.amount) : moneyUSD(sale.amount);
+  const html = `<!doctype html><html lang="km"><head><meta charset="utf-8"><title>Receipt ${sale.id}</title><style>@page{size:80mm auto;margin:4mm}*{box-sizing:border-box}body{font-family:Arial,'Noto Sans Khmer',sans-serif;width:72mm;margin:0 auto;color:#222;font-size:12px}.center{text-align:center}.brand{font-size:18px;font-weight:800}.muted{color:#666;font-size:10px}.line{border-top:1px dashed #777;margin:7px 0}table{width:100%;border-collapse:collapse}th,td{padding:4px 0;text-align:left;vertical-align:top}th:last-child,td:last-child{text-align:right}.total{font-size:16px;font-weight:800;display:flex;justify-content:space-between;margin-top:8px}.thanks{text-align:center;margin-top:12px;font-weight:700}</style></head><body><div class="center"><div class="brand">${shop}</div>${phone?`<div>${phone}</div>`:''}${address?`<div>${address}</div>`:''}<div class="line"></div><div><b>Receipt / វិក័យប័ត្រ</b></div><div class="muted">${sale.date} · ${sale.time}</div><div class="muted">${sale.user} · ${sale.payment}</div></div><div class="line"></div><table><thead><tr><th>Item / មុខទំនិញ</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><div class="line"></div><div class="total"><span>Total / សរុប</span><span>${total}</span></div><div class="muted">Currency: ${sale.currency} · Rate: ${Number(sale.rate).toLocaleString()}៛/$1</div><div class="thanks">Thank you / សូមអរគុណ</div><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script></body></html>`;
+  const w=window.open('', '_blank', 'width=420,height=700');
+  if(!w){ alert(S.lang==='kh' ? 'Browser បានរារាំង Print Window។ សូមអនុញ្ញាត Pop-ups។' : 'Print window was blocked. Please allow pop-ups.'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
 function saveExpense() { const desc = $("expenseDesc").value.trim(), amount = Number($("expenseAmount").value || 0); if (!desc || amount <= 0) return alert(`${t("spentOn")} + ${t("amount")}`); const d = now(); S.expenses.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, desc, amount, currency: $("expenseCurrency").value, payment: $("expensePayment").value, note: $("expenseNote").value.trim(), rate: S.rate, createdAt: Date.now() }); write(KEY.expenses, S.expenses); $("expenseDesc").value = ""; $("expenseAmount").value = ""; $("expenseNote").value = ""; renderAll(); alert(t("saved")); }
 function saveDeposit() { const amount = Number($("depositAmount").value || 0); if (amount <= 0) return alert(t("amount")); const d = now(); S.deposits.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, amount, currency: $("depositCurrency").value, bank: $("depositBank").value.trim(), note: $("depositNote").value.trim(), rate: S.rate, createdAt: Date.now() }); write(KEY.deposits, S.deposits); $("depositAmount").value = ""; $("depositBank").value = ""; $("depositNote").value = ""; renderAll(); alert(t("saved")); }
 function saveCashCount() { const d = now(), expected = expectedCurrentCash(); S.cashCounts.push({ id: String(Date.now()), date: today(), time: d.toLocaleTimeString(), user: S.user, actualKhr: Number($("actualKhr").value || 0), actualUsd: Number($("actualUsd").value || 0), expectedKhr: expected.khr, expectedUsd: expected.usd, currencySummary: true, createdAt: Date.now() }); write(KEY.cash, S.cashCounts); renderAll(); alert(t("saved")); }
@@ -210,13 +235,163 @@ function shareTelegram() { const text = encodeURIComponent(reportText()); window
 
 function renderHistory() { const a = [...S.sales].reverse().map(s => `<div class="history-item"><div>🧾 <b>${s.date}</b> · ${s.time}<br><small>${s.user} · ${s.payment} · ${s.currency} · ${s.cups} ${t("cups")}</small></div><div class="history-total">${s.currency === "KHR" ? moneyKHR(s.amount) : moneyUSD(s.amount)}</div></div>`); const b = [...S.expenses].reverse().map(e => `<div class="history-item"><div>💸 <b>${e.date}</b> · ${e.time}<br><small>${e.user} · ${e.desc} · ${e.payment}</small></div><div class="history-total">${e.currency === "KHR" ? moneyKHR(e.amount) : moneyUSD(e.amount)}</div></div>`); const d = [...S.deposits].reverse().map(x => `<div class="history-item"><div>🏦 <b>${x.date}</b> · ${x.time}<br><small>${x.user} · ${x.bank || "Bank"}${x.note ? " · " + x.note : ""}</small></div><div class="history-total">${x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount)}</div></div>`); const c = [...S.cashCounts].reverse().map(x => `<div class="history-item"><div>💵 <b>${x.date}</b> · ${x.time}<br><small>${x.user} · ${t("actualCash")}</small></div><div class="history-total">${moneyKHR(x.actualKhr)} / ${moneyUSD(x.actualUsd)}</div></div>`); $("historyList").innerHTML = [...a, ...b, ...d, ...c].join("") || `<div class="cart-empty">${t("noRecords")}</div>`; }
 
-function renderAdmin(section) { if (S.role !== "admin") return; const o = summary(); let content = ""; if (section === "overview") content = `<div class="admin-grid"><section class="panel"><h2>📊 Overview / សង្ខេប</h2><div class="admin-kpi">${moneyKHR(o.salesKHR)}</div><p class="muted">${t("salesKHR")}</p><div class="bar"><i style="width:${Math.min(100, o.salesKHR ? (o.cashKHR / o.salesKHR) * 100 : 0)}%"></i></div><p class="muted small">${o.tx} transactions · ${o.cups} cups</p></section><section class="panel"><h2>💰 Cash / សាច់ប្រាក់</h2><div class="result-line"><span>KHR</span><b>${moneyKHR(expectedCurrentCash().khr)}</b></div><div class="result-line"><span>USD</span><b>${moneyUSD(expectedCurrentCash().usd)}</b></div></section></div>`; else if (section === "products") content = `<div class="panel"><h2>☕ Products / Menu</h2>${S.products.map(p => `<div class="list-row"><span>${p[0]}<br><small>${p[1]} · ${p[3]}</small></span><b>${moneyKHR(p[2])}</b></div>`).join("")}</div>`; else if (section === "staff") content = `<div class="panel"><h2>👥 Staff / Users</h2><div class="user-row"><span>Admin<br><small>Owner</small></span><b class="role admin-role">ADMIN</b></div><div class="user-row"><span>Staff 01</span><b class="role">STAFF</b></div><div class="user-row"><span>Staff 02</span><b class="role">STAFF</b></div></div>`; else if (section === "settings") content = `<div class="panel"><h2>⚙️ Shop Settings / ព័ត៌មានហាង</h2><div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="setShop" value="${escAttr(S.settings.shopName)}"></div><div><label>Phone / ទូរស័ព្ទ</label><input id="setPhone" value="${escAttr(S.settings.phone)}"></div><div><label>Telegram</label><input id="setTelegram" value="${escAttr(S.settings.telegram)}"></div><div><label>Address / អាសយដ្ឋាន</label><input id="setAddress" value="${escAttr(S.settings.address)}"></div></div><label>Default Exchange Rate / អត្រាប្តូរប្រាក់</label><input id="setRate" type="number" value="${S.rate}"><button class="save-btn" onclick="saveSettings()">SAVE SETTINGS / រក្សាទុក</button></div>`; else if (section === "audit") { const logs = [...S.sales.map(x => ({ t: x.time, a: "SALE / ការលក់", u: x.user, d: x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount) })), ...S.expenses.map(x => ({ t: x.time, a: "EXPENSE / ចំណាយ", u: x.user, d: x.desc })), ...S.deposits.map(x => ({ t: x.time, a: "DEPOSIT / ដាក់ធនាគារ", u: x.user, d: x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount) }))].slice(-30).reverse(); content = `<div class="panel"><h2>🛡️ Audit Log / ប្រវត្តិសកម្មភាព</h2>${logs.map(l => `<div class="log-row"><span>${l.t} · ${l.a}<br><small>${l.u}</small></span><b>${l.d}</b></div>`).join("") || `<div class="cart-empty">${t("noRecords")}</div>`}</div>`; }
+function renderAdminLegacy(section) { if (S.role !== "admin") return; const o = summary(); let content = ""; if (section === "overview") content = `<div class="admin-grid"><section class="panel"><h2>📊 Overview / សង្ខេប</h2><div class="admin-kpi">${moneyKHR(o.salesKHR)}</div><p class="muted">${t("salesKHR")}</p><div class="bar"><i style="width:${Math.min(100, o.salesKHR ? (o.cashKHR / o.salesKHR) * 100 : 0)}%"></i></div><p class="muted small">${o.tx} transactions · ${o.cups} cups</p></section><section class="panel"><h2>💰 Cash / សាច់ប្រាក់</h2><div class="result-line"><span>KHR</span><b>${moneyKHR(expectedCurrentCash().khr)}</b></div><div class="result-line"><span>USD</span><b>${moneyUSD(expectedCurrentCash().usd)}</b></div></section></div>`; else if (section === "products") content = `<div class="panel"><h2>☕ Products / Menu</h2>${S.products.map(p => `<div class="list-row"><span>${p[0]}<br><small>${p[1]} · ${p[3]}</small></span><b>${moneyKHR(p[2])}</b></div>`).join("")}</div>`; else if (section === "staff") content = `<div class="panel"><h2>👥 Staff / Users</h2><div class="user-row"><span>Admin<br><small>Owner</small></span><b class="role admin-role">ADMIN</b></div><div class="user-row"><span>Staff 01</span><b class="role">STAFF</b></div><div class="user-row"><span>Staff 02</span><b class="role">STAFF</b></div></div>`; else if (section === "settings") content = `<div class="panel"><h2>⚙️ Shop Settings / ព័ត៌មានហាង</h2><div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="setShop" value="${escAttr(S.settings.shopName)}"></div><div><label>Phone / ទូរស័ព្ទ</label><input id="setPhone" value="${escAttr(S.settings.phone)}"></div><div><label>Telegram</label><input id="setTelegram" value="${escAttr(S.settings.telegram)}"></div><div><label>Address / អាសយដ្ឋាន</label><input id="setAddress" value="${escAttr(S.settings.address)}"></div></div><label>Default Exchange Rate / អត្រាប្តូរប្រាក់</label><input id="setRate" type="number" value="${S.rate}"><button class="save-btn" onclick="saveSettings()">SAVE SETTINGS / រក្សាទុក</button></div>`; else if (section === "audit") { const logs = [...S.sales.map(x => ({ t: x.time, a: "SALE / ការលក់", u: x.user, d: x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount) })), ...S.expenses.map(x => ({ t: x.time, a: "EXPENSE / ចំណាយ", u: x.user, d: x.desc })), ...S.deposits.map(x => ({ t: x.time, a: "DEPOSIT / ដាក់ធនាគារ", u: x.user, d: x.currency === "KHR" ? moneyKHR(x.amount) : moneyUSD(x.amount) }))].slice(-30).reverse(); content = `<div class="panel"><h2>🛡️ Audit Log / ប្រវត្តិសកម្មភាព</h2>${logs.map(l => `<div class="log-row"><span>${l.t} · ${l.a}<br><small>${l.u}</small></span><b>${l.d}</b></div>`).join("") || `<div class="cart-empty">${t("noRecords")}</div>`}</div>`; }
   $("adminContent").innerHTML = `<div class="admin-menu">${["overview", "products", "staff", "settings", "audit"].map(x => `<button class="admin-menu-btn ${x === section ? "active" : ""}" onclick="renderAdmin('${x}')">${x === "overview" ? "📊 " : x === "products" ? "☕ " : x === "staff" ? "👥 " : x === "settings" ? "⚙️ " : "🛡️ "}${x}</button>`).join("")}</div>${content}`;
 }
 function escAttr(v) { return String(v || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 function saveSettings() { S.settings = { shopName: $("setShop").value.trim(), phone: $("setPhone").value.trim(), telegram: $("setTelegram").value.trim(), address: $("setAddress").value.trim() }; S.rate = Math.max(1, Number($("setRate").value || 4000)); write(KEY.settings, S.settings); localStorage.setItem(KEY.rate, S.rate); $("rateInput").value = S.rate; renderAll(); alert(t("saved")); }
 
+
 boot();
+
+/* ========================= V10 ADMIN CONTROLS ========================= */
+const USER_KEY = "nm_users_v10";
+const PRODUCT_KEY = "nm_products_v10";
+const defaultUsers = [
+  {id:"u-admin", username:"admin", password:"admin", name:"Admin", role:"admin", active:true},
+  {id:"u-staff01", username:"staff01", password:"1234", name:"Staff 01", role:"staff", active:true},
+  {id:"u-staff02", username:"staff02", password:"1234", name:"Staff 02", role:"staff", active:true}
+];
+S.users = read(USER_KEY, defaultUsers);
+
+// Use the editable product list once it has been loaded from products.json.
+function ensureProductsLoaded(){
+  if(!Array.isArray(S.products) || !S.products.length){ S.products = read(PRODUCT_KEY, []); }
+}
+function saveProducts(){ write(PRODUCT_KEY, S.products); }
+function saveUsers(){ write(USER_KEY, S.users); }
+function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function productCategories(){ ensureProductsLoaded(); return [...new Set(S.products.map(p=>p[3]).filter(Boolean))].sort(); }
+
+// Replace login with the Admin-managed user list.
+function login() {
+  const u = $("username").value.trim(), p = $("password").value;
+  const user = (S.users || defaultUsers).find(x => x.username === u && x.password === p && x.active !== false);
+  if (!user) return alert(t("invalid"));
+  S.user = user.username; S.role = user.role;
+  if ($("rememberLogin")?.checked !== false) write(KEY.session, { user:S.user, role:S.role, createdAt:Date.now() });
+  showApp(); updateUserLine(); $("adminTab").classList.toggle("hidden", S.role !== "admin"); renderAll();
+}
+
+// Make product rendering use admin-edited products.
+const renderProductsOriginal = renderProducts;
+renderProducts = function(){
+  ensureProductsLoaded();
+  const q = ($("menuSearch")?.value || "").toLowerCase();
+  const list = S.products.filter(p => p[4] !== false && (S.category === "All" || p[3] === S.category) && (`${p[0]} ${p[1]}`).toLowerCase().includes(q));
+  $("productGrid").innerHTML = list.map(p => { const i=S.products.indexOf(p); return `<button class="product" onclick="addToCart(${i})"><div>${esc(p[0])}</div><span class="kh">${esc(p[1])}</span><span class="price">${moneyKHR(p[2])} / ${moneyUSD(p[2]/S.rate)}</span></button>`; }).join("") || `<div class="cart-empty">${t("noRecords")}</div>`;
+};
+
+function overviewRange(type, date){ const d=date || today(); return type==='day' ? {start:d,end:d} : periodRange(type,d); }
+function overviewAggregate(type, date){ const r=overviewRange(type,date); const g=aggregateRange(r); return {r,...g}; }
+function dayLabel(d){ return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
+function rangeDates(r){ const out=[]; let d=v8Date(r.start), e=v8Date(r.end); while(d<=e){out.push(isoDate(d)); d.setDate(d.getDate()+1);} return out; }
+function renderOverview(){
+  const type=$("overviewType")?.value || 'day', date=$("overviewDate")?.value || today();
+  const {r,a,sales,expenses,deposits}=overviewAggregate(type,date);
+  const netKHR=a.salesKHR-a.expenseKHR, netUSD=a.salesUSD-a.expenseUSD;
+  const cash=expectedCurrentCash();
+  const dailyRows=rangeDates(r).map(d=>{
+    const ds=sales.filter(x=>x.date===d), de=expenses.filter(x=>x.date===d);
+    const k=ds.filter(x=>x.currency==='KHR').reduce((n,x)=>n+Number(x.amount||0),0), u=ds.filter(x=>x.currency==='USD').reduce((n,x)=>n+Number(x.amount||0),0), cups=ds.reduce((n,x)=>n+Number(x.cups||0),0);
+    return `<tr><td>${dayLabel(d)}</td><td>${moneyKHR(k)}</td><td>${moneyUSD(u)}</td><td>${moneyKHR(de.filter(x=>x.currency==='KHR').reduce((n,x)=>n+Number(x.amount||0),0))}</td><td>${cups}</td></tr>`;
+  }).join('');
+  $("adminContent").innerHTML=`
+    <div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
+    <div class="panel overview-controls">
+      <div class="form-grid">
+        <div><label>View / មើលជា</label><select id="overviewType"><option value="day" ${type==='day'?'selected':''}>Daily / ប្រចាំថ្ងៃ</option><option value="week" ${type==='week'?'selected':''}>Weekly / ប្រចាំសប្តាហ៍</option><option value="month" ${type==='month'?'selected':''}>Monthly / ប្រចាំខែ</option></select></div>
+        <div><label>Date / កាលបរិច្ឆេទ</label><input id="overviewDate" type="date" value="${esc(date)}"></div>
+      </div>
+      <div class="export-grid" style="margin-top:12px"><button class="save-btn" onclick="renderOverview()">VIEW / មើលរបាយការណ៍</button><button class="export-btn" onclick="exportOverviewCSV()">📥 Export Data / ទាញទិន្នន័យ CSV</button></div>
+    </div>
+    <div class="stats admin-overview-stats">
+      <div class="stat"><small>Sales KHR / ការលក់ KHR</small><strong>${moneyKHR(a.salesKHR)}</strong></div>
+      <div class="stat"><small>Sales USD / ការលក់ USD</small><strong>${moneyUSD(a.salesUSD)}</strong></div>
+      <div class="stat"><small>Expenses KHR / ចំណាយ KHR</small><strong>${moneyKHR(a.expenseKHR)}</strong></div>
+      <div class="stat"><small>Expenses USD / ចំណាយ USD</small><strong>${moneyUSD(a.expenseUSD)}</strong></div>
+      <div class="stat"><small>Net KHR / សល់ក្រោយចំណាយ</small><strong>${moneyKHR(netKHR)}</strong></div>
+      <div class="stat"><small>Net USD / សល់ក្រោយចំណាយ</small><strong>${moneyUSD(netUSD)}</strong></div>
+      <div class="stat"><small>Cups / ចំនួនកែវ</small><strong>${a.cups}</strong></div>
+      <div class="stat"><small>Current Cash / សាច់ប្រាក់ក្នុងតុ</small><strong>${moneyKHR(cash.khr)}<br>${moneyUSD(cash.usd)}</strong></div>
+    </div>
+    <div class="admin-grid">
+      <section class="panel"><h2>📈 Overview / សង្ខេប ${type==='day'?'ប្រចាំថ្ងៃ':type==='week'?'ប្រចាំសប្តាហ៍':'ប្រចាំខែ'}</h2>
+        <p class="muted">${r.start} → ${r.end}</p>
+        <div class="table-wrap"><table class="report-table"><thead><tr><th>Date / ថ្ងៃ</th><th>Sales KHR</th><th>Sales USD</th><th>Expenses KHR</th><th>Cups / កែវ</th></tr></thead><tbody>${dailyRows || `<tr><td colspan="5">${t('noRecords')}</td></tr>`}</tbody></table></div>
+      </section>
+      <section class="panel"><h2>🏆 Best Seller / មុខលក់ដាច់</h2>${Object.entries(a.items).sort((x,y)=>y[1]-x[1]).slice(0,8).map(([name,n],i)=>`<div class="list-row"><span>${i+1}. ${esc(name)}</span><b>${n} ${t('cups')}</b></div>`).join('') || `<div class="cart-empty">${t('noRecords')}</div>`}</section>
+    </div>`;
+  $("overviewType").onchange=renderOverview; $("overviewDate").onchange=renderOverview;
+}
+function exportOverviewCSV(){
+  const type=$("overviewType")?.value||'day', date=$("overviewDate")?.value||today(), {r,sales,expenses,deposits}=overviewAggregate(type,date);
+  const rows=[['Date','Type','Staff','Item / Description','Currency','Payment','Amount','Cups','Bank','Note']];
+  sales.forEach(x=>rows.push([x.date,'SALE',x.user,x.name,x.currency,x.payment,x.amount,x.cups||0,'',x.note||'']));
+  expenses.forEach(x=>rows.push([x.date,'EXPENSE',x.user,x.desc,x.currency,x.payment,x.amount,'','',x.note||'']));
+  deposits.forEach(x=>rows.push([x.date,'DEPOSIT',x.user,'Bank Deposit',x.currency,'Cash',x.amount,'',x.bank||'',x.note||'']));
+  const csv=rows.map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n');
+  const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`nona-me-overview-${type}-${r.start}-to-${r.end}.csv`; a.click(); URL.revokeObjectURL(a.href); audit('EXPORT OVERVIEW / ទាញទិន្នន័យ',`${type} ${r.start} to ${r.end}`);
+}
+function adminMenu(section){
+  const labels={overview:'📊 Overview / សង្ខេប',products:'☕ Products / Menu',inventory:'📦 Stock / ស្តុក',staff:'👥 Staff / Users',settings:'⚙️ Settings / កំណត់',audit:'🛡️ Audit Log / ប្រវត្តិសកម្មភាព'};
+  return `<button class="admin-menu-btn ${section==='overview'?'active':''}" onclick="renderAdmin('${section}')">${labels[section]}</button>`;
+}
+
+function renderProductsAdmin(){
+  ensureProductsLoaded(); const cats=productCategories();
+  $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
+  <section class="panel"><h2>☕ Products / Menu · មីនុយ</h2><p class="muted">Add, edit, hide or delete menu items.</p>
+    <div class="form-grid product-form"><div><label>English Name / ឈ្មោះអង់គ្លេស</label><input id="prodEn" placeholder="Iced Latte"></div><div><label>Khmer Name / ឈ្មោះខ្មែរ</label><input id="prodKh" placeholder="ឡាតេទឹកកក"></div><div><label>Price KHR / តម្លៃ</label><input id="prodPrice" type="number" min="0" placeholder="5000"></div><div><label>Category / ប្រភេទ</label><input id="prodCat" list="productCats" placeholder="Coffee / កាហ្វេ"><datalist id="productCats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div>
+    <button class="save-btn" onclick="addProductAdmin()">➕ ADD PRODUCT / បន្ថែមមុខទំនិញ</button>
+    <div class="admin-table-list" style="margin-top:15px">${S.products.map((p,i)=>`<div class="admin-edit-row"><div><b>${esc(p[0])}</b><br><span class="muted">${esc(p[1])} · ${esc(p[3]||'Other')} · ${moneyKHR(p[2])}</span></div><div class="row-actions"><button class="mini-btn" onclick="editProductAdmin(${i})">✏️ Edit</button><button class="mini-btn" onclick="toggleProductAdmin(${i})">${p[4]===false?'▶️ Show':'⏸ Hide'}</button><button class="mini-btn danger" onclick="deleteProductAdmin(${i})">🗑 Delete</button></div></div>`).join('')}</div>
+  </section>`;
+}
+function addProductAdmin(){ const en=$("prodEn").value.trim(), kh=$("prodKh").value.trim(), price=Number($("prodPrice").value||0), cat=$("prodCat").value.trim()||'Other'; if(!en||!kh||price<=0)return alert('Please enter English, Khmer, price / សូមបញ្ចូលឈ្មោះ តម្លៃ'); S.products.push([en,kh,price,cat,true]); saveProducts(); audit('ADD PRODUCT / បន្ថែមមុខទំនិញ',`${en} / ${kh}`); renderProductsAdmin(); renderAll(); }
+function editProductAdmin(i){ const p=S.products[i]; const en=prompt('English Name / ឈ្មោះអង់គ្លេស',p[0]); if(en===null)return; const kh=prompt('Khmer Name / ឈ្មោះខ្មែរ',p[1]); if(kh===null)return; const pr=prompt('Price KHR / តម្លៃ',p[2]); if(pr===null)return; const cat=prompt('Category / ប្រភេទ',p[3]); if(cat===null)return; S.products[i]=[en.trim()||p[0],kh.trim()||p[1],Math.max(0,Number(pr)||p[2]),cat.trim()||p[3],p[4]!==false]; saveProducts(); audit('EDIT PRODUCT / កែសម្រួលមុខទំនិញ',S.products[i][0]); renderProductsAdmin(); renderAll(); }
+function toggleProductAdmin(i){ S.products[i][4]=S.products[i][4]===false; saveProducts(); audit(S.products[i][4]?'SHOW PRODUCT':'HIDE PRODUCT',S.products[i][0]); renderProductsAdmin(); renderAll(); }
+function deleteProductAdmin(i){ const p=S.products[i]; if(!confirm(`Delete ${p[0]} / លុបមុខទំនិញនេះ?`))return; S.products.splice(i,1); saveProducts(); audit('DELETE PRODUCT / លុបមុខទំនិញ',p[0]); renderProductsAdmin(); renderAll(); }
+
+function renderStaffAdmin(){
+  $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
+  <section class="panel"><h2>👥 Staff / Users · បុគ្គលិក</h2><p class="muted">Create staff accounts and enable/disable access. Prototype stores credentials locally; production should use Supabase Auth.</p>
+    <div class="form-grid"><div><label>Username / ឈ្មោះអ្នកប្រើ</label><input id="newUser" placeholder="staff03"></div><div><label>Password / ពាក្យសម្ងាត់</label><input id="newPass" placeholder="1234"></div><div><label>Name / ឈ្មោះ</label><input id="newName" placeholder="Staff 03"></div><div><label>Role / តួនាទី</label><select id="newRole"><option value="staff">STAFF</option><option value="admin">ADMIN</option></select></div></div>
+    <button class="save-btn" onclick="addUserAdmin()">➕ ADD USER / បន្ថែមអ្នកប្រើ</button>
+    <div style="margin-top:15px">${S.users.map((u,i)=>`<div class="admin-edit-row"><div><b>${esc(u.name)} · ${esc(u.username)}</b><br><span class="muted">${u.role.toUpperCase()} · ${u.active===false?'Disabled / បិទ':'Active / ដំណើរការ'}</span></div><div class="row-actions"><button class="mini-btn" onclick="editUserAdmin(${i})">✏️ Edit</button>${u.username!=='admin'?`<button class="mini-btn" onclick="toggleUserAdmin(${i})">${u.active===false?'▶️ Enable':'⏸ Disable'}</button><button class="mini-btn danger" onclick="deleteUserAdmin(${i})">🗑 Delete</button>`:''}</div></div>`).join('')}</div>
+  </section>`;
+}
+function addUserAdmin(){ const username=$("newUser").value.trim(),password=$("newPass").value,name=$("newName").value.trim()||username,role=$("newRole").value; if(!username||!password)return alert('Username + password required / ត្រូវការឈ្មោះអ្នកប្រើ និងពាក្យសម្ងាត់'); if(S.users.some(u=>u.username===username))return alert('Username already exists / ឈ្មោះនេះមានរួចហើយ'); S.users.push({id:'u-'+Date.now(),username,password,name,role,active:true}); saveUsers(); audit('ADD USER / បន្ថែមអ្នកប្រើ',username); renderStaffAdmin(); }
+function editUserAdmin(i){ const u=S.users[i]; const name=prompt('Name / ឈ្មោះ',u.name); if(name===null)return; const pass=prompt('Password / ពាក្យសម្ងាត់',u.password); if(pass===null)return; u.name=name.trim()||u.name; u.password=pass||u.password; saveUsers(); audit('EDIT USER / កែសម្រួលអ្នកប្រើ',u.username); renderStaffAdmin(); }
+function toggleUserAdmin(i){ S.users[i].active=S.users[i].active===false; saveUsers(); audit(S.users[i].active?'ENABLE USER / បើកអ្នកប្រើ':'DISABLE USER / បិទអ្នកប្រើ',S.users[i].username); renderStaffAdmin(); }
+function deleteUserAdmin(i){ const u=S.users[i]; if(!confirm(`Delete ${u.username}?`))return; S.users.splice(i,1); saveUsers(); audit('DELETE USER / លុបអ្នកប្រើ',u.username); renderStaffAdmin(); }
+
+
+function renderSettingsAdmin(){
+  $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
+  <section class="panel"><h2>⚙️ Shop Settings / ព័ត៌មានហាង</h2>
+    <div class="form-grid"><div><label>Shop Name / ឈ្មោះហាង</label><input id="setShop" value="${escAttr(S.settings.shopName)}"></div><div><label>Phone / ទូរស័ព្ទ</label><input id="setPhone" value="${escAttr(S.settings.phone)}"></div><div><label>Telegram</label><input id="setTelegram" value="${escAttr(S.settings.telegram)}"></div><div><label>Address / អាសយដ្ឋាន</label><input id="setAddress" value="${escAttr(S.settings.address)}"></div></div>
+    <label>Default Exchange Rate / អត្រាប្តូរប្រាក់</label><input id="setRate" type="number" value="${S.rate}" min="1">
+    <button class="save-btn" onclick="saveSettings()">SAVE SETTINGS / រក្សាទុក</button>
+  </section>`;
+}
+function renderAuditAdmin(){
+  const logs=[...S.sales.map(x=>({date:x.date,time:x.time,a:'SALE / ការលក់',u:x.user,d:x.currency==='KHR'?moneyKHR(x.amount):moneyUSD(x.amount)})),...S.expenses.map(x=>({date:x.date,time:x.time,a:'EXPENSE / ចំណាយ',u:x.user,d:x.desc})),...S.deposits.map(x=>({date:x.date,time:x.time,a:'DEPOSIT / ដាក់ធនាគារ',u:x.user,d:x.currency==='KHR'?moneyKHR(x.amount):moneyUSD(x.amount)}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(-100).reverse();
+  $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>
+  <section class="panel"><h2>🛡️ Audit Log / ប្រវត្តិសកម្មភាព</h2>${logs.map(l=>`<div class="log-row"><span>${esc(l.date)} · ${esc(l.time)}<br><small>${esc(l.u)} · ${esc(l.a)}</small></span><b>${esc(l.d)}</b></div>`).join('')||`<div class="cart-empty">${t('noRecords')}</div>`}</section>`;
+}
+
+// Unified Admin Control Center with working products/users/overview.
+renderAdmin = function(section){
+
+  if(S.role!=='admin') return;
+  if(section==='overview') return renderOverview();
+  if(section==='products') return renderProductsAdmin();
+  if(section==='staff') return renderStaffAdmin();
+  if(section==='inventory') { $("adminContent").innerHTML=`<div class="admin-menu">${adminMenu('overview')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}</div>${renderInventory()}`; return; }
+  if(section==='settings') return renderSettingsAdmin();
+  if(section==='audit') return renderAuditAdmin();
+  renderOverview();
+};
 
 /* ========================= V8 ENHANCEMENTS ========================= */
 const V8KEY = { stock: "nm_stock_v8", logs: "nm_audit_v8" };
@@ -261,3 +436,126 @@ function renderAdmin(section){ if(S.role!=='admin')return; const o=summary(); le
   document.addEventListener('click', e=>{ const b=e.target.closest('.tab'); if(!b)return; if(b.dataset.page==='periodReport'){ if(S.role!=='admin')return; $("periodReportTab").classList.remove('hidden'); setTimeout(()=>{if(!$("periodStart").value)$("periodStart").value=today();renderPeriodReport();},0);} });
   setTimeout(()=>{ if(S.role==='admin')$("periodReportTab")?.classList.remove('hidden'); $("generatePeriod")?.addEventListener('click',renderPeriodReport); $("exportCsv")?.addEventListener('click',exportPeriodCSV); $("periodType")?.addEventListener('change',renderPeriodReport); $("periodStart")?.addEventListener('change',renderPeriodReport); },200);
 })();
+
+/* Re-bind handlers that were attached before the V10 admin overrides loaded. */
+if ($("loginBtn")) $("loginBtn").onclick = login;
+if ($("menuSearch")) $("menuSearch").oninput = renderProducts;
+
+/* ========================= V11 WEBSITE CONTROL CENTER ========================= */
+const CMS_KEY_V11 = 'nm_cms_v11';
+const defaultCMSV11 = {
+  shopName: 'nona-me coffee',
+  tagline: 'Daily Sales System · ប្រព័ន្ធកត់ត្រាការលក់ប្រចាំថ្ងៃ',
+  announcement: 'Welcome to nona-me coffee',
+  footer: 'nona-me coffee · Sales Management System',
+  loginSubtitle: 'Daily Sales System · ប្រព័ន្ធកត់ត្រាការលក់ប្រចាំថ្ងៃ',
+  primary: '#8B2E23', accent: '#C4563B', beige: '#E2C9A8', cream: '#F8F6F1', dark: '#3A2A24', green: '#5A7D5B',
+  logoData: '',
+  nav: {
+    sales: 'Sales / ការលក់', expenses: 'Expenses / ចំណាយ', cash: 'Daily Cash / លុយក្នុងតុ', deposit: 'Deposit / ដាក់ធនាគារ',
+    admin: 'Admin / គ្រប់គ្រង', report: 'Daily Report / របាយការណ៍', periodReport: 'Weekly / Monthly', history: 'History / ប្រវត្តិ'
+  },
+  visible: { sales:true, expenses:true, cash:true, deposit:true, admin:true, report:true, periodReport:true, history:true }
+};
+function readCMSV11(){ return Object.assign({}, defaultCMSV11, read(CMS_KEY_V11, {}), {nav:Object.assign({},defaultCMSV11.nav,read(CMS_KEY_V11,{}).nav||{}), visible:Object.assign({},defaultCMSV11.visible,read(CMS_KEY_V11,{}).visible||{})}); }
+S.cms = readCMSV11();
+function saveCMSV11(){ write(CMS_KEY_V11, S.cms); applyCMSV11(); audit('UPDATE WEBSITE / កែ Website', 'Website settings updated'); }
+function cssSafe(v, fallback){ return /^#[0-9A-Fa-f]{6}$/.test(String(v||'')) ? v : fallback; }
+function applyCMSV11(){
+  S.cms = readCMSV11();
+  const root=document.documentElement;
+  root.style.setProperty('--primary',cssSafe(S.cms.primary,'#8B2E23'));
+  root.style.setProperty('--accent',cssSafe(S.cms.accent,'#C4563B'));
+  root.style.setProperty('--beige',cssSafe(S.cms.beige,'#E2C9A8'));
+  root.style.setProperty('--cream',cssSafe(S.cms.cream,'#F8F6F1'));
+  root.style.setProperty('--dark',cssSafe(S.cms.dark,'#3A2A24'));
+  root.style.setProperty('--green',cssSafe(S.cms.green,'#5A7D5B'));
+  document.title = S.cms.shopName + ' — Sales';
+  const brandEls=document.querySelectorAll('.brand b'); brandEls.forEach(el=>el.textContent=S.cms.shopName);
+  const loginSub=document.querySelector('.login-sub'); if(loginSub) loginSub.textContent=S.cms.loginSubtitle;
+  const tagline=document.querySelector('.brand small'); if(tagline) tagline.textContent='SALES';
+  const footer=document.getElementById('siteFooterV11'); if(footer) footer.textContent=S.cms.footer;
+  document.querySelectorAll('.tab').forEach(b=>{ const k=b.dataset.page; if(S.cms.nav[k]) b.textContent=S.cms.nav[k]; if(S.cms.visible[k]===false) b.classList.add('hidden'); else if(k!=='admin' || S.role==='admin') b.classList.remove('hidden'); });
+  const adminTab=$('adminTab'); if(adminTab) { adminTab.textContent=S.cms.nav.admin; adminTab.classList.toggle('hidden',S.role!=='admin' || S.cms.visible.admin===false); }
+  const logo=document.querySelectorAll('.logo-img-v11'); logo.forEach(img=>{img.src=S.cms.logoData||'icons/icon-192.png';});
+}
+function cmsField(id,label,value,type='text'){ return `<div><label>${label}</label><input id="${id}" type="${type}" value="${escAttr(value??'')}"></div>`; }
+function cmsToggle(id,label,on){ return `<label class="cms-toggle"><input id="${id}" type="checkbox" ${on?'checked':''}><span>${label}</span></label>`; }
+function renderWebsiteControlV11(){
+  const c=S.cms;
+  $('adminContent').innerHTML=`
+  <div class="admin-menu admin-menu-wrap">
+    ${adminMenu('overview')}${adminMenu('site')}${adminMenu('products')}${adminMenu('inventory')}${adminMenu('staff')}${adminMenu('settings')}${adminMenu('audit')}
+  </div>
+  <section class="panel control-hero-v11"><h2>🛠️ Website Control Center / មជ្ឈមណ្ឌលគ្រប់គ្រង Website</h2><p>កែ Website តាម Dashboard ដោយមិនចាំបាច់សរសេរកូដ។ / Edit the visible website configuration without touching code.</p></section>
+  <div class="cms-grid-v11">
+    <section class="panel">
+      <h2>🏪 Website & Home / ទំព័រហាង</h2>
+      <div class="form-grid">
+        ${cmsField('cmsShopName','Shop Name / ឈ្មោះហាង',c.shopName)}
+        ${cmsField('cmsTagline','Tagline / ពាក្យពិពណ៌នា',c.tagline)}
+        ${cmsField('cmsAnnouncement','Announcement / សារជូនដំណឹង',c.announcement)}
+        ${cmsField('cmsFooter','Footer / អក្សរខាងក្រោម',c.footer)}
+        ${cmsField('cmsLoginSubtitle','Login Subtitle / អក្សរទំព័រ Login',c.loginSubtitle)}
+      </div>
+      <div class="cms-logo-row"><div><label>Logo / ឡូហ្គោ</label><img id="cmsLogoPreview" class="cms-logo-preview" src="${c.logoData||'icons/icon-192.png'}" alt="Logo"></div><div><input id="cmsLogoFile" type="file" accept="image/png,image/jpeg,image/webp"><p class="muted small">Logo will be stored in browser for this test build.</p></div></div>
+    </section>
+    <section class="panel">
+      <h2>🎨 Appearance / រូបរាង</h2>
+      <div class="form-grid">
+        ${cmsField('cmsPrimary','Primary Color / ពណ៌មេ',c.primary,'text')}
+        ${cmsField('cmsAccent','Accent / ពណ៌បន្ថែម',c.accent,'text')}
+        ${cmsField('cmsBeige','Beige / ពណ៌ត្នោតស្រាល',c.beige,'text')}
+        ${cmsField('cmsCream','Cream / ផ្ទៃស',c.cream,'text')}
+        ${cmsField('cmsDark','Dark / ពណ៌ងងឹត',c.dark,'text')}
+        ${cmsField('cmsGreen','Green / បៃតង',c.green,'text')}
+      </div>
+      <div class="color-preview-v11" style="background:${cssSafe(c.primary,'#8B2E23')}"><span>Preview / មើលជាមុន</span></div>
+    </section>
+    <section class="panel">
+      <h2>🧭 Navigation / Menu</h2>
+      <div class="cms-nav-editor-v11">
+        ${Object.entries(c.nav).map(([k,v])=>`<div class="cms-nav-row"><label>${k}</label><input id="cmsNav_${k}" value="${escAttr(v)}">${cmsToggle('cmsVis_'+k,'Show / បង្ហាញ',c.visible[k]!==false)}</div>`).join('')}
+      </div>
+    </section>
+    <section class="panel">
+      <h2>🔐 User Experience / ការប្រើប្រាស់</h2>
+      ${cmsToggle('cmsRememberDefault','Remember Login Default / ចងចាំ Login ជាលំនាំដើម',true)}
+      <h3>Printing / ការព្រីន</h3>
+      ${cmsToggle('cmsShowPhone','Show Phone on Receipt / បង្ហាញទូរស័ព្ទលើ Receipt',c.receipt?.showPhone!==false)}
+      ${cmsToggle('cmsShowAddress','Show Address on Receipt / បង្ហាញអាសយដ្ឋានលើ Receipt',c.receipt?.showAddress!==false)}
+      <p class="muted">Staff can use “Save & Print” after each sale. The receipt is formatted for 80mm thermal paper and normal browser printing.</p>
+      <p class="muted">Staff/Admin credentials, permissions and database secrets should be moved to Supabase Auth in production.</p>
+      <div class="danger-box-v11"><b>Reset Website Settings / កំណត់ Website ឡើងវិញ</b><button class="mini-btn danger" onclick="resetCMSV11()">Reset</button></div>
+    </section>
+  </div>
+  <div class="sticky-save-v11"><button class="save-btn" onclick="saveCMSFormV11()">💾 SAVE ALL WEBSITE CHANGES / រក្សាទុកការកែប្រែទាំងអស់</button></div>`;
+  const f=$('cmsLogoFile'); if(f) f.onchange=()=>{ const file=f.files?.[0]; if(!file)return; const r=new FileReader(); r.onload=()=>{$('cmsLogoPreview').src=r.result;}; r.readAsDataURL(file); };
+}
+function saveCMSFormV11(){
+  const c=S.cms;
+  c.shopName=$('cmsShopName').value.trim()||defaultCMSV11.shopName;
+  c.tagline=$('cmsTagline').value.trim(); c.announcement=$('cmsAnnouncement').value.trim(); c.footer=$('cmsFooter').value.trim(); c.loginSubtitle=$('cmsLoginSubtitle').value.trim();
+  c.primary=cssSafe($('cmsPrimary').value,'#8B2E23'); c.accent=cssSafe($('cmsAccent').value,'#C4563B'); c.beige=cssSafe($('cmsBeige').value,'#E2C9A8'); c.cream=cssSafe($('cmsCream').value,'#F8F6F1'); c.dark=cssSafe($('cmsDark').value,'#3A2A24'); c.green=cssSafe($('cmsGreen').value,'#5A7D5B');
+  Object.keys(c.nav).forEach(k=>{const n=$('cmsNav_'+k); if(n)c.nav[k]=n.value.trim()||defaultCMSV11.nav[k]; const tgl=$('cmsVis_'+k); if(tgl)c.visible[k]=tgl.checked;});
+  const preview=$('cmsLogoPreview'); if(preview && preview.src && preview.src.startsWith('data:')) c.logoData=preview.src;
+  saveCMSV11();
+  renderWebsiteControlV11();
+  renderAll();
+  alert(S.lang==='kh'?'រក្សាទុកការកែ Website រួចរាល់':'Website settings saved');
+}
+function resetCMSV11(){ if(!confirm('Reset Website Settings / កំណត់ Website ត្រឡប់ទៅ Default?'))return; S.cms=JSON.parse(JSON.stringify(defaultCMSV11)); write(CMS_KEY_V11,S.cms); applyCMSV11(); renderWebsiteControlV11(); renderAll(); audit('RESET WEBSITE / កំណត់ Website ឡើងវិញ','CMS defaults'); }
+const _adminMenuV11=adminMenu;
+adminMenu=function(section){
+  const labels={overview:'📊 Overview / សង្ខេប',site:'🛠️ Website / Website Control',products:'☕ Products / Menu',inventory:'📦 Stock / ស្តុក',staff:'👥 Staff / Users',settings:'⚙️ Settings / កំណត់',audit:'🛡️ Audit Log / ប្រវត្តិសកម្មភាព'};
+  if(!labels[section]) return '';
+  return `<button class="admin-menu-btn ${section==='site'?'cms-admin-btn':''} ${S.__adminSection===section?'active':''}" onclick="renderAdmin('${section}')">${labels[section]}</button>`;
+}
+const _renderAdminV10 = renderAdmin;
+renderAdmin=function(section){
+  S.__adminSection=section;
+  if(section==='site') return renderWebsiteControlV11();
+  return _renderAdminV10(section);
+};
+applyCMSV11();
+setTimeout(()=>{ if(!$('siteFooterV11')){ const f=document.createElement('div'); f.id='siteFooterV11'; f.className='site-footer-v11'; f.textContent=S.cms.footer; document.querySelector('main.wrap')?.appendChild(f); } applyCMSV11(); },50);
