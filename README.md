@@ -51,6 +51,13 @@ The package includes a temporary Nona-me branded icon. Replace `icons/icon-192.p
 - KHR/USD shown compactly
 - Optimized for Copy -> Paste into Telegram
 
-## Official Branding
-- Uses the uploaded official Nona-me Coffee logo for web/PWA branding.
-- App icon files are derived from the official Nona-me symbol.
+
+## V16 fixes
+- Official Nona-me logo + PWA icons
+- Bilingual admin sidebar
+- Website Control Center
+- Product images + Stock images
+- Working category selector and Grid/List menu view
+- Daily/Weekly/Monthly overview + CSV export
+- Compact Telegram report copy with separators
+- Staff/User CRUD test controls
