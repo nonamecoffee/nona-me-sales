@@ -61,3 +61,12 @@ The package includes a temporary Nona-me branded icon. Replace `icons/icon-192.p
 - Daily/Weekly/Monthly overview + CSV export
 - Compact Telegram report copy with separators
 - Staff/User CRUD test controls
+
+
+## V17 Fixes
+- Appearance uses native color pickers instead of manual color text entry.
+- Admin Promotion navigation preserves scroll position.
+- Language toggle now displays one language at a time.
+- Staff cannot open Weekly/Monthly Reports.
+- Staff have a Stock page to add stock received, with image and notes.
+- Admin and staff stock/product screens remain responsive.

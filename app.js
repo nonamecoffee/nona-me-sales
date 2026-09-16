@@ -785,3 +785,331 @@ const _bootV16=boot;boot=async function(){await _bootV16();applyCMSV11();renderC
 renderAdmin=renderAdminV16;
 adminMenu=adminMenuV16;
 setTimeout(()=>{if(S.role==='admin')renderAdminV16(S.__adminSection||'overview');renderCategoriesV16();renderProductsV16();if($('copyText'))$('copyText').onclick=copyTextV16;},0);
+
+
+/* ========================= V17 USER-REQUESTED FIXES ========================= */
+const V17_LANG = {
+  kh: {
+    appSubtitle: "ប្រព័ន្ធកត់ត្រាការលក់ប្រចាំថ្ងៃ",
+    sales: "ការលក់", expenses: "ចំណាយ", cash: "លុយក្នុងតុ", deposit: "ដាក់ធនាគារ",
+    stock: "ស្តុក", admin: "គ្រប់គ្រង", report: "របាយការណ៍", period: "សប្តាហ៍ / ខែ", history: "ប្រវត្តិ",
+    todaySales: "ការលក់ថ្ងៃនេះ", menu: "មីនុយ", currentSale: "ការលក់បច្ចុប្បន្ន",
+    search: "ស្វែងរកមីនុយ...", username: "ឈ្មោះអ្នកប្រើ", password: "ពាក្យសម្ងាត់",
+    login: "ចូលប្រើ", logout: "ចេញ", remember: "ចងចាំការចូលប្រើ",
+    daily: "ប្រចាំថ្ងៃ", weekly: "ប្រចាំសប្តាហ៍", monthly: "ប្រចាំខែ",
+    stockHint: "បញ្ចូលស្តុកដែលហាងបានទទួល",
+    addStock: "បន្ថែមស្តុក", stockList: "បញ្ជីស្តុក", item: "មុខស្តុក",
+    qty: "ចំនួន", unit: "ឯកតា", min: "កម្រិតព្រមាន", image: "រូបភាពស្តុក",
+    notes: "កំណត់សម្គាល់", save: "រក្សាទុក", view: "មើល",
+    colors: "ជ្រើសពណ៌", primary: "ពណ៌មេ", accent: "ពណ៌បន្ថែម", beige: "ត្នោតស្រាល",
+    cream: "ពណ៌ក្រែម", dark: "ពណ៌ងងឹត", green: "ពណ៌បៃតង",
+    appearance: "រូបរាង", adminCenter: "មជ្ឈមណ្ឌលគ្រប់គ្រង",
+    website: "គ្រប់គ្រង Website", products: "មុខទំនិញ និងមីនុយ", promotions: "ប្រូម៉ូសិន",
+    staffUsers: "បុគ្គលិក និងអ្នកប្រើ", settings: "កំណត់ហាង", audit: "ប្រវត្តិសកម្មភាព",
+    copied: "ចម្លងរួច", saved: "រក្សាទុករួច", noRecords: "មិនទាន់មានទិន្នន័យ",
+    categoryAll: "ទាំងអស់", grid: "ក្រឡា", list: "បញ្ជី"
+  },
+  en: {
+    appSubtitle: "Daily Sales System",
+    sales: "Sales", expenses: "Expenses", cash: "Cash Drawer", deposit: "Bank Deposit",
+    stock: "Stock", admin: "Admin", report: "Daily Report", period: "Weekly / Monthly", history: "History",
+    todaySales: "Today's Sales", menu: "Menu", currentSale: "Current Sale",
+    search: "Search menu...", username: "Username", password: "Password",
+    login: "Login", logout: "Logout", remember: "Remember login",
+    daily: "Daily", weekly: "Weekly", monthly: "Monthly",
+    stockHint: "Add stock received by the shop",
+    addStock: "Add Stock", stockList: "Stock List", item: "Stock Item",
+    qty: "Quantity", unit: "Unit", min: "Low Stock Level", image: "Stock Image",
+    notes: "Notes", save: "Save", view: "View",
+    colors: "Choose Colors", primary: "Primary", accent: "Accent", beige: "Light Beige",
+    cream: "Cream", dark: "Dark", green: "Green",
+    appearance: "Appearance", adminCenter: "Admin Control Center",
+    website: "Website Control", products: "Products & Menu", promotions: "Promotions",
+    staffUsers: "Staff & Users", settings: "Shop Settings", audit: "Audit Log",
+    copied: "Copied", saved: "Saved", noRecords: "No records yet",
+    categoryAll: "All", grid: "Grid", list: "List"
+  }
+};
+const v17t = k => V17_LANG[S.lang === "kh" ? "kh" : "en"][k] || k;
+
+function v17StripBilingual(root=document.body){
+  const wantKh = S.lang === "kh";
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while(walker.nextNode()) nodes.push(walker.currentNode);
+  for(const n of nodes){
+    const raw = n.nodeValue;
+    if(!raw || !raw.includes(" / ")) continue;
+    const parts = raw.split(/\s\/\s/);
+    if(parts.length !== 2) continue;
+    const [left,right] = parts;
+    if(!/[\u1780-\u17FF]/.test(right)) continue;
+    n.nodeValue = wantKh ? right : left;
+  }
+  root.querySelectorAll("input[placeholder],textarea[placeholder]").forEach(el=>{
+    const raw = el.getAttribute("placeholder") || "";
+    const parts = raw.split(/\s\/\s/);
+    if(parts.length===2 && /[\u1780-\u17FF]/.test(parts[1])) {
+      el.placeholder = wantKh ? parts[1] : parts[0];
+    }
+  });
+}
+
+function v17ApplySingleLanguage(){
+  // Dynamic/generated content is translated by its render functions; this pass removes
+  // remaining static "English / Khmer" pairs so only one language is visible.
+  v17StripBilingual(document.body);
+  $("periodReportTab")?.classList.toggle("hidden", S.role !== "admin");
+  $("stockTab")?.classList.remove("hidden");
+}
+
+const _applyLanguageV17Base = applyLanguage;
+applyLanguage = function(){
+  _applyLanguageV17Base();
+  v17ApplySingleLanguage();
+};
+
+function adminSideV17(active){
+  const items = [
+    ['overview','📊',v17t('admin') === 'Admin' ? 'Overview' : 'សង្ខេប'],
+    ['site','🛠️',v17t('website')],
+    ['products','☕',v17t('products')],
+    ['promotions','🏷️',v17t('promotions')],
+    ['inventory','📦',v17t('stock')],
+    ['staff','👥',v17t('staffUsers')],
+    ['settings','⚙️',v17t('settings')],
+    ['audit','🛡️',v17t('audit')]
+  ];
+  return `<aside class="admin-sidebar-v16">
+    <div class="admin-side-title-v16">⚙️ ${v17t('adminCenter')}</div>
+    ${items.map(([k,ic,l])=>`<button type="button" class="admin-side-btn-v16 ${active===k?'active':''}" onclick="renderAdminV17(event,'${k}')">${ic} ${l}</button>`).join('')}
+  </aside>`;
+}
+
+function wrapAdminV17(active,body,restoreY){
+  $("adminContent").innerHTML = `<div class="admin-shell-v16">${adminSideV17(active)}<div class="admin-main-v16">${body}</div></div>`;
+  v17StripBilingual($("adminContent"));
+  if(Number.isFinite(restoreY)){
+    requestAnimationFrame(()=>window.scrollTo(0, restoreY));
+  }
+}
+
+function renderAdminV17(eventOrSection, maybeSection='overview'){
+  if(S.role !== 'admin') return;
+  const section = typeof eventOrSection === 'string' ? eventOrSection : (maybeSection || 'overview');
+  const y = window.scrollY;
+  S.__adminSection = section;
+  const ctx = { fromV17:true, scrollY:y };
+  if(section==='site') renderSiteV17(ctx);
+  else if(section==='products') renderProductsAdminV17(ctx);
+  else if(section==='promotions') renderPromotionsAdminV17Fixed(ctx);
+  else if(section==='inventory') renderInventoryAdminV17(ctx);
+  else if(section==='staff') renderStaffAdminV17(ctx);
+  else if(section==='settings') renderSettingsAdminV17(ctx);
+  else if(section==='audit') renderAuditAdminV17(ctx);
+  else renderOverviewAdminV17(ctx);
+  v17StripBilingual($("adminContent"));
+}
+
+function adminKeepTextPair(){
+  return S.lang==='kh' ? '' : '';
+}
+
+/* Promotion page: render it inside the same sticky sidebar shell so it no longer jumps
+   to the top section created by the old navigation implementation. */
+function renderPromotionsAdminV17Fixed(ctx={}){
+  ensureProductsLoaded();
+  const currentLangKh = S.lang === 'kh';
+  const h = currentLangKh ? {
+    title:"ប្រូម៉ូសិន", desc:"បង្កើតប្រូម៉ូសិន និងកំណត់តម្លៃសរុប",
+    en:"ឈ្មោះអង់គ្លេស", kh:"ឈ្មោះខ្មែរ", cups:"ចំនួនកែវ", price:"តម្លៃសរុបប្រូម៉ូសិន",
+    apply:"ប្រើសម្រាប់", all:"មុខទំនិញទាំងអស់", add:"បន្ថែមប្រូម៉ូសិន",
+    edit:"កែ", disable:"បិទ", enable:"បើក", del:"លុប", active:"ដំណើរការ", disabled:"បិទ"
+  } : {
+    title:"Promotions", desc:"Create promotions and define a bundle price.",
+    en:"English Name", kh:"Khmer Name", cups:"Buy Cups", price:"Promo Total KHR",
+    apply:"Applies To", all:"All Products", add:"Add Promotion",
+    edit:"Edit", disable:"Disable", enable:"Enable", del:"Delete", active:"Active", disabled:"Disabled"
+  };
+  const rows=(S.promotions||[]).map((p,i)=>`<div class="admin-edit-row">
+    <div><b>${esc(p.nameEn)} / ${esc(p.nameKh)}</b><br><span class="muted">${p.buyQty} ${h.cups} → ${moneyKHR(p.promoPriceKHR)} · ${p.active!==false?h.active:h.disabled}</span></div>
+    <div class="row-actions"><button class="mini-btn" onclick="editPromotionAdminV14(${i})">✏️ ${h.edit}</button>
+    <button class="mini-btn" onclick="togglePromotionAdminV14(${i})">${p.active!==false?'⏸️ '+h.disable:'▶️ '+h.enable}</button>
+    <button class="mini-btn danger" onclick="deletePromotionAdminV14(${i})">🗑️ ${h.del}</button></div>
+  </div>`).join('');
+  const body=`<div class="admin-section-toolbar-v17"><div><h2>🏷️ ${h.title}</h2><p class="muted">${h.desc}</p></div></div>
+  <section class="panel"><div class="form-grid">
+    <div><label>${h.en}</label><input id="promoEn" placeholder="2 Cups Special"></div>
+    <div><label>${h.kh}</label><input id="promoKh" placeholder="ប្រូម៉ូសិន ២ កែវ"></div>
+    <div><label>${h.cups}</label><input id="promoQty" type="number" min="2" value="2"></div>
+    <div><label>${h.price}</label><input id="promoPrice" type="number" min="0" value="6000"></div>
+  </div>
+  <label>${h.apply}</label><select id="promoProducts"><option value="ALL">${h.all}</option>${S.products.map((p,i)=>`<option value="${i}">${esc(p[S.lang==='kh'?1:0])}</option>`).join('')}</select>
+  <button class="save-btn" style="margin-top:12px" onclick="addPromotionAdminV14()">➕ ${h.add}</button>
+  <div style="margin-top:18px">${rows || `<div class="cart-empty">${v17t('noRecords')}</div>`}</div></section>`;
+  wrapAdminV17('promotions',body,ctx.scrollY);
+}
+
+function renderOverviewAdminV17(ctx={}){
+  const type=$("overviewTypeV16")?.value||'day',date=$("overviewDateV16")?.value||today();
+  const {r,a}=overviewAggregate(type,date); const netKHR=a.salesKHR-a.expenseKHR,netUSD=a.salesUSD-a.expenseUSD;
+  const days=rangeDates(r);
+  const rows=days.map(d=>{const ds=aDateSales(d),de=aDateExp(d);return `<tr><td>${dayLabel(d)}</td><td>${moneyKHR(ds.k)}</td><td>${moneyUSD(ds.u)}</td><td>${moneyKHR(de.k)}</td><td>${moneyUSD(de.u)}</td><td>${ds.c}</td></tr>`;}).join('');
+  const L = S.lang==='kh' ? {title:'សង្ខេប',desc:'មើលទិន្នន័យប្រចាំថ្ងៃ សប្តាហ៍ និងខែ',period:'រយៈពេល',date:'កាលបរិច្ឆេទ',view:'មើល',export:'ទាញទិន្នន័យ',daily:'ប្រចាំថ្ងៃ',weekly:'ប្រចាំសប្តាហ៍',monthly:'ប្រចាំខែ',break:'បំបែកតាមថ្ងៃ',no:'មិនទាន់មានទិន្នន័យ'} : {title:'Overview',desc:'View data by day, week and month',period:'Period',date:'Date',view:'View',export:'Export Data',daily:'Daily',weekly:'Weekly',monthly:'Monthly',break:'Daily Breakdown',no:'No records yet'};
+  wrapAdminV17('overview',`<div class="admin-section-toolbar-v17"><div><h2>📊 ${L.title}</h2><p class="muted">${L.desc}</p></div><button class="export-btn" onclick="exportOverviewCSVV16()">📥 ${L.export}</button></div>
+  <section class="panel"><div class="form-grid"><div><label>${L.period}</label><select id="overviewTypeV16"><option value="day">${L.daily}</option><option value="week">${L.weekly}</option><option value="month">${L.monthly}</option></select></div><div><label>${L.date}</label><input id="overviewDateV16" type="date" value="${date}"></div></div><button class="save-btn" style="margin-top:10px" onclick="renderAdminV17(event,'overview')">${L.view}</button></section>
+  <div class="stats admin-overview-stats"><div class="stat"><small>Sales KHR</small><strong>${moneyKHR(a.salesKHR)}</strong></div><div class="stat"><small>Sales USD</small><strong>${moneyUSD(a.salesUSD)}</strong></div><div class="stat"><small>Expenses KHR</small><strong>${moneyKHR(a.expenseKHR)}</strong></div><div class="stat"><small>Expenses USD</small><strong>${moneyUSD(a.expenseUSD)}</strong></div><div class="stat"><small>Net KHR</small><strong>${moneyKHR(netKHR)}</strong></div><div class="stat"><small>Net USD</small><strong>${moneyUSD(netUSD)}</strong></div><div class="stat"><small>Cups</small><strong>${a.cups}</strong></div><div class="stat"><small>Current Cash</small><strong>${moneyKHR(expectedCurrentCash().khr)}<br>${moneyUSD(expectedCurrentCash().usd)}</strong></div></div>
+  <section class="panel"><h3>📅 ${L.break}</h3><div class="table-wrap"><table class="report-table"><thead><tr><th>Date</th><th>Sales KHR</th><th>Sales USD</th><th>Expense KHR</th><th>Expense USD</th><th>Cups</th></tr></thead><tbody>${rows||'<tr><td colspan="6">'+L.no+'</td></tr>'}</tbody></table></div></section>`,ctx.scrollY);
+  $("overviewTypeV16").onchange=()=>renderAdminV17(null,'overview');
+  $("overviewDateV16").onchange=()=>renderAdminV17(null,'overview');
+}
+
+function renderProductsAdminV17(ctx={}){
+  ensureProductsLoaded();
+  const cats=productCategories(), kh=S.lang==='kh';
+  wrapAdminV17('products',`<div class="admin-section-toolbar-v17"><div><h2>☕ ${kh?'មុខទំនិញ និងមីនុយ':'Products & Menu'}</h2><p class="muted">${kh?'បន្ថែម កែ រូប លាក់/បង្ហាញ និងលុប':'Add, edit, image, show/hide and delete.'}</p></div></div>
+  <section class="panel"><div class="form-grid"><div><label>${kh?'ឈ្មោះអង់គ្លេស':'English Name'}</label><input id="prodEnV16" placeholder="Iced Latte"></div><div><label>${kh?'ឈ្មោះខ្មែរ':'Khmer Name'}</label><input id="prodKhV16" placeholder="ឡាតេទឹកកក"></div><div><label>${kh?'តម្លៃរៀល':'Price KHR'}</label><input id="prodPriceV16" type="number" min="0" placeholder="5000"></div><div><label>${kh?'ប្រភេទ':'Category'}</label><input id="prodCatV16" list="prodCatsV16" placeholder="Coffee"><datalist id="prodCatsV16">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div><div class="image-input-v16"><label>${kh?'រូបមុខទំនិញ':'Product Image'}</label><input id="prodImageV16" type="file" accept="image/png,image/jpeg,image/webp"></div><button class="save-btn" style="margin-top:10px" onclick="addProductV16()">➕ ${kh?'បន្ថែមមុខទំនិញ':'Add Product'}</button></section>
+  <section class="panel"><h3>${kh?'បញ្ជីមុខទំនិញ':'Menu Items'}</h3>${S.products.map((p,i)=>`<div class="product-admin-row-v16">${productImg(p)}<div><b>${esc(p[kh?1:0])}</b><br><span class="muted">${esc(p[kh?0:1])} · ${esc(p[3]||'Other')} · ${moneyKHR(p[2])}</span></div><div class="row-actions"><button class="mini-btn" onclick="editProductV16(${i})">✏️ ${kh?'កែ':'Edit'}</button><label class="mini-btn">🖼️ ${kh?'រូប':'Image'}<input type="file" accept="image/*" style="display:none" onchange="changeProductImageV16(${i},this.files[0])"></label><button class="mini-btn" onclick="toggleProductV16(${i})">${p[4]===false?'▶️ '+(kh?'បើក':'Show'):'⏸ '+(kh?'លាក់':'Hide')}</button><button class="mini-btn danger" onclick="deleteProductV16(${i})">🗑 ${kh?'លុប':'Delete'}</button></div></div>`).join('')}</section>`,ctx.scrollY);
+}
+
+function renderStaffAdminV17(ctx={}){
+  const kh=S.lang==='kh';
+  wrapAdminV17('staff',`<div class="admin-section-toolbar-v17"><div><h2>👥 ${kh?'បុគ្គលិក និងអ្នកប្រើ':'Staff & Users'}</h2><p class="muted">${kh?'Admin អាចបន្ថែម កែ បិទ និងលុបអ្នកប្រើ':'Admin can add, edit, disable and delete users.'}</p></div></div>
+  <section class="panel"><div class="form-grid"><div><label>${kh?'ឈ្មោះ':'Name'}</label><input id="userNameV16" placeholder="${kh?'Staff 03':'Staff 03'}"></div><div><label>${kh?'Username':'Username'}</label><input id="userUsernameV16" placeholder="staff03"></div><div><label>${kh?'ពាក្យសម្ងាត់':'Password'}</label><input id="userPasswordV16" placeholder="1234"></div><div><label>${kh?'តួនាទី':'Role'}</label><select id="userRoleV16"><option value="staff">${kh?'បុគ្គលិក':'Staff'}</option><option value="admin">${kh?'អ្នកគ្រប់គ្រង':'Admin'}</option></select></div></div><button class="save-btn" style="margin-top:10px" onclick="addUserV16()">➕ ${kh?'បន្ថែមអ្នកប្រើ':'Add User'}</button></section>
+  <section class="panel"><h3>${kh?'បញ្ជីអ្នកប្រើ':'User List'}</h3>${S.users.map((u,i)=>`<div class="admin-edit-row"><div><b>${esc(u.name||u.username)}</b><br><span class="muted">${esc(u.username)} · ${u.role==='admin'?(kh?'អ្នកគ្រប់គ្រង':'Admin'):(kh?'បុគ្គលិក':'Staff')} · ${u.active===false?(kh?'បិទ':'Disabled'):(kh?'ដំណើរការ':'Active')}</span></div><div class="row-actions"><button class="mini-btn" onclick="editUserV16(${i})">✏️ ${kh?'កែ':'Edit'}</button><button class="mini-btn" onclick="toggleUserV16(${i})">${u.active===false?'▶️ '+(kh?'បើក':'Enable'):'⏸ '+(kh?'បិទ':'Disable')}</button>${u.username!=='admin'?'<button class="mini-btn danger" onclick="deleteUserV16('+i+')">🗑 '+(kh?'លុប':'Delete')+'</button>':''}</div></div>`).join('')}</section>`,ctx.scrollY);
+}
+
+function renderInventoryAdminV17(ctx={}){
+  S.stock=S.stock||[];
+  const kh=S.lang==='kh';
+  wrapAdminV17('inventory',`<div class="admin-section-toolbar-v17"><div><h2>📦 ${kh?'ស្តុក':'Inventory'}</h2><p class="muted">${kh?'Admin អាចគ្រប់គ្រងស្តុក និងរូបភាពស្តុក':'Manage stock, quantities, images and low-stock levels.'}</p></div></div>
+  <section class="panel"><div class="form-grid"><div><label>${kh?'មុខស្តុក':'Stock Item'}</label><input id="stockNameV16" placeholder="${kh?'កាហ្វេ':'Coffee'}"></div><div><label>${kh?'ចំនួន':'Quantity'}</label><input id="stockQtyV16" type="number" min="0" placeholder="10"></div><div><label>${kh?'ឯកតា':'Unit'}</label><input id="stockUnitV16" placeholder="kg / pcs / L"></div><div><label>${kh?'កម្រិតព្រមាន':'Low Stock Level'}</label><input id="stockMinV16" type="number" min="0" placeholder="2"></div></div>
+  <div class="image-input-v16"><label>${kh?'រូបភាពស្តុក':'Stock Image'}</label><input id="stockImageV16" type="file" accept="image/png,image/jpeg,image/webp"></div>
+  <button class="save-btn" style="margin-top:10px" onclick="addStockV16()">➕ ${kh?'បន្ថែមស្តុក':'Add Stock'}</button></section>
+  <section class="panel"><h3>${kh?'បញ្ជីស្តុក':'Stock List'}</h3>${S.stock.map((x,i)=>`<div class="stock-admin-row-v16">${x.image?`<img class="stock-thumb-v16" src="${escAttr(x.image)}" alt="">`:`<div class="stock-thumb-v16 stock-placeholder-v17">📦</div>`}<div><b>${esc(x.name)}</b><br><span class="muted">${esc(x.unit||'pcs')} · ${kh?'អប្បបរមា':'Min'} ${Number(x.min||0)} · ${x.qty<=x.min?'⚠️ '+(kh?'ជិតអស់':'Low Stock'):(kh?'ល្អ':'OK')}</span></div><div class="row-actions"><b class="${x.qty<=x.min?'stock-low':'stock-ok'}">${x.qty}</b><button class="mini-btn" onclick="editStockV16(${i})">✏️ ${kh?'កែ':'Edit'}</button><label class="mini-btn">🖼️ ${kh?'រូប':'Image'}<input type="file" accept="image/*" style="display:none" onchange="changeStockImageV16(${i},this.files[0])"></label><button class="mini-btn danger" onclick="deleteStockV16(${i})">🗑 ${kh?'លុប':'Delete'}</button></div></div>`).join('')||`<div class="cart-empty">${v17t('noRecords')}</div>`}</section>`,ctx.scrollY);
+}
+
+function renderStaffStockPageV17(){
+  S.stock=S.stock||[];
+  const kh=S.lang==='kh';
+  $("staffStockContent").innerHTML=`<div class="two-col">
+  <section class="panel"><h2>📦 ${kh?'បញ្ចូលស្តុក':'Add Stock'}</h2>
+    <p class="muted">${kh?'បុគ្គលិកអាចបញ្ចូលស្តុកដែលហាងបានទទួល':'Staff can record stock received by the shop.'}</p>
+    <label>${kh?'មុខស្តុក':'Stock Item'}</label><input id="staffStockName" placeholder="${kh?'កាហ្វេ':'Coffee'}">
+    <div class="form-grid"><div><label>${kh?'ចំនួន':'Quantity'}</label><input id="staffStockQty" type="number" min="0" placeholder="10"></div>
+    <div><label>${kh?'ឯកតា':'Unit'}</label><input id="staffStockUnit" placeholder="kg / pcs / L"></div></div>
+    <label>${kh?'រូបភាពស្តុក':'Stock Image'}</label><input id="staffStockImage" type="file" accept="image/png,image/jpeg,image/webp">
+    <label>${kh?'កំណត់សម្គាល់':'Note'}</label><textarea id="staffStockNote" rows="3" placeholder="${kh?'ឧ. ទិញស្តុកថ្មី':'e.g. new stock received'}"></textarea>
+    <button class="save-btn" style="margin-top:10px" onclick="saveStaffStockV17()">➕ ${kh?'រក្សាទុកស្តុក':'Save Stock'}</button>
+  </section>
+  <section class="panel"><h2>📋 ${kh?'ស្តុកថ្មីៗ':'Recent Stock'}</h2>${(S.stock||[]).slice().reverse().slice(0,12).map(x=>`<div class="stock-admin-row-v16">${x.image?`<img class="stock-thumb-v16" src="${escAttr(x.image)}" alt="">`:`<div class="stock-thumb-v16 stock-placeholder-v17">📦</div>`}<div><b>${esc(x.name)}</b><br><span class="muted">${Number(x.qty||0)} ${esc(x.unit||'pcs')} · ${esc(x.note||'')}</span></div></div>`).join('')||`<div class="cart-empty">${v17t('noRecords')}</div>`}</section>
+  </div>`;
+  v17StripBilingual($("staffStockContent"));
+}
+function saveStaffStockV17(){
+  const name=$("staffStockName")?.value.trim(); const qty=Math.max(0,Number($("staffStockQty")?.value||0)); const unit=$("staffStockUnit")?.value.trim()||'pcs';
+  if(!name||qty<=0)return alert(S.lang==='kh'?'សូមបញ្ចូលមុខស្តុក និងចំនួន':'Please enter stock item and quantity');
+  const note=$("staffStockNote")?.value.trim()||''; const file=$("staffStockImage")?.files?.[0];
+  const save=(img='')=>{
+    S.stock=S.stock||[];
+    const existing=S.stock.find(x=>x.name.trim().toLowerCase()===name.toLowerCase() && (x.unit||'pcs')===unit);
+    if(existing){ existing.qty=Number(existing.qty||0)+qty; if(img)existing.image=img; existing.note=note||existing.note||''; existing.updatedAt=Date.now(); }
+    else S.stock.push({id:'st-'+Date.now(),name,qty,unit,min:0,image:img,note,updatedAt:Date.now(),addedBy:S.user});
+    write(V8KEY.stock,S.stock); audit('STAFF STOCK IN / បុគ្គលិកបញ្ចូលស្តុក',`${name} +${qty} ${unit}`); renderStaffStockPageV17();
+  };
+  if(file){const r=new FileReader();r.onload=()=>save(String(r.result||''));r.readAsDataURL(file);} else save('');
+}
+
+function renderSettingsAdminV17(ctx={}){
+  const kh=S.lang==='kh';
+  wrapAdminV17('settings',`<div class="admin-section-toolbar-v17"><div><h2>⚙️ ${kh?'កំណត់ហាង':'Shop Settings'}</h2><p class="muted">${kh?'ព័ត៌មានមូលដ្ឋាន និងអត្រាប្តូរប្រាក់':'Business information and exchange rate.'}</p></div></div>
+  <section class="panel"><div class="form-grid"><div><label>${kh?'ឈ្មោះហាង':'Shop Name'}</label><input id="setShopV16" value="${escAttr(S.settings.shopName||'nona-me coffee')}"></div><div><label>${kh?'ទូរស័ព្ទ':'Phone'}</label><input id="setPhoneV16" value="${escAttr(S.settings.phone||'')}"></div><div><label>Telegram</label><input id="setTelegramV16" value="${escAttr(S.settings.telegram||'')}"></div><div><label>${kh?'អាសយដ្ឋាន':'Address'}</label><input id="setAddressV16" value="${escAttr(S.settings.address||'')}"></div></div><label>${kh?'អត្រាប្តូរប្រាក់':'Exchange Rate'}</label><input id="setRateV16" type="number" min="1" value="${Number(S.rate||4000)}"><button class="save-btn" style="margin-top:10px" onclick="saveSettingsV16()">💾 ${v17t('save')}</button></section>`,ctx.scrollY);
+}
+
+function renderAuditAdminV17(ctx={}){
+  const kh=S.lang==='kh';
+  const logs=read(V8KEY.logs,[]).slice().reverse();
+  wrapAdminV17('audit',`<div class="admin-section-toolbar-v17"><div><h2>🛡️ ${kh?'ប្រវត្តិសកម្មភាព':'Audit Log'}</h2><p class="muted">${kh?'កំណត់ត្រាសកម្មភាពអ្នកប្រើ':'User activity history.'}</p></div></div><section class="panel">${logs.map(l=>`<div class="log-row"><span>${l.date} · ${l.time}<br><small>${esc(l.user||'—')} · ${esc(l.action||'')}</small></span><b>${esc(l.detail||'')}</b></div>`).join('')||`<div class="cart-empty">${v17t('noRecords')}</div>`}</section>`,ctx.scrollY);
+}
+
+function renderSiteV17(ctx={}){
+  const c=S.cms||{}; const sc=S.siteControl||{};
+  const kh=S.lang==='kh';
+  const colorFields = [
+    ['primary',v17t('primary'),'#8B2E23'],['accent',v17t('accent'),'#C4563B'],['beige',v17t('beige'),'#E2C9A8'],
+    ['cream',v17t('cream'),'#F8F6F1'],['dark',v17t('dark'),'#3A2A24'],['green',v17t('green'),'#5A7D5B']
+  ];
+  const navEntries=Object.entries(c.nav||{});
+  const colorHtml=colorFields.map(([k,label,def])=>`<div class="cms-setting-card-v16 color-picker-card-v17"><label>${label}</label><input type="color" id="site_${k}_V17" value="${escAttr(cssSafe(c[k]||def,def))}" title="${label}"><code id="site_${k}_hex_V17">${esc(c[k]||def)}</code></div>`).join('');
+  const navHtml=navEntries.map(([k,v])=>`<div class="cms-nav-row"><label>${esc(k)}</label><input id="siteNav_${k}_V17" value="${escAttr(v)}"><label class="cms-toggle"><input id="siteVis_${k}_V17" type="checkbox" ${c.visible?.[k]!==false?'checked':''}><span>${kh?'បង្ហាញ':'Show'}</span></label></div>`).join('');
+  wrapAdminV17('site',`<div class="admin-section-toolbar-v17"><div><h2>🛠️ ${kh?'គ្រប់គ្រង Website':'Website Control'}</h2><p class="muted">${kh?'កែ Website ដោយមិនចាំបាច់សរសេរ Code':'Edit the website without coding.'}</p></div></div>
+  <div class="cms-big-row-v16"><section class="panel"><h3>🏪 ${kh?'ម៉ាក និងមាតិកា':'Brand & Content'}</h3><div class="cms-settings-grid-v16"><div class="cms-setting-card-v16"><label>${kh?'ឈ្មោះហាង':'Shop Name'}</label><input id="siteShopNameV17" value="${escAttr(c.shopName||S.settings.shopName)}"></div><div class="cms-setting-card-v16"><label>${kh?'ពាក្យពិពណ៌នា':'Tagline'}</label><input id="siteTaglineV17" value="${escAttr(c.tagline||'')}"></div><div class="cms-setting-card-v16"><label>${kh?'សារជូនដំណឹង':'Announcement'}</label><input id="siteAnnouncementV17" value="${escAttr(c.announcement||'')}"></div><div class="cms-setting-card-v16"><label>${kh?'អក្សរខាងក្រោម':'Footer'}</label><input id="siteFooterV17" value="${escAttr(c.footer||'')}"></div></div>
+  <div class="image-input-v16" style="margin-top:12px"><label>${kh?'Logo ផ្លូវការ':'Official Logo'}</label><img class="asset-preview-v16" src="${escAttr(c.logoData||'assets/nona-me-logo.png')}" alt="Logo"><input id="siteLogoV17" type="file" accept="image/*"></div></section>
+  <section class="panel"><h3>🎨 ${v17t('appearance')}</h3><p class="muted">${v17t('colors')}</p><div class="cms-settings-grid-v16">${colorHtml}</div><div id="appearancePreviewV17" class="color-preview-v11"></div></section></div>
+  <section class="panel"><h3>🧭 ${kh?'Menu និង Layout':'Navigation & Layout'}</h3>${navHtml}<div class="form-grid" style="margin-top:12px"><div><label>${kh?'មីនុយលំនាំដើម':'Default Menu View'}</label><select id="siteMenuViewV17"><option value="grid" ${menuViewV16()==='grid'?'selected':''}>${v17t('grid')}</option><option value="list" ${menuViewV16()==='list'?'selected':''}>${v17t('list')}</option></select></div><div><label>${kh?'បន្ទាត់ខណ្ឌ Report':'Report Separator'}</label><input id="siteSeparatorV17" value="${escAttr(sc.reportSeparator||'━━━━━━━━━━━━━━━━━━')}"></div></div></section>
+  <section class="panel"><h3>🖨️ ${kh?'ការព្រីន':'Printing'}</h3><div class="form-grid"><div><label>${kh?'ប្រភេទក្រដាស Receipt':'Receipt Paper'}</label><select id="sitePaperV17"><option ${sc.receiptPaper==='58mm'?'selected':''}>58mm</option><option ${sc.receiptPaper==='80mm'?'selected':''}>80mm</option><option ${sc.receiptPaper==='A4'?'selected':''}>A4</option></select></div><div><label>${kh?'Footer Receipt':'Receipt Footer'}</label><input id="siteReceiptFooterV17" value="${escAttr(c.receipt?.footer||'Thank you')}"></div></div></section>
+  <div class="sticky-save-v11"><button class="save-btn" onclick="saveSiteV17()">💾 ${kh?'រក្សាទុកការកែ Website ទាំងអស់':'Save All Website Changes'}</button></div>`,ctx.scrollY);
+  colorFields.forEach(([k])=>{const input=$(`site_${k}_V17`),hex=$(`site_${k}_hex_V17`);if(input){input.addEventListener('input',()=>{if(hex)hex.textContent=input.value;const preview=$('appearancePreviewV17');if(preview)preview.style.background=input.value;});}});
+  const p=$('appearancePreviewV17'); if(p){p.style.background=c.primary||'#8B2E23';p.textContent=v17t('appearance');}
+}
+
+async function saveSiteV17(){
+  const c=S.cms||{};
+  c.shopName=$("siteShopNameV17").value.trim()||defaultCMSV11.shopName;
+  c.tagline=$("siteTaglineV17").value.trim();c.announcement=$("siteAnnouncementV17").value.trim();c.footer=$("siteFooterV17").value.trim();
+  ['primary','accent','beige','cream','dark','green'].forEach(k=>{c[k]=cssSafe($(`site_${k}_V17`).value,c[k]||'#8B2E23');});
+  for(const k of Object.keys(c.nav||{})){c.nav[k]=$(`siteNav_${k}_V17`).value.trim()||c.nav[k];c.visible[k]=$(`siteVis_${k}_V17`).checked;}
+  c.receipt=c.receipt||{};c.receipt.footer=$("siteReceiptFooterV17").value.trim();
+  S.cms=c;S.siteControl.defaultMenuView=$("siteMenuViewV17").value;S.siteControl.reportSeparator=$("siteSeparatorV17").value||'━━━━━━━━━━━━━━━━━━';S.siteControl.receiptPaper=$("sitePaperV17").value;
+  write(CMS_KEY_V11,c);write(V16_SITE_KEY,S.siteControl);
+  const f=$("siteLogoV17")?.files?.[0];
+  if(f){const r=new FileReader();r.onload=()=>{c.logoData=String(r.result||'');write(CMS_KEY_V11,c);applyCMSV11();finishSaveSiteV17();};r.readAsDataURL(f);}
+  else finishSaveSiteV17();
+}
+function finishSaveSiteV17(){applyCMSV11();renderCategoriesV16();renderProductsV16();renderSiteV17({scrollY:window.scrollY});alert(v17t('saved'));}
+
+/* Staff should not see or navigate to weekly/monthly reports. */
+const _showPageV17 = showPage;
+showPage = function(name,btn){
+  if(name==='periodReport' && S.role!=='admin') return;
+  if(name==='stock'){ 
+    document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
+    $("stockPage").classList.remove('hidden');
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    btn?.classList.add("active");
+    renderStaffStockPageV17();
+    v17StripBilingual($("stockPage"));
+    return;
+  }
+  _showPageV17(name,btn);
+  if(name==='admin' && S.role==='admin')renderAdminV17(null,S.__adminSection||'overview');
+  v17ApplySingleLanguage();
+  if(name==='report')renderReportV16();
+};
+
+/* Force role-based period tab visibility after login/boot. */
+const _updateUserLineV17 = updateUserLine;
+updateUserLine = function(){_updateUserLineV17();$("periodReportTab")?.classList.toggle("hidden",S.role!=='admin');$("stockTab")?.classList.remove("hidden");};
+
+const _renderAllV17 = renderAll;
+renderAll = function(){_renderAllV17();$("periodReportTab")?.classList.toggle("hidden",S.role!=='admin');$("stockTab")?.classList.remove("hidden");v17ApplySingleLanguage();};
+
+const _bootV17 = boot;
+boot = async function(){await _bootV17();v17ApplySingleLanguage();if($("stockTab"))$("stockTab").classList.remove("hidden");if($("periodReportTab"))$("periodReportTab").classList.toggle("hidden",S.role!=='admin');};
+
+/* Re-route the actual admin renderer to V17, and keep the old function names for compatibility. */
+renderAdmin = renderAdminV17;
+window.renderAdminV17 = renderAdminV17;
+
+/* Ensure generated admin screens use the same single-language rule. */
+const _renderPromotionsAdminV17Original = renderPromotionsAdminV14;
+renderPromotionsAdminV14 = function(){ renderPromotionsAdminV17Fixed({scrollY:window.scrollY}); };
+
+/* Make product/category toolbar single-language after it is rendered. */
+const _renderCategoriesV17 = renderCategories;
+renderCategories = function(){ _renderCategoriesV17(); v17StripBilingual(document.getElementById('categoryBar')||document.body); };
+const _renderProductsV17 = renderProducts;
+renderProducts = function(){ _renderProductsV17(); v17StripBilingual(document.getElementById('productGrid')||document.body); };
+
+/* Keep the visible menu buttons translated to one language. */
+setTimeout(()=>{v17ApplySingleLanguage();},50);

@@ -40,6 +40,7 @@
     <button class="tab" data-page="expenses">Expenses / ចំណាយ</button>
     <button class="tab" data-page="cash">Daily Cash / លុយក្នុងតុ</button>
     <button class="tab" data-page="deposit">Deposit / ដាក់ធនាគារ</button>
+    <button id="stockTab" class="tab" data-page="stock">Stock / ស្តុក</button>
     <button id="adminTab" class="tab hidden" data-page="admin">Admin</button>
     <button class="tab" data-page="report">Daily Report / របាយការណ៍</button>
     <button id="periodReportTab" class="tab hidden" data-page="periodReport">Weekly / Monthly</button>
@@ -110,6 +111,11 @@
       </section>
       <section class="panel"><h2>Cash Result / លទ្ធផល</h2><div id="cashResult"></div></section>
     </div>
+  </section>
+
+  <section id="stockPage" class="page hidden">
+    <div class="page-head"><div><h1>Stock / ស្តុក</h1><p id="stockPageHint" class="muted">Add stock received by the shop.</p></div></div>
+    <div id="staffStockContent"></div>
   </section>
 
   <section id="depositPage" class="page hidden">
