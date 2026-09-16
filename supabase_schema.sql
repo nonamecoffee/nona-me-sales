@@ -1,4 +1,4 @@
--- Nona-me Sales Master 1.4
+-- Nona-me Sales Master 1.5
 -- Safe, idempotent Supabase schema.
 -- Run this whole script in Supabase SQL Editor.
 -- It can be run again safely.
@@ -296,10 +296,10 @@ for delete to authenticated using (public.nona_me_is_admin());
 -- Shared state used by the current web client
 create policy nona_state_auth_select on public.nona_me_state
 for select to authenticated using (true);
-create policy nona_state_auth_insert on public.nona_me_state
-for insert to authenticated with check (true);
-create policy nona_state_auth_update on public.nona_me_state
-for update to authenticated using (true) with check (true);
+create policy nona_state_admin_insert on public.nona_me_state
+for insert to authenticated with check (public.nona_me_is_admin());
+create policy nona_state_admin_update on public.nona_me_state
+for update to authenticated using (public.nona_me_is_admin()) with check (public.nona_me_is_admin());
 create policy nona_state_admin_delete on public.nona_me_state
 for delete to authenticated using (public.nona_me_is_admin());
 

@@ -1,11 +1,11 @@
 
-const KEY="nona_me_master_v1_4";
+const KEY="nona_me_master_v1_5";
 const seedProducts = [["Coffee Milk", "កាហ្វេទឹកដោះគោ", 5000, "Coffee"], ["Coffee Cream", "កាហ្វេក្រែម", 5000, "Coffee"], ["Coffee Egg Cream", "កាហ្វេក្រែមពងមាន់", 5000, "Coffee"], ["Coffee Taro", "កាហ្វេតារ៉ូ", 5000, "Coffee"], ["Americano", "អាមេរិកាណូ", 5000, "Coffee"], ["Latte", "ឡាតេ", 5000, "Coffee"], ["Cappuccino", "កាពូជីណូ", 5000, "Coffee"], ["Mocha", "ម៉ូកា", 5000, "Coffee"], ["Matcha Milk", "ម៉ាតឆាទឹកដោះគោ", 5000, "Matcha"], ["Matcha Cream", "ម៉ាតឆាក្រែម", 5000, "Matcha"], ["Matcha Taro", "ម៉ាតឆាតារ៉ូ", 5000, "Matcha"], ["Cacao Milk", "កាកាវទឹកដោះគោ", 5000, "Cacao"], ["Cacao Cream", "កាកាវក្រែម", 5000, "Cacao"], ["Thai Tea", "តែថៃ", 5000, "Tea"], ["Green Tea Milk", "តែបៃតងទឹកដោះគោ", 5000, "Tea"], ["Black Tea", "តែខ្មៅ", 4000, "Tea"], ["Lemon Tea", "តែក្រូចឆ្មារ", 5000, "Tea"], ["Peach Tea", "តែផេស", 5000, "Tea"], ["Passion Tea", "តែផាសិន", 5000, "Tea"], ["Soda Lemon", "សូដាក្រូចឆ្មារ", 5000, "Soda"], ["Soda Passion", "សូដាផាសិន", 5000, "Soda"], ["Soda Blue", "សូដាប្លូ", 5000, "Soda"], ["Soda Strawberry", "សូដាស្ត្របឺរី", 5000, "Soda"], ["Taro Milk", "តារ៉ូទឹកដោះគោ", 5000, "Other"], ["Chocolate Milk", "សូកូឡាទឹកដោះគោ", 5000, "Cacao"], ["Vanilla Milk", "វ៉ានីឡាទឹកដោះគោ", 5000, "Other"], ["Caramel Milk", "ការ៉ាមែលទឹកដោះគោ", 5000, "Other"], ["Milk Tea", "តែទឹកដោះគោ", 5000, "Tea"], ["Lemon Soda", "សូដាក្រូចឆ្មារ", 5000, "Soda"]];
 const I18N={
 en:{sales:"Sales",menu:"Menu",expenses:"Expenses",cash:"Cash Drawer",deposit:"Bank Deposit",stock:"Stock",report:"Daily Report",reports:"Reports",history:"History",admin:"Admin",overview:"Overview",website:"Website Control",products:"Products & Menu",promotions:"Promotions",inventory:"Inventory",staffUsers:"Staff & Users",settings:"Shop Settings",audit:"Audit Log",records:"Records",salesManagement:"Sales Management",appearance:"Appearance",login:"Login",logout:"Logout",switchUser:"Switch User",remember:"Remember login",username:"Username",password:"Password",today:"Today's Sales",search:"Search menu...",all:"All",category:"Category",list:"List",grid:"Grid",current:"Current Sale",promotion:"Promotion",none:"No Promotion",currency:"Currency",payment:"Payment",rate:"Exchange Rate",total:"Total",netTotal:"Net Total",save:"Save",savePrint:"Save & Print",print:"Print",copy:"Copy Text",saveImage:"Save Image",export:"Export CSV",previous:"Previous Cash",cashSales:"Cash Sales",cashExpenses:"Cash Expenses",expected:"Expected Cash",actual:"Actual Cash",difference:"Difference",amount:"Amount",note:"Note",expenseOn:"What was it spent on?",addStock:"Add Stock",item:"Stock Item",quantity:"Quantity",unit:"Unit",minimum:"Low Stock Level",addProduct:"Add Product",englishName:"English Name",khmerName:"Khmer Name",priceKHR:"Price KHR",image:"Image",uploadPhoto:"Upload Photo",takePhoto:"Take Photo",retakePhoto:"Retake Photo",removePhoto:"Remove Photo",photoPreview:"Photo Preview",addPromo:"Add Promotion",buyCups:"Buy Cups",promoPrice:"Promotion Price",applies:"Applies to",addUser:"Add User",name:"Name",role:"Role",active:"Active",disabled:"Disabled",add:"Add",edit:"Edit",delete:"Delete",enable:"Enable",disable:"Disable",daily:"Daily",weekly:"Weekly",monthly:"Monthly",view:"View",exportData:"Export Data",displayMode:"Display Mode",light:"Light",dark:"Dark",auto:"Auto",chooseColor:"Choose color",logo:"Official Logo",navigation:"Navigation",separator:"Report Separator",required:"Please complete required fields.",saved:"Saved",copied:"Copied",noRecords:"No records yet",lowStock:"Low Stock",cups:"Cups",bestSeller:"Best Seller",staff:"Staff",phone:"Phone",address:"Address",telegram:"Telegram",footer:"Footer",tagline:"Tagline",announcement:"Announcement",paper:"Receipt Paper",receiptFooter:"Receipt Footer",today:"Today",menu:"Menu"},
 kh:{sales:"ការលក់",menu:"មីនុយ",expenses:"ចំណាយ",cash:"លុយក្នុងតុ",deposit:"ដាក់ធនាគារ",stock:"ស្តុក",report:"របាយការណ៍ប្រចាំថ្ងៃ",reports:"របាយការណ៍",history:"ប្រវត្តិ",admin:"គ្រប់គ្រង",overview:"សង្ខេប",website:"គ្រប់គ្រង Website",products:"មុខទំនិញ និងមីនុយ",promotions:"ប្រូម៉ូសិន",inventory:"ស្តុក",staffUsers:"បុគ្គលិក និងអ្នកប្រើ",settings:"កំណត់ហាង",audit:"ប្រវត្តិសកម្មភាព",records:"កំណត់ត្រា",salesManagement:"គ្រប់គ្រងការលក់",appearance:"រូបរាង",login:"ចូលប្រើ",logout:"ចេញ",switchUser:"ប្តូរអ្នកប្រើ",remember:"ចងចាំការចូល",username:"ឈ្មោះអ្នកប្រើ",password:"ពាក្យសម្ងាត់",today:"ការលក់ថ្ងៃនេះ",search:"ស្វែងរកមីនុយ...",all:"ទាំងអស់",category:"ប្រភេទ",list:"បញ្ជី",grid:"ក្រឡា",current:"ការលក់បច្ចុប្បន្ន",promotion:"ប្រូម៉ូសិន",none:"គ្មានប្រូម៉ូសិន",currency:"រូបិយប័ណ្ណ",payment:"ការទូទាត់",rate:"អត្រាប្តូរប្រាក់",total:"សរុប",netTotal:"សរុបសុទ្ធ",save:"រក្សាទុក",savePrint:"រក្សាទុក និងព្រីន",print:"ព្រីន",copy:"ចម្លងអត្ថបទ",saveImage:"រក្សាទុកជារូបភាព",export:"ទាញ CSV",previous:"សាច់ប្រាក់ដើម",cashSales:"លក់សាច់ប្រាក់",cashExpenses:"ចំណាយសាច់ប្រាក់",expected:"សាច់ប្រាក់រំពឹងទុក",actual:"សាច់ប្រាក់រាប់បាន",difference:"ខុសគ្នា",amount:"ចំនួនទឹកប្រាក់",note:"កំណត់សម្គាល់",expenseOn:"ចំណាយលើអ្វី?",addStock:"បញ្ចូលស្តុក",item:"មុខស្តុក",quantity:"ចំនួន",unit:"ឯកតា",minimum:"កម្រិតព្រមាន",addProduct:"បន្ថែមមុខទំនិញ",englishName:"ឈ្មោះអង់គ្លេស",khmerName:"ឈ្មោះខ្មែរ",priceKHR:"តម្លៃរៀល",image:"រូបភាព",uploadPhoto:"បញ្ចូលរូបភាព",takePhoto:"ថតរូប",retakePhoto:"ថតម្តងទៀត",removePhoto:"ដករូបចេញ",photoPreview:"មើលរូបភាព",addPromo:"បន្ថែមប្រូម៉ូសិន",buyCups:"ចំនួនកែវ",promoPrice:"តម្លៃប្រូម៉ូសិន",applies:"ប្រើសម្រាប់",addUser:"បន្ថែមអ្នកប្រើ",name:"ឈ្មោះ",role:"តួនាទី",active:"ដំណើរការ",disabled:"បិទ",add:"បន្ថែម",edit:"កែ",delete:"លុប",enable:"បើក",disable:"បិទ",daily:"ប្រចាំថ្ងៃ",weekly:"ប្រចាំសប្តាហ៍",monthly:"ប្រចាំខែ",view:"មើល",exportData:"ទាញទិន្នន័យ",displayMode:"របៀបបង្ហាញ",light:"ភ្លឺ",dark:"ងងឹត",auto:"ស្វ័យប្រវត្តិ",chooseColor:"ជ្រើសពណ៌",logo:"Logo ផ្លូវការ",navigation:"មីនុយ",separator:"បន្ទាត់ខណ្ឌរបាយការណ៍",required:"សូមបំពេញព័ត៌មានដែលត្រូវការ។",saved:"បានរក្សាទុក",copied:"បានចម្លង",noRecords:"មិនទាន់មានទិន្នន័យ",lowStock:"ស្តុកជិតអស់",cups:"កែវ",bestSeller:"លក់ដាច់ជាងគេ",staff:"បុគ្គលិក",phone:"ទូរស័ព្ទ",address:"អាសយដ្ឋាន",telegram:"Telegram",footer:"អក្សរខាងក្រោម",tagline:"ពាក្យពិពណ៌នា",announcement:"សារជូនដំណឹង",paper:"ក្រដាសវិក្កយបត្រ",receiptFooter:"អក្សរខាងក្រោមវិក្កយបត្រ",today:"ថ្ងៃនេះ",menu:"មីនុយ"}};
 function load(){
-  const keys=[KEY,"nona_me_master_v42","nona_me_master_v41","nona_me_master_v40","nona_me_master_v39"];
+  const keys=[KEY,"nona_me_master_v1_4","nona_me_master_v42","nona_me_master_v41","nona_me_master_v40","nona_me_master_v39"];
   for(const k of keys){let x=localStorage.getItem(k);if(x){try{const parsed=JSON.parse(x);parsed.__migratedFrom=k;return parsed}catch{}}}
   return {lang:"en",theme:"light",user:null,role:null,remember:false,page:"sales",ui:{category:"All",search:"",menuView:"grid",currency:"KHR",payment:"Cash",cart:[]},products:seedProducts.map((p,i)=>({id:"p"+i,en:p[0],kh:p[1],price:+p[2],category:p[3],active:true,image:""})),promotions:[{id:"pr1",en:"2 Cups Special",kh:"ប្រូម៉ូសិន ២ កែវ",qty:2,price:6000,products:"ALL",active:true}],users:[{id:"u1",name:"Admin",username:"admin",password:"admin",role:"admin",active:true},{id:"u2",name:"Staff 01",username:"staff01",password:"1234",role:"staff",active:true}],sales:[],expenses:[],deposits:[],cashCounts:[],stock:[],settings:{shopName:"nona-me coffee",phone:"",address:"",telegram:"",rate:4000},cms:{shopName:"nona-me coffee",tagline:"Daily Sales System",announcement:"",footer:"Thank you",logo:"",primary:"#8B2E23",accent:"#C4563B",beige:"#E2C9A8",cream:"#F8F6F1",dark:"#3A2A24",green:"#5A7D5B"},separator:"━━━━━━━━━━━━━━━━━━"}}
 let S=load();const $=id=>document.getElementById(id),L=k=>I18N[S.lang]?.[k]||k,fmt=n=>Math.round(n||0).toLocaleString(),mKHR=n=>fmt(n)+"៛",mUSD=n=>"$"+Number(n||0).toFixed(2),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6),today=()=>new Date().toISOString().slice(0,10),dt=()=>{let d=new Date();return {date:d.toISOString().slice(0,10),time:d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}};
@@ -305,4 +305,284 @@ function adminAct(a,i){if(a==="editStock"){return editStockModal(i)}else if(a===
 
 function __staffStockAdjust(){}
 
-render();
+
+/* MASTER 1.5 CLOUD LAYER */
+
+const SUPABASE_URL = "https://aucwgnbhcbcovmshjmuo.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XKT_TSLgOd75bhapXEUZ2Q_rs98dwcO";
+let SB = null;
+let CLOUD = {ready:false, online:false, uid:null, profile:null, syncing:false};
+try{
+  if(window.supabase?.createClient){
+    SB = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    CLOUD.ready = true;
+  }
+}catch(e){ console.warn("Supabase init failed",e); }
+
+function cloudMsg(){
+  return S.lang==='kh'
+    ? 'Cloud Database មិនទាន់ភ្ជាប់បាន។ ទិន្នន័យក្នុងឧបករណ៍នេះនៅតែរក្សាទុកក្នុង Browser។'
+    : 'Cloud Database is not connected. Data is currently kept in this browser.';
+}
+function cloudCatalog(){
+  return {products:S.products,promotions:S.promotions,settings:S.settings,cms:S.cms,separator:S.separator};
+}
+function mergeCatalog(x){
+  if(!x)return;
+  if(Array.isArray(x.products))S.products=x.products;
+  if(Array.isArray(x.promotions))S.promotions=x.promotions;
+  S.settings={...S.settings,...(x.settings||{})};
+  S.cms={...S.cms,...(x.cms||{}),nav:{...S.cms.nav,...((x.cms||{}).nav||{})},reportSections:{...S.cms.reportSections,...((x.cms||{}).reportSections||{})},receipt:{...S.cms.receipt,...((x.cms||{}).receipt||{})},contact:{...S.cms.contact,...((x.cms||{}).contact||{})},pwa:{...S.cms.pwa,...((x.cms||{}).pwa||{})}};
+  if(x.separator)S.separator=x.separator;
+}
+async function cloudProfile(uid){
+  if(!SB||!uid)return null;
+  const {data,error}=await SB.from('nona_me_profiles').select('*').eq('id',uid).maybeSingle();
+  if(error)throw error;
+  return data;
+}
+function mapCloudProductRow(x){return {id:x.id,en:x.name_en,kh:x.name_kh,price:+x.price_khr||0,category:x.category_name||'Other',active:x.active!==false,image:x.image_url||''};}
+async function cloudLoadCatalog(){
+  const {data,error}=await SB.from('nona_me_state').select('state').eq('id','main').maybeSingle();
+  if(error)throw error;
+  const state=data?.state||{};
+  const has=Object.keys(state).length>0;
+  if(has) mergeCatalog(state);
+  return has;
+}
+async function cloudLoadOperational(){
+  const [profilesR,salesR,itemsR,expR,depR,cashR,stockR] = await Promise.all([
+    SB.from('nona_me_profiles').select('id,display_name,role,active'),
+    SB.from('nona_me_sales').select('*').order('sale_time',{ascending:false}),
+    SB.from('nona_me_sale_items').select('*').order('created_at',{ascending:true}),
+    SB.from('nona_me_expenses').select('*').order('expense_time',{ascending:false}),
+    SB.from('nona_me_bank_deposits').select('*').order('deposit_time',{ascending:false}),
+    SB.from('nona_me_cash_counts').select('*').order('count_time',{ascending:false}),
+    SB.from('nona_me_stock_items').select('*').order('created_at',{ascending:true})
+  ]);
+  for(const r of [profilesR,salesR,itemsR,expR,depR,cashR,stockR]) if(r.error) throw r.error;
+  CLOUD_PROFILES={};(profilesR.data||[]).forEach(p=>CLOUD_PROFILES[p.id]={name:p.display_name||'',role:p.role||'staff',active:p.active!==false});
+  const itemsBySale={};
+  (itemsR.data||[]).forEach(it=>{(itemsBySale[it.sale_id] ||= []).push({id:it.product_id||it.id,qty:+it.qty||1,price:+it.unit_price_khr||0,en:it.product_name_en||'',kh:it.product_name_kh||''});});
+  S.sales=(salesR.data||[]).map(x=>({id:x.id,date:x.sale_date,time:new Date(x.sale_time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),user:CLOUD_PROFILES[x.staff_user_id]?.name||'',role:CLOUD_PROFILES[x.staff_user_id]?.role||'staff',currency:x.currency,payment:x.payment_method,rate:+x.exchange_rate||4000,amount:+x.total||0,cups:itemsBySale[x.id]?.reduce((a,i)=>a+i.qty,0)||0,items:itemsBySale[x.id]||[],promotionId:x.promotion_id||'',note:x.note||'',cloudId:x.id}));
+  S.expenses=(expR.data||[]).map(x=>({id:x.id,date:x.expense_date,time:new Date(x.expense_time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),user:CLOUD_PROFILES[x.staff_user_id]?.name||'',desc:x.description,amount:+x.amount||0,currency:x.currency,method:x.payment_method,note:x.note||'',cloudId:x.id}));
+  S.deposits=(depR.data||[]).map(x=>({id:x.id,date:x.deposit_date,time:new Date(x.deposit_time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),user:CLOUD_PROFILES[x.staff_user_id]?.name||'',amount:+x.amount||0,currency:x.currency,bank:x.bank_name||'',note:x.note||'',cloudId:x.id}));
+  S.cashCounts=(cashR.data||[]).map(x=>({id:x.id,date:x.count_date,time:new Date(x.count_time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),user:CLOUD_PROFILES[x.staff_user_id]?.name||'',khr:+x.actual_khr||0,usd:+x.actual_usd||0,expectedKhr:+x.expected_khr||0,expectedUsd:+x.expected_usd||0,cloudId:x.id}));
+  S.stock=(stockR.data||[]).map(x=>({id:x.id,name:x.name_en||x.name_kh||'',en:x.name_en||'',kh:x.name_kh||'',qty:+x.qty||0,unit:x.unit||'',min:+x.minimum_qty||0,cost:+x.cost_per_unit_khr||0,image:x.image_url||'',active:x.active!==false,note:x.note||'',cloudId:x.id}));
+}
+async function cloudLoad(){
+  if(!SB)return false;
+  const {data:{session},error} = await SB.auth.getSession();
+  if(error)throw error;
+  if(!session){CLOUD.online=false;return false;}
+  CLOUD.uid=session.user.id;
+  CLOUD.profile=await cloudProfile(CLOUD.uid);
+  if(!CLOUD.profile || CLOUD.profile.active===false) { await SB.auth.signOut(); throw new Error('Account is disabled'); }
+  S.user={id:CLOUD.uid,name:CLOUD.profile.display_name||session.user.email.split('@')[0],username:session.user.email,role:CLOUD.profile.role};
+  S.role=CLOUD.profile.role;
+  const hasCatalog=await cloudLoadCatalog();
+  if(!hasCatalog && CLOUD.profile?.role==='admin'){
+    await cloudSaveCatalog();
+  }
+  await cloudLoadOperational();
+  CLOUD.online=true;
+  localStorage.setItem(KEY,JSON.stringify(S));
+  return true;
+}
+async function cloudEnsure(){
+  try{ await cloudLoad(); return true; }catch(e){console.warn('Cloud load:',e); CLOUD.online=false; return false; }
+}
+async function cloudSaveCatalog(){
+  if(!SB||!CLOUD.online||S.role!=='admin')return;
+  const payload={state:cloudCatalog(),updated_at:new Date().toISOString(),updated_by:CLOUD.uid};
+  const {error}=await SB.from('nona_me_state').upsert({id:'main',...payload},{onConflict:'id'});
+  if(error)throw error;
+}
+let cloudCatalogTimer=null;
+function queueCloudCatalog(){
+  if(!SB||!CLOUD.online||S.role!=='admin')return;
+  clearTimeout(cloudCatalogTimer);
+  cloudCatalogTimer=setTimeout(async()=>{try{await cloudSaveCatalog();CLOUD.online=true;}catch(e){console.warn('Cloud catalog save failed',e);CLOUD.online=false;}},350);
+}
+async function cloudInsertSale(s){
+  const {data,error}=await SB.from('nona_me_sales').insert({sale_date:s.date,sale_time:new Date().toISOString(),staff_user_id:CLOUD.uid,currency:s.currency,payment_method:s.payment,exchange_rate:s.rate,subtotal:s.amount,discount:0,total:s.amount,promotion_id:null,note:s.note||null}).select().single();
+  if(error)throw error;
+  const rows=(s.items||[]).map(it=>({sale_id:data.id,product_id:null,product_name_en:it.en||'',product_name_kh:it.kh||'',qty:+it.qty||1,unit_price_khr:+it.price||0,line_total_khr:(+it.price||0)*(+it.qty||1)}));
+  if(rows.length){const ir=await SB.from('nona_me_sale_items').insert(rows);if(ir.error){await SB.from('nona_me_sales').delete().eq('id',data.id);throw ir.error;}}
+  s.id=data.id;s.cloudId=data.id;
+}
+async function cloudInsertExpense(x){const {data,error}=await SB.from('nona_me_expenses').insert({expense_date:x.date,expense_time:new Date().toISOString(),staff_user_id:CLOUD.uid,description:x.desc,amount:x.amount,currency:x.currency,payment_method:x.method,note:x.note||null}).select().single();if(error)throw error;x.id=data.id;x.cloudId=data.id;}
+async function cloudInsertDeposit(x){const {data,error}=await SB.from('nona_me_bank_deposits').insert({deposit_date:x.date,deposit_time:new Date().toISOString(),staff_user_id:CLOUD.uid,amount:x.amount,currency:x.currency,bank_name:x.bank||'',note:x.note||null}).select().single();if(error)throw error;x.id=data.id;x.cloudId=data.id;}
+async function cloudInsertCash(x){const {data,error}=await SB.from('nona_me_cash_counts').insert({count_date:x.date,count_time:new Date().toISOString(),staff_user_id:CLOUD.uid,actual_khr:x.khr,actual_usd:x.usd,expected_khr:x.expectedKhr,expected_usd:x.expectedUsd,note:null}).select().single();if(error)throw error;x.id=data.id;x.cloudId=data.id;}
+async function cloudInsertStock(x){const {data,error}=await SB.from('nona_me_stock_items').insert({name_en:x.en||x.name,name_kh:x.kh||x.name,qty:x.qty,unit:x.unit||'pcs',minimum_qty:x.min||0,cost_per_unit_khr:x.cost||0,image_url:x.image||null,active:x.active!==false,note:x.note||null}).select().single();if(error)throw error;x.id=data.id;x.cloudId=data.id;}
+async function cloudUpdateStock(x){const {error}=await SB.from('nona_me_stock_items').update({name_en:x.en||x.name,name_kh:x.kh||x.name,qty:x.qty,unit:x.unit||'pcs',minimum_qty:x.min||0,cost_per_unit_khr:x.cost||0,image_url:x.image||null,active:x.active!==false,note:x.note||null,updated_at:new Date().toISOString()}).eq('id',x.cloudId||x.id);if(error)throw error;}
+async function cloudDelete(table,id){const {error}=await SB.from(table).delete().eq('id',id);if(error)throw error;}
+async function cloudSyncCurrentRecord(kind,obj){
+  if(!SB||!CLOUD.online)return;
+  try{
+    if(kind==='sale')await cloudInsertSale(obj);
+    else if(kind==='expense')await cloudInsertExpense(obj);
+    else if(kind==='deposit')await cloudInsertDeposit(obj);
+    else if(kind==='cash')await cloudInsertCash(obj);
+    else if(kind==='stock')await cloudInsertStock(obj);
+  }catch(e){CLOUD.online=false;console.warn('Cloud sync failed',e);alert((S.lang==='kh'?'រក្សាទុកក្នុង Cloud មិនបាន។ ': 'Cloud save failed. ')+(e.message||''));}
+}
+
+async function loginCloud(email,password){
+  if(!SB)return alert(S.lang==='kh'?'Supabase មិនទាន់ភ្ជាប់។':'Supabase is not available.');
+  try{
+    const {data,error}=await SB.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    CLOUD.uid=data.user.id;
+    CLOUD.profile=await cloudProfile(CLOUD.uid);
+    if(!CLOUD.profile)throw new Error('Profile not found');
+    if(CLOUD.profile.active===false)throw new Error('Account is disabled');
+    S.user={id:CLOUD.uid,name:CLOUD.profile.display_name||email.split('@')[0],username:email,role:CLOUD.profile.role};S.role=CLOUD.profile.role;S.remember=true;
+    const hasCatalog=await cloudLoadCatalog();CLOUD.online=true;if(!hasCatalog && S.role==='admin') await cloudSaveCatalog();await cloudLoadOperational();save();render();
+  }catch(e){alert(e.message||'Login failed');}
+}
+async function signupCloud(email,password,name){
+  if(!SB)return;
+  if(password.length<6)return alert(S.lang==='kh'?'ពាក្យសម្ងាត់ត្រូវមានយ៉ាងហោចណាស់ 6 តួអក្សរ':'Password must be at least 6 characters');
+  try{
+    const {data,error}=await SB.auth.signUp({email,password,options:{data:{display_name:name||email.split('@')[0]},emailRedirectTo:location.origin}});
+    if(error)throw error;
+    if(data.session){alert(S.lang==='kh'?'បង្កើតគណនីរួចរាល់។':'Account created.');await cloudEnsure();render();}
+    else alert(S.lang==='kh'?'បានបង្កើតគណនី។ សូមពិនិត្យ Email ដើម្បីបញ្ជាក់គណនី។':'Account created. Check your email to confirm the account.');
+  }catch(e){alert(e.message||'Sign up failed');}
+}
+async function boot(){
+  try{
+    if(SB){
+      SB.auth.onAuthStateChange((event,session)=>{
+        if(event==='SIGNED_OUT'){CLOUD.online=false;if(S.user&&String(S.user.username||'').includes('@')){S.user=null;S.role=null;save();render();}}
+      });
+      if(await cloudEnsure()){save();render();return;}
+    }
+  }catch(e){console.warn('Boot cloud error',e);}
+  render();
+}
+
+function loginView(){return `<div class="login-screen"><div class="login-card panel"><img class="login-logo" src="${logo()}"><h2>${esc(S.cms.shopName)}</h2><p class="muted">${esc(S.cms.tagline)}</p><div class="field"><label>Email</label><input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com"></div><div class="field" style="margin-top:9px"><label>${L('password')}</label><input id="loginCloudPass" type="password" autocomplete="current-password"></div><label style="display:flex;gap:8px;align-items:center;margin:10px 0;font-weight:700"><input id="remember" type="checkbox" style="width:auto" checked>${L('remember')}</label><button id="doCloudLogin" class="btn btn-primary" style="width:100%;padding:12px">${L('login')}</button><div class="login-divider">Cloud Login</div><div class="field"><label>${L('name')}</label><input id="signupName" placeholder="Your name"></div><div class="field" style="margin-top:9px"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"></div><div class="field" style="margin-top:9px"><label>${L('password')}</label><input id="signupPass" type="password" minlength="6"></div><button id="doSignup" class="btn" style="width:100%;padding:12px;margin-top:9px">${S.lang==='kh'?'បង្កើតគណនី Cloud':'Create Cloud Account'}</button><div class="login-divider">Demo</div><div class="field"><label>${L('username')}</label><input id="loginUser" autocomplete="username"></div><div class="field" style="margin-top:9px"><label>${L('password')}</label><input id="loginPass" type="password" autocomplete="current-password"></div><button id="doLogin" class="btn" style="width:100%;padding:11px;margin-top:9px">${S.lang==='kh'?'ចូលដោយ Demo':'Demo Login'}</button><div class="small muted" style="margin-top:9px">staff01 / 1234 · admin / admin</div><div class="login-actions" style="margin-top:10px">${langSwitch()}</div></div></div>`}
+function bindLogin(){
+  $('langBtn').onclick=()=>{S.lang=S.lang==='kh'?'en':'kh';save();render();};
+  $('doCloudLogin').onclick=()=>loginCloud($('loginEmail').value.trim(),$('loginCloudPass').value);
+  $('doSignup').onclick=()=>signupCloud($('signupEmail').value.trim(),$('signupPass').value,$('signupName').value.trim());
+  $('doLogin').onclick=()=>{let u=$('loginUser').value.trim(),p=$('loginPass').value,user=S.users.find(x=>x.username===u&&x.password===p&&x.active!==false);if(!user)return alert(L('required'));S.user={id:user.id,name:user.name,username:user.username,role:user.role};S.role=user.role;S.remember=$('remember').checked;save();render();};
+}
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(S));
+  queueCloudCatalog();
+}
+
+async function cloudSaveNew(kind,obj){
+  if(SB&&CLOUD.online){await cloudSyncCurrentRecord(kind,obj);save();}
+}
+function saveSale(print){
+  if(!S.ui.cart.length)return alert(L('required'));
+  let d=dt(),t=cartTotal().raw,s={id:uid('s'),date:d.date,time:d.time,user:S.user.name,role:S.role,currency:S.ui.currency,payment:S.ui.payment,rate:+$('rate').value||S.settings.rate,amount:t,cups:S.ui.cart.reduce((a,x)=>a+x.qty,0),items:S.ui.cart.map(x=>{let p=S.products.find(pr=>pr.id===x.id);return {...x,en:p?.en||'',kh:p?.kh||''}}),promotionId:$('promo')?.value||''};
+  S.sales.push(s);S.ui.cart=[];save();renderPage();
+  if(CLOUD.online)cloudSaveNew('sale',s).catch(e=>console.warn(e));
+  if(print)printReceipt(s);alert(L('saved'));
+}
+function bindExpenses(){
+  $('saveEx').onclick=()=>{let d=$('exDesc').value.trim(),a=+$('exAmount').value||0;if(!d||a<=0)return alert(L('required'));let t=dt(),x={id:uid('e'),date:t.date,time:t.time,user:S.user.name,desc:d,amount:a,currency:$('exCur').value,method:$('exPay').value,note:$('exNote').value};S.expenses.push(x);save();renderPage();if(CLOUD.online)cloudSaveNew('expense',x).catch(e=>console.warn(e));}
+}
+function bindDeposit(){$('saveDep').onclick=()=>{let a=+$('da').value||0;if(a<=0)return alert(L('required'));let t=dt(),x={id:uid('d'),date:t.date,time:t.time,user:S.user.name,amount:a,currency:$('dc').value,bank:$('db').value,note:$('dn').value};S.deposits.push(x);save();renderPage();if(CLOUD.online)cloudSaveNew('deposit',x).catch(e=>console.warn(e));}}
+function bindCash(){$('saveCount').onclick=()=>{let t=dt(),k=+$('ak').value||0,u=+$('au').value||0,x={id:uid('c'),date:t.date,time:t.time,user:S.user.name,khr:k,usd:u,expectedKhr:cashExpected('KHR'),expectedUsd:cashExpected('USD')};S.cashCounts.push(x);save();renderPage();if(CLOUD.online)cloudSaveNew('cash',x).catch(e=>console.warn(e));}}
+function bindStock(){
+  const uploadInput=$('siUploadInput'),cameraInput=$('si'),preview=$('siPreview'),status=$('siStatus'),uploadBtn=$('siUpload'),cameraBtn=$('siCamera'),retake=$('siRetake'),remove=$('siRemove');let imageData="";
+  const applyImage=file=>squareImage(file,img=>{if(!img)return;imageData=img;preview.src=img;status.textContent='1:1';uploadBtn.classList.add('hidden');cameraBtn.classList.add('hidden');retake.classList.remove('hidden');remove.classList.remove('hidden')});
+  uploadBtn.onclick=()=>uploadInput.click();cameraBtn.onclick=()=>cameraInput.click();retake.onclick=()=>cameraInput.click();remove.onclick=()=>{imageData='';uploadInput.value='';cameraInput.value='';preview.src='assets/nona-me-logo.png';status.textContent=L('photoPreview');uploadBtn.classList.remove('hidden');cameraBtn.classList.remove('hidden');retake.classList.add('hidden');remove.classList.add('hidden')};uploadInput.onchange=()=>uploadInput.files[0]&&applyImage(uploadInput.files[0]);cameraInput.onchange=()=>cameraInput.files[0]&&applyImage(cameraInput.files[0]);
+  $('saveStock').onclick=()=>{let n=$('sn').value.trim(),q=+$('sq').value||0;if(!n||q<=0)return alert(L('required'));let x={id:uid('st'),name:n,en:n,kh:n,qty:q,unit:$('su').value.trim(),min:+$('sm').value||0,image:imageData,note:$('st').value.trim(),user:S.user.name,date:today(),active:true};S.stock.push(x);save();renderPage();if(CLOUD.online)cloudSaveNew('stock',x).catch(e=>console.warn(e));}
+}
+function logoutToLogin(){if(SB&&CLOUD.online)SB.auth.signOut().catch(()=>{});S.user=null;S.role=null;CLOUD.online=false;save();render();}
+function bindGlobal(){document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{if(b.dataset.page==='reports'&&S.role!=='admin')return;S.page=b.dataset.page;save();renderPage()});$('langBtn').onclick=()=>{S.lang=S.lang==='kh'?'en':'kh';save();render()};$('switchUser').onclick=()=>logoutToLogin();$('logout').onclick=()=>logoutToLogin();}
+
+/* MASTER 1.5 FINAL OVERRIDES */
+function loginView(){
+  const kh=S.lang==='kh';
+  const t=(en,km)=>kh?km:en;
+  return `<div class="login-screen"><div class="login-card panel">
+    <img class="login-logo" src="${logo()}"><h2>${esc(S.cms.shopName)}</h2><p class="muted">${esc(S.cms.tagline)}</p>
+    <div class="field"><label>${t('Email','អ៊ីមែល')}</label><input id="loginEmail" type="email" autocomplete="email"></div>
+    <div class="field" style="margin-top:9px"><label>${L('password')}</label><input id="loginCloudPass" type="password" autocomplete="current-password"></div>
+    <button id="doCloudLogin" class="btn btn-primary" style="width:100%;padding:12px">${t('Cloud Login','ចូល Cloud')}</button>
+    <div class="login-divider">${t('Create Cloud Account','បង្កើតគណនី Cloud')}</div>
+    <div class="field"><label>${L('name')}</label><input id="signupName"></div>
+    <div class="field" style="margin-top:9px"><label>${t('Email','អ៊ីមែល')}</label><input id="signupEmail" type="email"></div>
+    <div class="field" style="margin-top:9px"><label>${L('password')}</label><input id="signupPass" type="password" minlength="6"></div>
+    <button id="doSignup" class="btn" style="width:100%;padding:12px;margin-top:9px">${t('Create Account','បង្កើតគណនី')}</button>
+    <div class="login-divider">${t('Demo Account','គណនី Demo')}</div>
+    <div class="field"><label>${L('username')}</label><input id="loginUser"></div>
+    <div class="field" style="margin-top:9px"><label>${L('password')}</label><input id="loginPass" type="password"></div>
+    <button id="doLogin" class="btn" style="width:100%;padding:11px;margin-top:9px">${t('Demo Login','ចូល Demo')}</button>
+    <div class="small muted" style="margin-top:9px">staff01 / 1234 · admin / admin</div>
+    <div class="login-actions" style="margin-top:10px">${langSwitch()}</div>
+  </div></div>`;
+}
+function bindLogin(){
+  $('langBtn').onclick=()=>{S.lang=S.lang==='kh'?'en':'kh';save();render();};
+  $('doCloudLogin').onclick=()=>loginCloud($('loginEmail').value.trim(),$('loginCloudPass').value);
+  $('doSignup').onclick=()=>signupCloud($('signupEmail').value.trim(),$('signupPass').value,$('signupName').value.trim());
+  $('doLogin').onclick=()=>{let u=$('loginUser').value.trim(),p=$('loginPass').value,user=S.users.find(x=>x.username===u&&x.password===p&&x.active!==false);if(!user)return alert(L('required'));S.user={id:user.id,name:user.name,username:user.username,role:user.role};S.role=user.role;S.remember=true;save();render();};
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(S));queueCloudCatalog();}
+function saveSale(print){
+  if(!S.ui.cart.length)return alert(L('required'));
+  const d=dt(), rate=+$('rate').value||S.settings.rate, khrTotal=cartTotal().raw;
+  const amount=S.ui.currency==='USD'?khrTotal/rate:khrTotal;
+  const s={id:uid('s'),date:d.date,time:d.time,user:S.user.name,role:S.role,currency:S.ui.currency,payment:S.ui.payment,rate,amount,cups:S.ui.cart.reduce((a,x)=>a+x.qty,0),items:S.ui.cart.map(x=>{let p=S.products.find(pr=>pr.id===x.id);return {...x,en:p?.en||'',kh:p?.kh||''}}),promotionId:$('promo')?.value||'',khrTotal};
+  S.sales.push(s);S.ui.cart=[];save();renderPage();
+  if(CLOUD.online)cloudSaveNew('sale',s).catch(e=>console.warn(e));
+  if(print)printReceipt(s);
+  alert(L('saved'));
+}
+async function cloudInsertSale(s){
+  const {data,error}=await SB.from('nona_me_sales').insert({sale_date:s.date,sale_time:new Date().toISOString(),staff_user_id:CLOUD.uid,currency:s.currency,payment_method:s.payment,exchange_rate:s.rate,subtotal:s.amount,discount:0,total:s.amount,promotion_id:null,note:s.note||null}).select().single();
+  if(error)throw error;
+  const rows=(s.items||[]).map(it=>({sale_id:data.id,product_id:null,product_name_en:it.en||'',product_name_kh:it.kh||'',qty:+it.qty||1,unit_price_khr:+it.price||0,line_total_khr:(+it.price||0)*(+it.qty||1)}));
+  if(rows.length){const ir=await SB.from('nona_me_sale_items').insert(rows);if(ir.error){await SB.from('nona_me_sales').delete().eq('id',data.id);throw ir.error;}}
+  s.id=data.id;s.cloudId=data.id;
+}
+async function saveCloudDelete(table,id){if(!SB||!CLOUD.online||!id)return;const {error}=await SB.from(table).delete().eq('id',id);if(error)console.warn(error);}
+function adminDeleteRecord(kind,id){
+  const map={sale:'nona_me_sales',expense:'nona_me_expenses',deposit:'nona_me_bank_deposits'};
+  const arr=kind==='sale'?S.sales:kind==='expense'?S.expenses:S.deposits, idx=arr.findIndex(v=>v.id===id); if(idx<0)return;
+  if(!confirm(L('delete')+'?'))return; const obj=arr[idx]; arr.splice(idx,1); save(); if(CLOUD.online)saveCloudDelete(map[kind],obj.cloudId||obj.id); renderPage();
+}
+function adminAct(a,i){
+  if(a==='editStock')return editStockModal(i);
+  if(a==='deleteStock'){const x=S.stock[i];if(!x||!confirm(L('delete')+'?'))return;S.stock.splice(i,1);save();if(CLOUD.online)saveCloudDelete('nona_me_stock_items',x.cloudId||x.id);renderPage();return;}
+  if(a==='editProduct')return editProductModal(i);
+  if(a==='toggleProduct'){S.products[i].active=S.products[i].active===false;save();return renderPage();}
+  if(a==='deleteProduct'){S.products.splice(i,1);save();return renderPage();}
+  if(a==='editPromo'){return editPromo(i)}
+  if(a==='togglePromo'){S.promotions[i].active=!S.promotions[i].active;save();return renderPage();}
+  if(a==='deletePromo'){S.promotions.splice(i,1);save();return renderPage();}
+  if(a==='toggleUser'){S.users[i].active=S.users[i].active===false;save();return renderPage();}
+  if(a==='deleteUser'){S.users.splice(i,1);save();return renderPage();}
+  if(a==='editUser'){let u=S.users[i];if(!u)return;let n=prompt(L('name'),u.name);if(n!==null)u.name=n.trim()||u.name;save();return renderPage();}
+  if(a==='exportAll')return download('nona-me-all.csv',csvForDay(today()));
+  if(a==='goDaily'){S.page='report';save();return render();}
+  if(a==='goWeekly'||a==='goMonthly'){S.page='reports';save();return render();}
+  if(a==='editRecord')return adminEditRecord(arguments[1]?.dataset?.kind,arguments[1]?.dataset?.id);
+  return null;
+}
+
+// Stock edit: sync cloud after local save.
+const __oldEditStockModal = editStockModal;
+function editStockModal(i){
+  const x=S.stock[i]; if(!x)return;
+  modal(L('edit'),`<div class="edit-modal-grid"><div class="field"><label>${L('item')}</label><input id="esName" value="${esc(x.name)}"></div><div class="field"><label>${L('quantity')}</label><input id="esQty" type="number" min="0" value="${x.qty}"></div><div class="field"><label>${L('unit')}</label><input id="esUnit" value="${esc(x.unit||'')}"></div><div class="field"><label>${L('minimum')}</label><input id="esMin" type="number" min="0" value="${x.min||0}"></div></div><div class="stock-photo-box edit-photo-box"><div class="stock-photo-top"><div><b>${L('image')}</b><div class="small muted">1:1</div></div><span id="esStatus" class="small muted">${x.image?'1:1':L('photoPreview')}</span></div><div class="stock-photo-preview-wrap"><img class="stock-photo-preview" id="esPreview" src="${esc(x.image||'assets/nona-me-logo.png')}"></div><div class="photo-actions"><button class="btn btn-primary" id="esUpload" type="button">🖼️ ${L('uploadPhoto')}</button><button class="btn" id="esCamera" type="button">📷 ${L('takePhoto')}</button><button class="btn" id="esRetake" type="button">🔄 ${L('retakePhoto')}</button><button class="btn btn-danger" id="esRemove" type="button">✕ ${L('removePhoto')}</button></div><input id="esUploadInput" class="hidden" type="file" accept="image/*"><input id="esImg" class="hidden" type="file" accept="image/*" capture="environment"></div><div class="field" style="margin-top:10px"><label>${L('note')}</label><textarea id="esNote">${esc(x.note||'')}</textarea></div><div class="modal-actions"><button class="btn" id="cancelEditStock">${S.lang==='en'?'Cancel':'បោះបង់'}</button><button class="btn btn-primary" id="saveEditStock">${L('save')}</button></div>`);
+  let imageData=x.image||'';const preview=$('esPreview'),status=$('esStatus'),up=$('esUpload'),cam=$('esCamera'),ret=$('esRetake'),rem=$('esRemove'),ui=$('esUploadInput'),ci=$('esImg');
+  if(!x.image){ret.classList.add('hidden');rem.classList.add('hidden');}
+  const apply=f=>squareImage(f,img=>{if(!img)return;imageData=img;preview.src=img;status.textContent='1:1';up.classList.add('hidden');cam.classList.add('hidden');ret.classList.remove('hidden');rem.classList.remove('hidden')});
+  up.onclick=()=>ui.click();cam.onclick=()=>ci.click();ret.onclick=()=>ci.click();ui.onchange=()=>ui.files[0]&&apply(ui.files[0]);ci.onchange=()=>ci.files[0]&&apply(ci.files[0]);
+  rem.onclick=()=>{imageData='';ui.value='';ci.value='';preview.src='assets/nona-me-logo.png';status.textContent=L('photoPreview');up.classList.remove('hidden');cam.classList.remove('hidden');ret.classList.add('hidden');rem.classList.add('hidden')};
+  $('cancelEditStock').onclick=closeModal;
+  $('saveEditStock').onclick=async()=>{let n=$('esName').value.trim(),q=Math.max(0,+$('esQty').value||0),u=$('esUnit').value.trim(),m=Math.max(0,+$('esMin').value||0),note=$('esNote').value.trim();if(!n)return alert(L('required'));x.name=n;x.en=n;x.kh=n;x.qty=q;x.unit=u;x.min=m;x.note=note;x.image=imageData;save();if(CLOUD.online){try{await cloudUpdateStock(x);}catch(e){alert(e.message||'Cloud update failed');}}closeModal();renderPage();};
+}
+
+// Initial cloud session check. Supabase persists session in browser storage.
+boot();

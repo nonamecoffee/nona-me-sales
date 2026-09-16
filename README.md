@@ -1,31 +1,25 @@
-# Nona-me Sales — Master System 1.4
+# Nona-me Sales — Master 1.5
 
-Full replacement package. Replace the old web files with this package; do not merge files from older versions.
+Full Replacement build with Supabase Cloud Authentication and shared cloud data.
 
 ## Supabase setup
-1. Open Supabase Dashboard → SQL Editor.
-2. Click **New Query**.
-3. Open `supabase_schema.sql` from this package.
-4. Copy everything and paste it into the query editor.
-5. Click **Run**.
-6. Then go to **Authentication → Providers → Email** and enable Email.
+1. Supabase Project URL is already configured in `app.js`.
+2. The browser uses the Supabase publishable key only; never use a service-role key in frontend code.
+3. Open Supabase → SQL Editor → New Query.
+4. Copy the complete `supabase_schema.sql` from this ZIP and Run it.
+5. Enable Email provider in Supabase Auth if it is not already enabled.
+6. Create the first Cloud account from the website. The SQL trigger makes the first Cloud user an Admin and later users Staff.
 
-### Quick test before running the schema
-You already confirmed that this works in your project:
-```sql
-select now();
-```
+## Cloud data
+Operational data is synced to Supabase tables for:
+- Sales + sale items
+- Expenses
+- Bank deposits
+- Cash counts
+- Stock items
+- Shared catalog/settings state (Admin writes; authenticated users read)
 
-The 1.4 schema is intentionally idempotent and uses separate tables for the long-term system design while keeping `nona_me_state` for compatibility with the current Master client.
+Product images and stock images are kept as square data URLs for this prototype.
 
-## Cloud
-The browser uses only the Supabase Project URL and Publishable key. Never place a `service_role` key in browser code.
-
-## Accounts
-The first Supabase Auth account created becomes Admin. Later accounts become Staff by default.
-
-## Current client storage
-Master 1.4 preserves the existing cloud-state sync behavior while the structured Supabase tables are prepared for the next data-layer migration. This avoids breaking the approved UI while the database is moved from one JSON state row to normalized records.
-
-## Deployment
-GitHub → Vercel. Replace the repository files with this package, commit, then let Vercel deploy.
+## Important
+The Demo login is still available for offline testing. Demo data is local to the current browser and is not the same as Cloud accounts.
