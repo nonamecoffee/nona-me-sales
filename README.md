@@ -1,16 +1,13 @@
-# Nona-me Sales V40 — Full Replacement
+# Nona-me Sales V42 – Full Replacement
 
-Full replacement of V39.
-
-Changes:
-- Daily Report image now has a clear TOTAL INCOME / TOTAL EXPENSES / NET TOTAL section.
-- KHR and USD remain separate; net total is calculated separately in each currency.
-- Printed Daily Report also includes TOTAL INCOME, TOTAL EXPENSES, and NET TOTAL.
-- Preserves V39 features including mobile/tablet menu scrolling, photo upload/take/preview/retake, admin website controls, reports, and PWA assets.
+V42 includes the complete V41 system plus:
+- Copy Text now copies plain Telegram-friendly text (no Markdown/code fences).
+- Invoice-style report rows: labels left, KHR and USD amounts aligned to the right.
+- Promotion selector updates the sale total immediately when changed.
+- Mobile/tablet primary navigation is horizontally scrollable instead of hidden.
+- Mobile/tablet Admin has a dedicated section selector so all Admin modules remain reachable.
+- Preserves Menu/Stock photo upload + camera + 1:1 preview/retake flow.
 
 Demo login:
-- Admin: admin / admin
-- Staff: staff01 / 1234
-
-
-V41: Copy Text uses invoice-style fixed columns: Description / KHR / USD, with Khmer or English labels according to the selected language.
+Admin: admin / admin
+Staff: staff01 / 1234
