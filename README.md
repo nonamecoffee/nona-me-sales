@@ -1,13 +1,33 @@
-# Nona-me Sales V42 – Full Replacement
+# Nona-me Sales — Master System 1.0
 
-V42 includes the complete V41 system plus:
-- Copy Text now copies plain Telegram-friendly text (no Markdown/code fences).
-- Invoice-style report rows: labels left, KHR and USD amounts aligned to the right.
-- Promotion selector updates the sale total immediately when changed.
-- Mobile/tablet primary navigation is horizontally scrollable instead of hidden.
-- Mobile/tablet Admin has a dedicated section selector so all Admin modules remain reachable.
-- Preserves Menu/Stock photo upload + camera + 1:1 preview/retake flow.
+This is the new clean baseline for the Nona-me Sales web app.
 
-Demo login:
+## Included modules
+- Staff/Admin login
+- Khmer / English single-language UI
+- Sales and cart
+- Promotions
+- KHR / USD with independent payment method
+- Expenses
+- Cash drawer and cash count
+- Bank deposits
+- Stock / inventory
+- Product & menu management
+- Product/stock image upload and camera capture with 1:1 preview/retake
+- Daily report, weekly/monthly reports, history
+- Copy Text, Print and Save Image report actions
+- Admin Control Center
+- Website branding/settings/navigation/report/receipt configuration
+- Staff & user management
+- Records and audit log
+- PWA / phone / tablet support
+
+## Data model
+The current baseline runs in browser localStorage and includes migration from prior Nona-me versions. Cloud sync is intentionally not enabled until a Supabase project is configured.
+
+## Deployment
+Upload all files in this package to the GitHub repository root and let Vercel deploy it. Do not merge individual files from an older version.
+
+## Demo login
 Admin: admin / admin
 Staff: staff01 / 1234
