@@ -25,3 +25,32 @@ html.dark body{background:radial-gradient(900px 450px at 0 0,rgba(122,72,56,.20)
 html.dark input,html.dark select,html.dark textarea,html.dark .btn,html.dark .tab,html.dark .nav-btn{background:rgba(255,255,255,.055);color:var(--dark)}html.dark .btn-primary,html.dark .tab.active,html.dark .nav-btn.active{color:#fff}html.dark .product-card{background:rgba(255,255,255,.045);color:var(--dark)}html.dark .report-preview{background:#211d1b;color:#f4eee8}
 @media(max-width:1100px){.product-grid{grid-template-columns:repeat(3,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.admin-card-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:800px){.topbar{padding:10px 11px}.wrap{padding:12px 12px 84px}.top-actions .btn{padding:8px 9px}.tabs{display:none}.sales-grid,.two-col,.admin-layout{grid-template-columns:1fr}.admin-sidebar{display:none}.product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid{grid-template-columns:1fr}.stats{gap:7px}.stat{padding:11px}.stat strong{font-size:19px}.admin-card-grid{grid-template-columns:repeat(2,1fr)}.appearance-mode .buttons{grid-template-columns:1fr}.bottom-nav{display:grid;position:fixed;left:10px;right:10px;bottom:10px;z-index:40;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px;border:1px solid var(--line);border-radius:19px;background:rgba(255,255,255,.90);backdrop-filter:blur(18px);box-shadow:0 12px 36px rgba(0,0,0,.15)}.bottom-nav button{border:0;background:transparent;border-radius:12px;padding:8px 3px;font-size:10px;font-weight:800;color:var(--dark)}.bottom-nav button.active{background:var(--primary);color:#fff}.list-row,.stock-row{grid-template-columns:52px 1fr}.list-row .row-actions,.stock-row .row-actions{grid-column:2}.promo-row{grid-template-columns:1fr}.promo-row .row-actions{justify-content:flex-start}}
+
+/* ========================= V31 CLEAN LIGHT + REPORT ========================= */
+html.dark{display:block;background:var(--bg);color:var(--dark)}
+.price-usd{font-size:12px;color:var(--muted);font-weight:700;margin-top:2px}
+.report-sheet{max-width:720px;margin:0 auto;background:#fff;color:#3A2A24;border:1px solid rgba(58,42,36,.10);border-radius:24px;padding:22px;box-shadow:0 18px 48px rgba(58,42,36,.10)}
+.report-brand{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid rgba(58,42,36,.10)}
+.report-brand img{width:88px;height:58px;object-fit:contain;background:#fff;border-radius:14px}
+.report-shop{font-weight:900;font-size:20px;line-height:1.1}
+.report-title{font-weight:800;font-size:15px;margin-top:4px}
+.report-date{font-size:12px;color:#776B64;margin-top:3px}
+.report-section{padding:15px 0}
+.report-section-title{font-size:14px;font-weight:900;margin-bottom:10px}
+.report-two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.report-two-col>div{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;background:#F8F6F1;border:1px solid rgba(58,42,36,.08);border-radius:14px}
+.report-two-col span,.report-meta-grid span{font-size:12px;color:#776B64;font-weight:700}
+.report-two-col b{font-size:17px}
+.report-divider{font-size:10px;color:#B1A49C;overflow:hidden;white-space:nowrap;text-align:center;line-height:1}
+.report-meta-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding-top:3px}
+.report-meta-grid>div{display:flex;flex-direction:column;gap:4px;padding:11px 12px;border:1px solid rgba(58,42,36,.08);border-radius:14px}
+.report-meta-grid b{font-size:13px}
+.report-footer{text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(58,42,36,.10);font-size:12px;color:#776B64}
+@media(max-width:700px){
+ .report-sheet{border-radius:18px;padding:14px}
+ .report-brand img{width:74px;height:50px}
+ .report-shop{font-size:17px}
+ .report-two-col>div{padding:10px}
+ .report-two-col b{font-size:15px}
+ .report-meta-grid{grid-template-columns:1fr 1fr}
+}

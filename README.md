@@ -26,3 +26,10 @@ Included:
 - Responsive phone / tablet / desktop
 
 Prototype storage: browser localStorage. Supabase cloud sync and direct Google Sheets API are not included yet.
+
+
+## V31 Update
+- Removed Dark Mode from the user-facing system; Nona-me uses the Light appearance.
+- Improved Daily Report presentation with a clean report sheet, logo, structured sections and separators.
+- Save Image now captures the styled Daily Report as a PNG using html2canvas.
+- Menu prices now show both KHR and a calculated USD value using the current exchange rate.
