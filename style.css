@@ -106,3 +106,5 @@ input,select,textarea{width:100%;border:1px solid var(--line);border-radius:13px
 .admin-sidebar .nav-btn{width:100%;text-align:left}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:800px){.admin-layout{grid-template-columns:1fr}.admin-sidebar{display:none}.admin-mobile-nav{display:block}.admin-main{width:100%}.admin-main .panel{overflow:visible}.row-actions{flex-wrap:wrap}}
+
+#cloudStatus{white-space:nowrap}.top-actions{flex-wrap:wrap}

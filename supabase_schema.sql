@@ -1,98 +1,75 @@
--- NONA-ME SALES V5 — Supabase starter schema
--- Run this in Supabase SQL Editor when you are ready for real online multi-device data.
--- IMPORTANT: enable Auth and create users in Supabase Auth before using profiles.
+-- Nona-me Sales Master 1.2
+-- Run in Supabase SQL Editor.
+-- IMPORTANT: do not expose service_role keys in frontend.
 
-create extension if not exists pgcrypto;
-
-create table if not exists public.profiles (
+create table if not exists public.nona_me_profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  full_name text,
-  role text not null default 'staff' check (role in ('super_admin','admin','staff')),
-  active boolean not null default true,
-  created_at timestamptz not null default now()
-);
-
-create table if not exists public.products (
-  id uuid primary key default gen_random_uuid(),
-  name_en text not null,
-  name_kh text not null,
-  category text not null,
-  price_khr numeric(12,2) not null default 0,
+  display_name text not null default '',
+  role text not null default 'staff' check (role in ('admin','staff')),
   active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
-create table if not exists public.sales (
-  id uuid primary key default gen_random_uuid(),
-  sold_at timestamptz not null default now(),
-  staff_id uuid references public.profiles(id),
-  payment_method text not null check (payment_method in ('Cash','ABA','Other')),
-  currency text not null check (currency in ('KHR','USD')),
-  amount numeric(12,2) not null,
-  total_khr numeric(12,2) not null,
-  exchange_rate numeric(12,2) not null default 4000,
-  cups integer not null default 0
+create or replace function public.nona_me_new_profile()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  first_user boolean;
+  nm text;
+begin
+  select not exists (select 1 from public.nona_me_profiles) into first_user;
+  nm := coalesce(new.raw_user_meta_data->>'display_name', split_part(coalesce(new.email,''),'@',1));
+  insert into public.nona_me_profiles(id,display_name,role,active)
+  values(new.id,nm,case when first_user then 'admin' else 'staff' end,true);
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_nona_me on auth.users;
+create trigger on_auth_user_created_nona_me
+after insert on auth.users
+for each row execute function public.nona_me_new_profile();
+
+create table if not exists public.nona_me_state (
+  id text primary key,
+  state jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users(id)
 );
 
-create table if not exists public.sale_items (
-  id uuid primary key default gen_random_uuid(),
-  sale_id uuid not null references public.sales(id) on delete cascade,
-  product_id uuid references public.products(id),
-  product_name_en text not null,
-  product_name_kh text not null,
-  qty integer not null,
-  unit_price_khr numeric(12,2) not null
-);
+alter table public.nona_me_profiles enable row level security;
+alter table public.nona_me_state enable row level security;
 
-create table if not exists public.expenses (
-  id uuid primary key default gen_random_uuid(),
-  spent_at timestamptz not null default now(),
-  staff_id uuid references public.profiles(id),
-  description text not null,
-  amount numeric(12,2) not null,
-  currency text not null check (currency in ('KHR','USD')),
-  payment_method text not null check (payment_method in ('Cash','ABA','Other')),
-  note text,
-  exchange_rate numeric(12,2) not null default 4000
-);
+drop policy if exists "profiles_self_select" on public.nona_me_profiles;
+drop policy if exists "profiles_admin_update" on public.nona_me_profiles;
+drop policy if exists "state_authenticated_select" on public.nona_me_state;
+drop policy if exists "state_authenticated_insert" on public.nona_me_state;
+drop policy if exists "state_authenticated_update" on public.nona_me_state;
 
-create table if not exists public.cash_closings (
-  id uuid primary key default gen_random_uuid(),
-  closed_at timestamptz not null default now(),
-  staff_id uuid references public.profiles(id),
-  opening_khr numeric(12,2) not null default 0,
-  opening_usd numeric(12,2) not null default 0,
-  expected_khr numeric(12,2) not null default 0,
-  expected_usd numeric(12,2) not null default 0,
-  actual_khr numeric(12,2) not null default 0,
-  actual_usd numeric(12,2) not null default 0,
-  exchange_rate numeric(12,2) not null default 4000
-);
+create policy "profiles_self_select"
+  on public.nona_me_profiles for select to authenticated
+  using (id = auth.uid());
 
-create table if not exists public.shop_settings (
-  id integer primary key default 1,
-  shop_name text not null default 'nona-me coffee',
-  phone text,
-  telegram text,
-  address text,
-  default_exchange_rate numeric(12,2) not null default 4000,
-  updated_at timestamptz not null default now()
-);
+create policy "profiles_admin_update"
+  on public.nona_me_profiles for update to authenticated
+  using (exists(select 1 from public.nona_me_profiles p where p.id=auth.uid() and p.role='admin'))
+  with check (exists(select 1 from public.nona_me_profiles p where p.id=auth.uid() and p.role='admin'));
 
-create table if not exists public.audit_logs (
-  id uuid primary key default gen_random_uuid(),
-  actor_id uuid references public.profiles(id),
-  action text not null,
-  entity_type text,
-  entity_id uuid,
-  details jsonb,
-  created_at timestamptz not null default now()
-);
+create policy "state_authenticated_select"
+  on public.nona_me_state for select to authenticated
+  using (true);
 
--- Production TODO:
--- 1) Add Row Level Security (RLS).
--- 2) Staff can INSERT sales/expenses/closing for themselves.
--- 3) Staff can SELECT their own daily records.
--- 4) Admin can SELECT/UPDATE/DELETE all records.
--- 5) Never put a Supabase service_role key in browser code.
+create policy "state_authenticated_insert"
+  on public.nona_me_state for insert to authenticated
+  with check (true);
+
+create policy "state_authenticated_update"
+  on public.nona_me_state for update to authenticated
+  using (true) with check (true);
+
+insert into public.nona_me_state(id,state)
+values('main','{}'::jsonb)
+on conflict(id) do nothing;

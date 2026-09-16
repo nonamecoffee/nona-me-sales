@@ -1,33 +1,24 @@
-# Nona-me Sales — Master System 1.0
+# Nona-me Sales — Master System 1.2
 
-This is the new clean baseline for the Nona-me Sales web app.
+Full replacement package for the Nona-me sales web app.
 
-## Included modules
-- Staff/Admin login
-- Khmer / English single-language UI
-- Sales and cart
-- Promotions
-- KHR / USD with independent payment method
-- Expenses
-- Cash drawer and cash count
-- Bank deposits
-- Stock / inventory
-- Product & menu management
-- Product/stock image upload and camera capture with 1:1 preview/retake
-- Daily report, weekly/monthly reports, history
-- Copy Text, Print and Save Image report actions
-- Admin Control Center
-- Website branding/settings/navigation/report/receipt configuration
-- Staff & user management
-- Records and audit log
-- PWA / phone / tablet support
+## Supabase
+Project URL is already configured in `app.js`.
+The frontend uses the Supabase Publishable Key only.
 
-## Data model
-The current baseline runs in browser localStorage and includes migration from prior Nona-me versions. Cloud sync is intentionally not enabled until a Supabase project is configured.
+### First setup
+1. Open Supabase Dashboard.
+2. Go to **SQL Editor**.
+3. Open `supabase_schema.sql` from this package.
+4. Paste the whole file and click **Run**.
+5. In **Authentication → Providers → Email**, enable Email provider.
+6. For easier first testing, you may disable email confirmation. For production, use your preferred email verification policy.
+
+### Cloud accounts
+- The first Cloud Account created becomes **Admin**.
+- Later Cloud Accounts become **Staff** by default.
+- Login with Email + Password enables Cloud Sync across devices.
+- Username/password `admin/admin` and `staff01/1234` are kept as local demo fallback and do not provide Cloud Sync.
 
 ## Deployment
-Upload all files in this package to the GitHub repository root and let Vercel deploy it. Do not merge individual files from an older version.
-
-## Demo login
-Admin: admin / admin
-Staff: staff01 / 1234
+Extract the ZIP and replace the project files in GitHub. Vercel will deploy the updated project.
