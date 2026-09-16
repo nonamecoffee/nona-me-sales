@@ -1,4 +1,4 @@
--- Nona-me Sales Master 1.5
+-- Nona-me Sales Master 1.7
 -- Safe, idempotent Supabase schema.
 -- Run this whole script in Supabase SQL Editor.
 -- It can be run again safely.
@@ -19,6 +19,17 @@ create table if not exists public.nona_me_state (
   updated_at timestamptz not null default now(),
   updated_by uuid references auth.users(id) on delete set null
 );
+
+-- Compatibility migration for projects where nona_me_state already existed
+-- before updated_by was added. CREATE TABLE IF NOT EXISTS does not alter
+-- an existing table, so explicitly add the column when missing.
+alter table if exists public.nona_me_state
+  add column if not exists updated_by uuid references auth.users(id) on delete set null;
+
+-- Keep the existing timestamp column available on older installations.
+alter table if exists public.nona_me_state
+  add column if not exists updated_at timestamptz not null default now();
+
 
 create table if not exists public.nona_me_categories (
   id uuid primary key default gen_random_uuid(),

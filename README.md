@@ -1,18 +1,18 @@
-# Nona-me Sales — Master 1.6
+# Nona-me Sales Master 1.7
 
-Full replacement build based on Master 1.5.
+Full replacement build.
 
-## Asset reliability
-The official Nona-me logo is included in BOTH locations:
-- `logo.png` (root — primary path)
-- `assets/nona-me-logo.png` (compatibility copy)
+## Important Supabase fix
+If your existing `public.nona_me_state` table was created by an older version, this schema explicitly runs:
 
-The login/header logo uses `./logo.png` and includes a browser fallback so the UI does not show a broken image when an asset path fails.
+```sql
+alter table if exists public.nona_me_state
+  add column if not exists updated_by uuid references auth.users(id) on delete set null;
+```
 
-## Supabase
-- Project URL is configured in `app.js`.
-- Publishable key is configured in `app.js`.
-- Do not add a service-role key to the browser.
+This fixes the error:
+`Could not find the 'updated_by' column of 'nona_me_state' in the schema cache`
 
-## Deployment
-Replace the existing project files in GitHub with the entire contents of this package, then let Vercel deploy.
+Run `supabase_schema.sql` in Supabase SQL Editor after deploying this build. If the schema cache still shows the old shape, wait a few seconds and refresh the page before testing again.
+
+This remains a complete standalone package; do not mix files from older versions.
