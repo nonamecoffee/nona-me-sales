@@ -67,3 +67,6 @@ input,select,textarea{width:100%;border:1px solid var(--line);border-radius:13px
 .photo-actions{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
 .edit-photo-box .stock-photo-preview-wrap{max-width:220px}
 @media(max-width:700px){.stock-photo-box{padding:10px}.stock-photo-preview-wrap{max-width:220px}.photo-actions .btn{flex:1 1 130px}}
+.menu-photo-box{margin-top:10px}
+.menu-photo-box .stock-photo-preview-wrap{max-width:240px}
+@media(max-width:700px){.menu-photo-box .stock-photo-preview-wrap{max-width:210px}}

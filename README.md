@@ -1,16 +1,17 @@
-# Nona-me Sales V36 — Full Replacement
+# nona-me Sales V37 — Full Replacement
 
-Complete replacement package based on V35.
+This package replaces the previous version completely.
 
-## V36 changes
-- Stock Add form now supports **Upload Photo** and **Take Photo** on phones/tablets.
-- Camera capture uses the device rear camera when supported (`capture="environment"`).
-- Selected/captured images are automatically center-cropped to a **1:1 square** and compressed for local storage.
-- Shows a large **1:1 preview** before saving stock.
-- After preview, user can **Retake Photo**, choose another upload, or remove the image.
-- Stock Edit modal uses the same 1:1 upload/camera/preview/retake flow.
-- V35 features are preserved.
+## Fixes in V37
+- Fixed Daily Report navigation/rendering by restoring the missing report data/text helpers.
+- Added 1:1 Menu image upload and camera capture when adding a product.
+- Added 1:1 Menu image upload and camera capture when editing a product.
+- Menu photos show preview, Retake, and Remove actions on phone/tablet.
+- Stock photo workflow from V36 is preserved.
 
 ## Demo login
-Admin: `admin` / `admin`
-Staff: `staff01` / `1234`
+- Admin: admin / admin
+- Staff: staff01 / 1234
+
+## Deploy
+Replace all files in the GitHub repository with this ZIP contents, then commit. Vercel will redeploy from GitHub.
