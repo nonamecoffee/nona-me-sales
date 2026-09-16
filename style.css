@@ -67,3 +67,35 @@
 .color-picker-card-v17 code{font-size:.8rem;opacity:.75}
 .stock-placeholder-v17{display:grid;place-items:center}
 @media(max-width:700px){.color-picker-card-v17{align-items:flex-start;flex-wrap:wrap}.color-picker-card-v17 input[type="color"]{width:58px;height:40px}.admin-section-toolbar-v17{align-items:flex-start}}
+
+/* ========================= V18 Appearance ========================= */
+html[data-theme="dark"]{
+  --dark:#F4EEE8;--muted:#BDB2AA;--white:#171311;--line:rgba(255,255,255,.10);
+  --glass:rgba(37,31,28,.66);--glass-strong:rgba(40,33,30,.82);
+  --shadow:0 20px 60px rgba(0,0,0,.35);--shadow-soft:0 10px 30px rgba(0,0,0,.24);
+}
+html[data-theme="dark"] body{
+  background:radial-gradient(900px 500px at 0% 0%,rgba(126,78,61,.22),transparent 55%),
+             radial-gradient(700px 460px at 100% 0%,rgba(79,57,48,.24),transparent 52%),
+             linear-gradient(180deg,#181412 0,#0f0c0b 100%);
+}
+html[data-theme="dark"] body:before{background:linear-gradient(115deg,rgba(255,255,255,.04),transparent 45%,rgba(255,255,255,.02));}
+html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea,
+html[data-theme="dark"] .currency-box,html[data-theme="dark"] .currency-btn,html[data-theme="dark"] .pay-btn,
+html[data-theme="dark"] .chip,html[data-theme="dark"] .product,html[data-theme="dark"] .admin-menu-btn,
+html[data-theme="dark"] .admin-side-btn-v16,html[data-theme="dark"] .ghost-btn{
+  color:var(--dark);background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.10);
+}
+html[data-theme="dark"] input::placeholder,html[data-theme="dark"] textarea::placeholder{color:#91857D}
+html[data-theme="dark"] .panel-title h2,html[data-theme="dark"] .panel>h2,html[data-theme="dark"] .brand,
+html[data-theme="dark"] .admin-side-title-v16,html[data-theme="dark"] .admin-side-btn-v16,
+html[data-theme="dark"] .product,html[data-theme="dark"] .tab{color:var(--dark)}
+html[data-theme="dark"] .admin-side-btn-v16.active,html[data-theme="dark"] .admin-menu-btn.active{background:var(--primary);color:#fff}
+html[data-theme="dark"] .category-select-v16{color:var(--dark);background:rgba(255,255,255,.06)}
+html[data-theme="dark"] .category-select-v16 option{background:#211b18;color:#f4eee8}
+html[data-theme="dark"] .asset-preview-v16,html[data-theme="dark"] .login-card .logo-img-v11{background:#fff}
+.appearance-mode-v18{margin:12px 0 16px}.appearance-mode-v18>label{margin-bottom:8px}
+.appearance-mode-buttons-v18{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.appearance-mode-buttons-v18 button{border:1px solid rgba(70,50,42,.12);background:rgba(255,255,255,.52);border-radius:13px;padding:10px 12px;font-weight:800}
+.appearance-mode-buttons-v18 button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+@media(max-width:700px){.appearance-mode-buttons-v18{grid-template-columns:1fr}}

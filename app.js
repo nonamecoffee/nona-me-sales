@@ -1113,3 +1113,115 @@ renderProducts = function(){ _renderProductsV17(); v17StripBilingual(document.ge
 
 /* Keep the visible menu buttons translated to one language. */
 setTimeout(()=>{v17ApplySingleLanguage();},50);
+
+/* ========================= V18: SINGLE LANGUAGE + APPEARANCE ========================= */
+const V18_THEME_KEY = "nm_theme_v18";
+
+function v18Theme(){ return localStorage.getItem(V18_THEME_KEY) || "light"; }
+function applyThemeV18(mode=v18Theme()){
+  mode=["light","dark","auto"].includes(mode)?mode:"light";
+  localStorage.setItem(V18_THEME_KEY,mode);
+  document.documentElement.dataset.theme=mode;
+  document.documentElement.style.colorScheme=mode==="dark"?"dark":"light";
+  const btn=$("themeToggleV18");
+  if(btn){
+    btn.textContent=mode==="dark"?"☀️":mode==="auto"?"🌓":"🌙";
+    btn.title=S.lang==="kh"?(mode==="dark"?"ប្តូរទៅភ្លឺ":"ប្តូរទៅងងឹត"):(mode==="dark"?"Switch to light":"Switch to dark");
+  }
+}
+function cycleThemeV18(){
+  const m=v18Theme();
+  applyThemeV18(m==="light"?"dark":m==="dark"?"auto":"light");
+  v18UpdateModeButtons();
+}
+function v18SetLangButton(){
+  const b=$("langBtn"); if(!b)return;
+  b.textContent=S.lang==="kh"?"EN":"ខ្មែរ";
+  b.title=S.lang==="kh"?"English":"ខ្មែរ";
+}
+function v18SingleLanguage(root=document.body){
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  const nodes=[]; while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(n=>{
+    const raw=n.nodeValue; if(!raw||!raw.includes(" / "))return;
+    const parts=raw.split(/\s\/\s/); if(parts.length!==2)return;
+    const firstKh=/[\u1780-\u17FF]/.test(parts[0]);
+    const kh=firstKh?parts[0]:parts[1], en=firstKh?parts[1]:parts[0];
+    n.nodeValue=S.lang==="kh"?kh:en;
+  });
+  root.querySelectorAll("[placeholder]").forEach(el=>{
+    const raw=el.getAttribute("placeholder")||"",parts=raw.split(/\s\/\s/);
+    if(parts.length!==2)return;
+    const firstKh=/[\u1780-\u17FF]/.test(parts[0]);
+    el.placeholder=S.lang==="kh"?(firstKh?parts[0]:parts[1]):(firstKh?parts[1]:parts[0]);
+  });
+  v18SetLangButton();
+  document.documentElement.lang=S.lang==="kh"?"km":"en";
+}
+const _applyLanguageV18Base = applyLanguage;
+applyLanguage=function(){_applyLanguageV18Base();v18SingleLanguage(document.body);applyThemeV18();};
+const _showPageV18Base = showPage;
+showPage=function(name,btn){
+  if(name==="periodReport" && S.role!=="admin")return;
+  _showPageV18Base(name,btn);
+  requestAnimationFrame(()=>v18SingleLanguage(document.body));
+};
+const _renderAllV18Base = renderAll;
+renderAll=function(){_renderAllV18Base();v18SingleLanguage(document.body);applyThemeV18();};
+
+(function installThemeControlV18(){
+  const install=()=>{
+    if(!$("themeToggleV18")){
+      const actions=document.querySelector(".top-actions");
+      if(actions){
+        const b=document.createElement("button");
+        b.id="themeToggleV18"; b.className="ghost-btn"; b.type="button"; b.onclick=cycleThemeV18;
+        actions.insertBefore(b, actions.firstChild);
+      }
+    }
+    applyThemeV18();
+  };
+  setTimeout(install,100); setTimeout(install,500);
+})();
+
+function v18AddAppearanceModes(){
+  const panel=document.querySelector("#adminContent .panel:has(#appearancePreviewV17)");
+  if(!panel)return;
+  let holder=$("appearanceModeV18");
+  if(!holder){
+    holder=document.createElement("div");
+    holder.id="appearanceModeV18";
+    holder.className="appearance-mode-v18";
+    panel.querySelector("h3")?.after(holder);
+  }
+  holder.innerHTML=`<label>${S.lang==="kh"?"របៀបបង្ហាញ":"Display Mode"}</label>
+  <div class="appearance-mode-buttons-v18">
+    <button type="button" data-theme="light">☀️ ${S.lang==="kh"?"ភ្លឺ":"Light"}</button>
+    <button type="button" data-theme="dark">🌙 ${S.lang==="kh"?"ងងឹត":"Dark"}</button>
+    <button type="button" data-theme="auto">🌓 ${S.lang==="kh"?"ស្វ័យប្រវត្តិ":"Auto"}</button>
+  </div>`;
+  holder.querySelectorAll("button").forEach(b=>b.onclick=()=>{applyThemeV18(b.dataset.theme);v18UpdateModeButtons();});
+  v18UpdateModeButtons();
+}
+function v18UpdateModeButtons(){
+  const m=v18Theme();
+  document.querySelectorAll(".appearance-mode-buttons-v18 button").forEach(b=>b.classList.toggle("active",b.dataset.theme===m));
+}
+const _renderSiteV18Base = renderSiteV17;
+renderSiteV17=function(ctx={}){
+  _renderSiteV18Base(ctx);
+  ["site_primary_V17","site_accent_V17","site_beige_V17","site_cream_V17","site_dark_V17","site_green_V17"].forEach(id=>{
+    const el=$(id); if(el){el.type="color";el.style.padding="2px";}
+  });
+  document.querySelectorAll("#adminContent code").forEach(el=>{
+    if(/^#?[0-9a-f]{6}$/i.test((el.textContent||"").trim()))el.remove();
+  });
+  v18AddAppearanceModes();
+  v18SingleLanguage($("adminContent"));
+};
+
+document.addEventListener("click",e=>{
+  if(e.target?.id==="langBtn"){
+    setTimeout(()=>{v18SingleLanguage(document.body);v18AddAppearanceModes();v18UpdateModeButtons();},80);
+  }
+});

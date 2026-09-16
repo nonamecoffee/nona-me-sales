@@ -70,3 +70,11 @@ The package includes a temporary Nona-me branded icon. Replace `icons/icon-192.p
 - Staff cannot open Weekly/Monthly Reports.
 - Staff have a Stock page to add stock received, with image and notes.
 - Admin and staff stock/product screens remain responsive.
+
+
+## V18 Updates
+- Single-language UI: only Khmer or only English is shown at one time.
+- Language switch button shows the target language only.
+- Appearance supports Light / Dark / Auto.
+- Appearance color choices use visual color pickers; no hex code is shown.
+- Dark mode applies across staff and admin UI.
