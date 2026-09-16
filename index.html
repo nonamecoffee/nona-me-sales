@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Nona-me Sales">
-<title>Nona-me Coffee Sales V9</title>
+<title>Nona-me Coffee Sales V10</title>
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -16,7 +16,7 @@
 <body>
 <div id="loginScreen" class="screen">
   <div class="login-card">
-    <div class="brand-mark">nona-me <span>coffee</span></div>
+    <div class="brand-mark"><span class="logo-dot">nm</span><div><b>nona-me</b><span>coffee</span></div></div>
     <div class="login-sub">Daily Sales System · ប្រព័ន្ធកត់ត្រាការលក់ប្រចាំថ្ងៃ</div>
     <label>Username / ឈ្មោះអ្នកប្រើ</label>
     <input id="username" autocomplete="username" placeholder="staff01">
@@ -30,20 +30,20 @@
 
 <div id="app" class="hidden">
 <header class="topbar">
-  <div class="brand">nona-me <span>coffee</span><small>SALES</small></div>
+  <div class="brand"><span class="logo-dot small">nm</span><div><b>nona-me</b> <span>coffee</span><small>SALES</small></div></div>
   <div class="top-actions"><button id="langBtn" class="ghost-btn">ខ្មែរ / EN</button><button id="logoutBtn" class="ghost-btn">Logout</button></div>
 </header>
 
 <main class="wrap">
   <nav class="tabs">
-    <button class="tab active" data-page="sales">🧾 Sales / ការលក់</button>
-    <button class="tab" data-page="expenses">💸 Expenses / ចំណាយ</button>
-    <button class="tab" data-page="cash">💵 Daily Cash / លុយក្នុងតុ</button>
-    <button class="tab" data-page="deposit">🏦 Deposit / ដាក់ធនាគារ</button>
-    <button id="adminTab" class="tab hidden" data-page="admin">👑 Admin</button>
-    <button class="tab" data-page="report">📤 Daily Report / របាយការណ៍</button>
-    <button id="periodReportTab" class="tab hidden" data-page="periodReport">📊 Weekly / Monthly</button>
-    <button class="tab" data-page="history">📅 History</button>
+    <button class="tab active" data-page="sales">Sales / ការលក់</button>
+    <button class="tab" data-page="expenses">Expenses / ចំណាយ</button>
+    <button class="tab" data-page="cash">Daily Cash / លុយក្នុងតុ</button>
+    <button class="tab" data-page="deposit">Deposit / ដាក់ធនាគារ</button>
+    <button id="adminTab" class="tab hidden" data-page="admin">Admin</button>
+    <button class="tab" data-page="report">Daily Report / របាយការណ៍</button>
+    <button id="periodReportTab" class="tab hidden" data-page="periodReport">Weekly / Monthly</button>
+    <button class="tab" data-page="history">History</button>
   </nav>
 
   <section id="salesPage" class="page">
@@ -55,9 +55,9 @@
       <div class="stat"><small>Total Cups / កែវសរុប</small><strong id="kpiCups">0</strong></div>
     </section>
     <div class="sales-grid">
-      <section class="panel"><div class="panel-title"><h2>☕ Menu / មីនុយ</h2><input id="menuSearch" class="search" placeholder="Search / ស្វែងរក"></div><div id="productGrid" class="product-grid"></div></section>
+      <section class="panel"><div class="panel-title"><h2>Menu / មីនុយ</h2><input id="menuSearch" class="search" placeholder="Search / ស្វែងរក"></div><div id="productGrid" class="product-grid"></div></section>
       <section class="panel cart-panel">
-        <h2>🧾 Current Sale / ការលក់បច្ចុប្បន្ន</h2><div id="cart"></div>
+        <h2>Current Sale / ការលក់បច្ចុប្បន្ន</h2><div id="cart"></div>
         <div class="currency-box">
           <div><label>Currency / រូបិយប័ណ្ណ</label><div class="segmented"><button class="currency-btn active" data-currency="KHR">KHR ៛</button><button class="currency-btn" data-currency="USD">USD $</button></div></div>
           <div><label>Rate / អត្រា</label><input id="rateInput" class="small-input" type="number" value="4000" min="1"><small>៛ / $1</small></div>
@@ -73,7 +73,7 @@
     <div class="page-head"><div><h1>Expenses / ការចំណាយ</h1><p class="muted">Enter what the money was spent on.</p></div></div>
     <div class="two-col">
       <section class="panel">
-        <h2>💸 Add Expense / បញ្ចូលការចំណាយ</h2>
+        <h2>Add Expense / បញ្ចូលការចំណាយ</h2>
         <label>Spent on / ចំណាយលើអ្វី?</label><input id="expenseDesc" placeholder="e.g. ទិញទឹកកក">
         <div class="form-grid">
           <div><label>Amount / ចំនួន</label><input id="expenseAmount" type="number" min="0" step="0.01" placeholder="10000"></div>
@@ -97,14 +97,14 @@
     </div>
     <div class="two-col">
       <section class="panel">
-        <h2>🔢 Count Actual Cash / រាប់លុយជាក់ស្តែង</h2>
+        <h2>Count Actual Cash / រាប់លុយជាក់ស្តែង</h2>
         <div class="form-grid">
           <div><label>Actual KHR / រាប់បានជារៀល</label><input id="actualKhr" type="number" min="0" value="0"></div>
           <div><label>Actual USD / រាប់បានជាដុល្លារ</label><input id="actualUsd" type="number" min="0" step="0.01" value="0"></div>
         </div>
         <button id="saveCashCountBtn" class="save-btn">SAVE CASH COUNT / រក្សាទុក</button>
       </section>
-      <section class="panel"><h2>📊 Cash Result / លទ្ធផល</h2><div id="cashResult"></div></section>
+      <section class="panel"><h2>Cash Result / លទ្ធផល</h2><div id="cashResult"></div></section>
     </div>
   </section>
 
@@ -112,7 +112,7 @@
     <div class="page-head"><div><h1>Bank Deposit / ដាក់ចូលធនាគារ</h1><p class="muted">Record money removed from the table and deposited to the bank.</p></div></div>
     <div class="two-col">
       <section class="panel">
-        <h2>🏦 Add Deposit / បញ្ចូលការដាក់ធនាគារ</h2>
+        <h2>Add Deposit / បញ្ចូលការដាក់ធនាគារ</h2>
         <div class="form-grid">
           <div><label>Amount / ចំនួន</label><input id="depositAmount" type="number" min="0" step="0.01" placeholder="500000"></div>
           <div><label>Currency / រូបិយប័ណ្ណ</label><select id="depositCurrency"><option value="KHR">KHR ៛</option><option value="USD">USD $</option></select></div>
@@ -131,11 +131,11 @@
   <section id="adminPage" class="page hidden">
     <div class="page-head"><div><h1>Admin Control Center / មជ្ឈមណ្ឌលគ្រប់គ្រង</h1><p class="muted">Owner can configure the shop without editing code.</p></div></div>
     <div class="admin-menu">
-      <button class="admin-menu-btn active" data-admin="overview">📊 Overview</button>
-      <button class="admin-menu-btn" data-admin="products">☕ Products / Menu</button>
-      <button class="admin-menu-btn" data-admin="staff">👥 Staff / Users</button>
-      <button class="admin-menu-btn" data-admin="settings">⚙️ Shop Settings</button>
-      <button class="admin-menu-btn" data-admin="audit">🛡️ Audit Log</button>
+      <button class="admin-menu-btn active" data-admin="overview">Overview</button>
+      <button class="admin-menu-btn" data-admin="products">Products / Menu</button>
+      <button class="admin-menu-btn" data-admin="staff">Staff / Users</button>
+      <button class="admin-menu-btn" data-admin="settings">Shop Settings</button>
+      <button class="admin-menu-btn" data-admin="audit">Audit Log</button>
     </div>
     <div id="adminContent"></div>
   </section>
@@ -144,7 +144,7 @@
     <div class="page-head"><div><h1>Daily Report / របាយការណ៍ប្រចាំថ្ងៃ</h1><p id="reportDate" class="muted"></p></div></div>
     <div class="panel">
       <div id="reportPreview" class="report-card"></div>
-      <div class="export-grid"><button id="exportPng" class="export-btn">🖼 Export Image / PNG</button><button id="copyText" class="export-btn">📋 Copy Text</button><button id="downloadTxt" class="export-btn">📄 Download TXT</button><button id="shareTelegram" class="export-btn accent">✈️ Telegram</button></div>
+      <div class="export-grid"><button id="exportPng" class="export-btn">Export Image / PNG</button><button id="copyText" class="export-btn">Copy Text</button><button id="downloadTxt" class="export-btn">Download TXT</button><button id="shareTelegram" class="export-btn accent">Telegram</button></div>
     </div>
   </section>
 
@@ -155,7 +155,7 @@
         <div><label>Report Type / ប្រភេទរបាយការណ៍</label><select id="periodType"><option value="week">Weekly / ប្រចាំសប្តាហ៍</option><option value="month">Monthly / ប្រចាំខែ</option></select></div>
         <div><label>Start Date / កាលបរិច្ឆេទចាប់ផ្តើម</label><input id="periodStart" type="date"></div>
       </div>
-      <div class="export-grid period-actions"><button id="generatePeriod" class="save-btn">📊 Generate / បង្កើតរបាយការណ៍</button><button id="exportCsv" class="export-btn">📥 Google Sheets CSV</button></div>
+      <div class="export-grid period-actions"><button id="generatePeriod" class="save-btn">Generate / បង្កើតរបាយការណ៍</button><button id="exportCsv" class="export-btn">Google Sheets CSV</button></div>
       <div id="periodPreview" class="report-card period-preview"></div>
     </div>
   </section>
