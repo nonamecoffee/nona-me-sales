@@ -1,6 +1,6 @@
 const SUPABASE_URL='https://aucwgnbhcbcovmshjmuo.supabase.co';
 const SUPABASE_KEY='sb_publishable_XKT_TSLgOd75bhapXEUZ2Q_rs98dwcO';
-const DBKEY='nona_me_saas_v2_2_local';
+const DBKEY='nona_me_saas_master_v2_4';
 const seedProducts=[
 ['Coffee Milk','កាហ្វេទឹកដោះគោ',5000,'Coffee'],['Coffee Cream','កាហ្វេក្រែម',5000,'Coffee'],['Coffee Egg Cream','កាហ្វេក្រែមពងមាន់',5000,'Coffee'],['Coffee Taro','កាហ្វេតារ៉ូ',5000,'Coffee'],['Americano','អាមេរិកាណូ',5000,'Coffee'],['Latte','ឡាតេ',5000,'Coffee'],['Cappuccino','កាពូជីណូ',5000,'Coffee'],['Mocha','ម៉ូកា',5000,'Coffee'],['Matcha Milk','ម៉ាតឆាទឹកដោះគោ',5000,'Matcha'],['Matcha Cream','ម៉ាតឆាក្រែម',5000,'Matcha'],['Matcha Taro','ម៉ាតឆាតារ៉ូ',5000,'Matcha'],['Cacao Milk','កាកាវទឹកដោះគោ',5000,'Cacao'],['Cacao Cream','កាកាវក្រែម',5000,'Cacao'],['Thai Tea','តែថៃ',5000,'Tea'],['Green Tea Milk','តែបៃតងទឹកដោះគោ',5000,'Tea'],['Black Tea','តែខ្មៅ',4000,'Tea'],['Lemon Tea','តែក្រូចឆ្មារ',5000,'Tea'],['Peach Tea','តែផេស',5000,'Tea'],['Passion Tea','តែផាសិន',5000,'Tea'],['Soda Lemon','សូដាក្រូចឆ្មារ',5000,'Soda'],['Soda Passion','សូដាផាសិន',5000,'Soda'],['Soda Blue','សូដាប្លូ',5000,'Soda'],['Soda Strawberry','សូដាស្ត្របឺរី',5000,'Soda'],['Taro Milk','តារ៉ូទឹកដោះគោ',5000,'Other'],['Chocolate Milk','សូកូឡាទឹកដោះគោ',5000,'Cacao'],['Vanilla Milk','វ៉ានីឡាទឹកដោះគោ',5000,'Other'],['Caramel Milk','ការ៉ាមែលទឹកដោះគោ',5000,'Other'],['Milk Tea','តែទឹកដោះគោ',5000,'Tea'],['Lemon Soda','សូដាក្រូចឆ្មារ',5000,'Soda']
 ];
@@ -31,7 +31,7 @@ function normalizeData(raw){const base=blankData();const x=raw&&typeof raw==='ob
 function loadLocal(){try{const x=localStorage.getItem(localKey());if(x)return normalizeData(JSON.parse(x))}catch{}return blankData()}
 function productImageFallback(){return './logo.png'}
 function slugify(s){return s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||('business-'+Date.now())}
-async function init(){console.info('Nona-me Sales Master 2.2 loaded');render();if(!SB)return;try{const {data:{session}}=await SB.auth.getSession();if(session){app.session=session;await loadBusinesses();}}catch(e){toast(e.message)}}
+async function init(){console.info('Nona-me Sales Master 2.4 loaded');render();if(!SB)return;try{const {data:{session}}=await SB.auth.getSession();if(session){app.session=session;await loadBusinesses();}}catch(e){toast(e.message)}}
 async function loadBusinesses(){const {data,error}=await SB.from('nona_me_memberships').select('business_id,role,active,nona_me_businesses(id,name,slug,logo_url,settings)');if(error){toast(error.message);return}app.businesses=(data||[]).filter(x=>x.active!==false&&x.nona_me_businesses).map(x=>({id:x.business_id,role:x.role,business:x.nona_me_businesses}));if(app.businesses.length===1)await chooseBusiness(app.businesses[0]);else render()}
 async function chooseBusiness(row){app.business=row.business;app.membership=row;app.data=loadLocal();app.page='dashboard';await cloudLoadBusiness();render()}
 async function cloudLoadBusiness(){if(!SB||!app.business)return;try{const {data,error}=await SB.from('nona_me_business_data').select('data').eq('business_id',app.business.id).maybeSingle();if(error)throw error;if(data?.data){app.data=normalizeData(data.data);saveLocal()}else if(app.membership.role!=='staff'){await cloudSaveData()}app.pending=false}catch(e){app.pending=true;console.warn(e)}}
@@ -61,7 +61,21 @@ function bindNav(){
   if($('bizSwitch'))$('bizSwitch').onclick=(e)=>{e.preventDefault();app.business=null;app.membership=null;app.data=null;app.page='dashboard';render()};
   if($('logoutTop'))$('logoutTop').onclick=async(e)=>{e.preventDefault();await logout()};
 }
-function renderPage(){const p=$('page');if(!p)return;try{const f={dashboard:dashboardView,sales:salesView,menu:menuView,expenses:expenseView,cash:cashView,deposit:depositView,stock:stockView,report:reportView,reports:reportsView,admin:adminView}[app.page]||dashboardView;p.innerHTML=f();bindPage()}catch(e){console.error(e);p.innerHTML='<section class=\"panel\"><h2>Page error</h2><p class=\"muted\">'+esc(e?.message||e)+'</p></section>'}}
+function renderPage(){
+  const p=$('page'); if(!p)return;
+  try{
+    const views={dashboard:dashboardView,sales:salesView,menu:menuView,expenses:expenseView,cash:cashView,deposit:depositView,stock:stockView,report:reportView,reports:reportsView,admin:adminView};
+    const f=views[app.page];
+    if(typeof f!=='function') throw new Error('Page handler missing: '+app.page);
+    p.innerHTML=f();
+    bindPage();
+    document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.page===app.page));
+  }catch(e){
+    console.error('Render page failed',e);
+    p.innerHTML='<section class="panel error-panel"><h2>'+esc(app.lang==='kh'?'ទំព័រមិនអាចបើកបាន':'Page could not load')+'</h2><p class="muted">'+esc(e?.message||e)+'</p><div class="actions"><button class="primary" data-page="dashboard">'+esc(t('overview'))+'</button></div></section>';
+  }
+}
+
 function pageHead(title,actions=''){return `<div class="page-head"><div><h1>${title}</h1><div class="muted">${esc(app.business.name)}</div></div><div class="actions">${actions}</div></div>`}
 function dashboardView(){const d=app.data,day=today(),sales=d.sales.filter(x=>x.date===day),exp=d.expenses.filter(x=>x.date===day);const k=sales.filter(x=>x.currency==='KHR').reduce((a,x)=>a+x.amount,0),u=sales.filter(x=>x.currency==='USD').reduce((a,x)=>a+x.amount,0);return pageHead(t('overview'))+`<div class="stats"><div><small>KHR</small><b>${money(k)}</b></div><div><small>USD</small><b>${money(u,'USD')}</b></div><div><small>${t('cups')}</small><b>${sales.reduce((a,x)=>a+x.cups,0)}</b></div><div><small>${t('expense')}</small><b>${money(exp.filter(x=>x.currency==='KHR').reduce((a,x)=>a+x.amount,0))}</b></div></div><div class="panel-grid"><section class="panel"><h2>${t('report')}</h2><p class="muted">${day}</p><div class="quick"><button class="primary" data-page="sales">${t('sales')}</button><button data-page="report">${t('report')}</button><button data-page="stock">${t('stock')}</button></div></section><section class="panel"><h2>${t('business')}</h2><div class="meta-list"><div><span>${t('businessName')}</span><b>${esc(app.business.name)}</b></div><div><span>${t('role')}</span><b>${esc(app.membership.role)}</b></div></div></section></div>`}
 function menuView(){return salesView(true)}
@@ -74,6 +88,8 @@ function cashView(){const d=app.data;const last=d.cashCounts[d.cashCounts.length
 function depositView(){return pageHead(t('deposit'))+`<section class="panel"><div class="form-grid"><label>${t('amount')}<input id="depAmt" type="number"></label><label>${t('currency')}<select id="depCur"><option>KHR</option><option>USD</option></select></label><label>Bank<input id="depBank"></label><label>${t('note')}<input id="depNote"></label></div><button class="primary" id="saveDeposit">${t('save')}</button></section><section class="panel"><h2>${t('records')}</h2>${app.data.deposits.slice().reverse().map(x=>`<div class="record-row"><div><b>${esc(x.bank||'Bank')}</b><small>${x.date} · ${esc(x.note||'')}</small></div><strong>${money(x.amount,x.currency)}</strong></div>`).join('')||`<div class="empty">${t('noData')}</div>`}</section>`}
 function photoField(prefix,initial=''){return `<div class="photo-box"><div class="square-preview"><img id="${prefix}Preview" src="${esc(initial||'./logo.png')}"></div><div class="photo-actions"><button type="button" id="${prefix}Upload">🖼️ ${t('uploadPhoto')}</button><button type="button" id="${prefix}Camera">📷 ${t('takePhoto')}</button><button type="button" id="${prefix}Retake" class="hidden">🔄 ${t('retakePhoto')}</button><button type="button" id="${prefix}Remove" class="hidden">✕ ${t('removePhoto')}</button></div><input id="${prefix}File" class="hidden" type="file" accept="image/*"><input id="${prefix}Cam" class="hidden" type="file" accept="image/*" capture="environment"></div>`}
 function menuAdmin(){return `<section class="panel"><div class="actions between"><h2>${t('products')}</h2><button class="primary" id="addProduct">${t('add')}</button></div>${app.data.products.map((p,i)=>`<div class="record-row"><div class="thumb-row"><img src="${esc(p.image||'./logo.png')}"><div><b>${esc(p.en)}</b><small>${esc(p.kh)} · ${money(p.price)} · ${esc(p.category)}</small></div></div><div class="actions"><button data-edit-product="${i}">${t('edit')}</button><button data-delete-product="${i}">${t('delete')}</button></div></div>`).join('')}</section>`}
+function stockView(){return stockAdmin()}
+
 function stockAdmin(){return `<section class="panel"><div class="actions between"><h2>${t('stock')}</h2><button class="primary" id="addStock">${t('add')}</button></div>${app.data.stock.map((p,i)=>`<div class="record-row"><div class="thumb-row"><img src="${esc(p.image||'./logo.png')}"><div><b>${esc(p.name)}</b><small>${p.qty} ${esc(p.unit||'')} · min ${p.min||0}</small></div></div><div class="actions"><button data-edit-stock="${i}">${t('edit')}</button><button data-delete-stock="${i}">${t('delete')}</button></div></div>`).join('')||`<div class="empty">${t('noData')}</div>`}</section>`}
 function promoAdmin(){return `<section class="panel"><div class="actions between"><h2>${t('promotions')}</h2><button class="primary" id="addPromo">${t('add')}</button></div>${app.data.promotions.map((p,i)=>`<div class="record-row"><div><b>${esc(p[app.lang])}</b><small>${p.qty} → ${money(p.price)} · ${p.active?'Active':'Inactive'}</small></div><div class="actions"><button data-edit-promo="${i}">${t('edit')}</button><button data-delete-promo="${i}">${t('delete')}</button></div></div>`).join('')}</section>`}
 function adminView(){return pageHead(t('admin'))+`<div class="admin-grid"><section class="panel"><h2>${t('businesses')}</h2><div class="meta-list"><div><span>${t('businessName')}</span><b>${esc(app.business.name)}</b></div><div><span>${t('role')}</span><b>${esc(app.membership.role)}</b></div></div></section>${menuAdmin()}${promoAdmin()}${stockAdmin()}<section class="panel"><div class="actions between"><h2>${t('website')}</h2><button class="primary" id="saveWebsite">${t('save')}</button></div><div class="form-grid"><label>${t('businessName')}<input id="wsName" value="${esc(app.data.cms.shopName)}"></label><label>Tagline<input id="wsTagline" value="${esc(app.data.cms.tagline)}"></label><label>${t('phone')}<input id="wsPhone" value="${esc(app.data.settings.phone||'')}"></label><label>${t('address')}<input id="wsAddress" value="${esc(app.data.settings.address||'')}"></label><label>${t('rate')}<input id="wsRate" type="number" value="${app.data.settings.rate}"></label><label>Primary<input id="wsPrimary" type="color" value="${app.data.cms.primary}"></label><label>Accent<input id="wsAccent" type="color" value="${app.data.cms.accent}"></label></div></section><section class="panel"><h2>${t('staff')}</h2><div class="muted">Staff management foundation is tenant-isolated in Supabase memberships.</div></section></div>`}
@@ -131,6 +147,17 @@ document.addEventListener('click',async e=>{
     if(id==='closeModal'){e.preventDefault();$('modalRoot').innerHTML='';return}
   }catch(err){console.error(err);toast(err?.message||String(err))}
 });
+
+// Global navigation fallback: guarantees every page button works even after re-render.
+document.addEventListener('click',e=>{
+  const btn=e.target.closest?.('[data-page]');
+  if(!btn) return;
+  if(btn.closest('#page') || btn.closest('.sidebar') || btn.closest('.quick')){
+    e.preventDefault();
+    const key=btn.dataset.page;
+    if(key && app.page!==key){app.page=key;renderPage();document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===key));window.scrollTo(0,0);}
+  }
+},true);
 window.addEventListener('online',async()=>{if(app.business&&app.data){await saveData();render()}});
 window.addEventListener('resize',()=>document.body.classList.toggle('mobile',innerWidth<800));
 init();
