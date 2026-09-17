@@ -1,9 +1,0 @@
-{
-  "name": "nona-me-sales-saas",
-  "private": true,
-  "version": "3.3.0",
-  "engines": {
-    "node": ">=22"
-  },
-  "type": "module"
-}
