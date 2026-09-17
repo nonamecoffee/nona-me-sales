@@ -1,7 +1,13 @@
-# Nona-me Sales Master 3.3 — Full Replacement
+# Nona-me Sales Master 3.4 — Full Replacement
 
 ## Telegram Vercel Function fix
-This release keeps the Master 3.2 application and fixes the Vercel Telegram function export so `api/telegram.js` uses the required default export format. Vercel current Node.js Functions require the function entry point to export a default function.
+This release keeps the Master 3.4 application, keeps the Vercel default export fix, and fixes Telegram report delivery so the daily report is sent as one complete A5 portrait image with a compact sender caption. The surrounding page is no longer captured, and the full text is no longer sent as a second Telegram message.
+
+### Telegram report behavior
+- One Telegram message per daily report (A5 portrait image + compact caption)
+- Sender name is shown in readable form
+- Sender ID is shortened to the last 8 characters for clean presentation
+- The full report text is not sent as a second message
 
 ### Routes
 - `GET /api/telegram/health`

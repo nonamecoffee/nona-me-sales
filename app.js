@@ -10,6 +10,7 @@ let SB=null; try{SB=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY,{aut
 let app={lang:localStorage.getItem(DBKEY+'.lang')||'kh',session:null,businesses:[],business:null,membership:null,data:null,page:'dashboard',cart:[],pending:false};
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const t=k=>T[app.lang]?.[k]||k, today=()=>new Date().toISOString().slice(0,10), money=(n,c='KHR')=>c==='KHR'?Math.round(+n||0).toLocaleString()+'៛':'$'+Number(n||0).toFixed(2), uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function senderInfo(){const raw=app.session?.user?.user_metadata?.display_name||app.session?.user?.email||'Unknown';const name=String(raw).includes('@')?String(raw).split('@')[0]:String(raw);const id=app.session?.user?.id||'—';const clean=String(id).replace(/-/g,'').toUpperCase();const shortId=clean==='—'?'—':clean.slice(-8);return {name:name.slice(0,40),id:String(id),shortId};}
 function blankData(){const d=structuredClone(DEFAULTS);d.products=seedProducts.map((p,i)=>({id:'p'+i,en:p[0],kh:p[1],price:p[2],category:p[3],active:true,image:''}));return d}
 function localKey(){return DBKEY+'.'+(app.business?.id||'none')}
 function saveLocal(){if(app.business&&app.data)localStorage.setItem(localKey(),JSON.stringify(app.data))}
@@ -97,8 +98,9 @@ function adminView(){return pageHead(t('admin'))+`<div class="admin-grid"><secti
 function reportData(){const d=app.data,day=today(),sales=d.sales.filter(x=>x.date===day),exp=d.expenses.filter(x=>x.date===day),deps=d.deposits.filter(x=>x.date===day);const byCh={};for(const x of revenueChannels())byCh[x.key]=[0,0,x];sales.forEach(x=>{if(byCh[x.channel])byCh[x.channel][x.currency==='KHR'?0:1]+=x.amount});const totalK=sales.filter(x=>x.currency==='KHR').reduce((a,x)=>a+x.amount,0),totalU=sales.filter(x=>x.currency==='USD').reduce((a,x)=>a+x.amount,0),expK=exp.filter(x=>x.currency==='KHR').reduce((a,x)=>a+x.amount,0),expU=exp.filter(x=>x.currency==='USD').reduce((a,x)=>a+x.amount,0);const depK=deps.filter(x=>x.currency==='KHR').reduce((a,x)=>a+x.amount,0),depU=deps.filter(x=>x.currency==='USD').reduce((a,x)=>a+x.amount,0);const cups=sales.reduce((a,x)=>a+x.cups,0);const counts={};sales.forEach(s=>s.items?.forEach(i=>counts[i.en]=(counts[i.en]||0)+i.qty));const best=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';const prev=d.cashCounts[d.cashCounts.length-1];const prevK=prev?.actualKhr||0,prevU=prev?.actualUsd||0;const csK=sales.filter(x=>x.payment==='Cash'&&x.currency==='KHR').reduce((a,x)=>a+x.amount,0),csU=sales.filter(x=>x.payment==='Cash'&&x.currency==='USD').reduce((a,x)=>a+x.amount,0);const ceK=exp.filter(x=>x.method==='cash'&&x.currency==='KHR').reduce((a,x)=>a+x.amount,0),ceU=exp.filter(x=>x.method==='cash'&&x.currency==='USD').reduce((a,x)=>a+x.amount,0);const actual=prev||{};return {byCh,totalK,totalU,expK,expU,depK,depU,cups,best,prevK,prevU,csK,csU,ceK,ceU,expectedK:prevK+csK-ceK-depK,expectedU:prevU+csU-ceU-depU,actualK:actual.actualKhr??null,actualU:actual.actualUsd??null}}
 function reportView(){
   const r=reportData();
-  const sender=app.session?.user?.user_metadata?.display_name||app.session?.user?.email||'—';
-  const senderId=app.session?.user?.id||'—';
+  const senderMeta=senderInfo();
+  const sender=senderMeta.name;
+  const senderId=senderMeta.shortId;
   const shop=app.data.cms.shopName||app.business.name||'—';
   const date=today();
   const title=app.lang==='kh'?'របាយការណ៍ប្រចាំថ្ងៃ':'DAILY REPORT';
@@ -188,8 +190,8 @@ function buildReportText(){
   rows.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   rows.push(pad(t('cups'))+right(r.cups,26)); rows.push(pad(t('bestSeller'))+right(r.best,26)); rows.push(pad(t('rate'))+right('1 USD = '+app.data.settings.rate.toLocaleString()+' KHR',26));
   rows.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  const sender=app.session?.user?.user_metadata?.display_name||app.session?.user?.email||'Unknown'; const sid=app.session?.user?.id||'—';
-  rows.push((app.lang==='kh'?t('sender')+': ':t('sender')+': ')+sender); rows.push((app.lang==='kh'?t('senderId')+': ':t('senderId')+': ')+sid);
+  const senderMeta=senderInfo(); const sender=senderMeta.name; const sid=senderMeta.shortId;
+  rows.push(t('sender')+': '+sender); rows.push(t('senderId')+': '+sid);
   rows.push(app.data.cms.footer||t('thankYou'));
   return rows.join('\n');
 }
@@ -203,17 +205,55 @@ async function sendReportTelegram(){
   try{
     const chatId=(app.data.settings.telegramChatId||'').trim();
     if(!chatId)return toast(t('telegramChatId')+' required');
-    const el=$('reportCapture'); if(!el)return toast(t('report'));
+    const host=$('reportCapture'), sheet=host?.querySelector('.a5-sheet');
+    if(!sheet)return toast(t('report'));
     await document.fonts?.ready;
-    const canvas=await html2canvas(el,{backgroundColor:'#fff',scale:1.4,width:559,height:794,windowWidth:559,windowHeight:794,useCORS:true,logging:false});
-    // Keep the report compact enough for the Telegram photo upload while preserving A5 proportions.
-    const dataUrl=canvas.toDataURL('image/jpeg',0.82);
-    const text=buildReportText();
-    const sender=app.session?.user?.user_metadata?.display_name||app.session?.user?.email||'Unknown';
-    const senderId=app.session?.user?.id||'—';
-    const shortCaption=(app.data.cms.shopName||app.business.name||'Nona-me Coffee')+'\n'+t('report')+' · '+today()+'\n'+t('sender')+': '+sender+'\n'+t('senderId')+': '+senderId;
+    const images=[...sheet.querySelectorAll('img')];
+    await Promise.all(images.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true});})));
+
+    // Capture the actual A5 sheet only. This prevents the surrounding page panel
+    // from being included and avoids the wide/blank Telegram preview seen before.
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:-10000px;top:0;width:559px;height:794px;overflow:hidden;background:#fff;z-index:-1;';
+    const clone=sheet.cloneNode(true);
+    clone.style.width='559px';
+    clone.style.height='794px';
+    clone.style.minHeight='794px';
+    clone.style.maxHeight='794px';
+    clone.style.margin='0';
+    clone.style.borderRadius='0';
+    clone.style.overflow='hidden';
+    wrap.appendChild(clone);
+    document.body.appendChild(wrap);
+    const cloneImages=[...clone.querySelectorAll('img')];
+    await Promise.all(cloneImages.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true});})));
+
+    // If content grows beyond A5 height, scale the entire report proportionally
+    // so the full report still fits on one A5 portrait image instead of being cut off.
+    const naturalH=Math.max(clone.scrollHeight,794);
+    if(naturalH>794){
+      const scale=794/naturalH;
+      clone.style.transform=`scale(${scale})`;
+      clone.style.transformOrigin='top left';
+      clone.style.width=`${559/scale}px`;
+      clone.style.height=`${naturalH}px`;
+    }
+
+    const canvas=await html2canvas(wrap,{backgroundColor:'#fff',scale:2,width:559,height:794,windowWidth:559,windowHeight:794,scrollX:0,scrollY:0,useCORS:true,logging:false});
+    wrap.remove();
+
+    const dataUrl=canvas.toDataURL('image/jpeg',0.88);
+    const r=reportData();
+    const meta=senderInfo();
+    const shop=app.data.cms.shopName||app.business.name||'Nona-me Coffee';
+    const caption=[
+      shop,
+      `${t('report')} · ${today()}`,
+      `${t('sender')}: ${meta.name} · ${t('senderId')}: ${meta.shortId}`
+    ].join('\n');
+
     const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),30000);
-    const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:'report',chatId,caption:shortCaption,text,image:dataUrl,sender,senderId})});
+    const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:'report',chatId,caption,image:dataUrl,sender:meta.name,senderId:meta.shortId,report:{cups:r.cups,totalK:r.totalK,totalU:r.totalU}})});
     clearTimeout(timer);
     const {out,raw}=await readApiResult(res);
     if(!res.ok||!out.ok)throw new Error(out.error||raw||'Telegram send failed');
