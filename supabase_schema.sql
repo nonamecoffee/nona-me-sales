@@ -146,9 +146,9 @@ drop policy if exists nona_data_member_insert on public.nona_me_business_data;
 create policy nona_data_member_insert on public.nona_me_business_data
 for insert to authenticated with check (public.nona_me_is_member(business_id));
 
-drop policy if exists nona_data_admin_update on public.nona_me_business_data;
-create policy nona_data_admin_update on public.nona_me_business_data
-for update to authenticated using (public.nona_me_is_admin(business_id)) with check (public.nona_me_is_admin(business_id));
+drop policy if exists nona_data_member_update on public.nona_me_business_data;
+create policy nona_data_member_update on public.nona_me_business_data
+for update to authenticated using (public.nona_me_is_member(business_id)) with check (public.nona_me_is_member(business_id));
 
 drop policy if exists nona_audit_member_select on public.nona_me_business_audit;
 create policy nona_audit_member_select on public.nona_me_business_audit
