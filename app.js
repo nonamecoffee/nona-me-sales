@@ -193,6 +193,12 @@ function buildReportText(){
   rows.push(app.data.cms.footer||t('thankYou'));
   return rows.join('\n');
 }
+async function readApiResult(res){
+  const raw=await res.text();
+  let out={};
+  try{out=raw?JSON.parse(raw):{}}catch(_){out={error:raw||'No response from server.'}}
+  return {out,raw};
+}
 async function sendReportTelegram(){
   try{
     const chatId=(app.data.settings.telegramChatId||'').trim();
@@ -200,14 +206,15 @@ async function sendReportTelegram(){
     const el=$('reportCapture'); if(!el)return toast(t('report'));
     await document.fonts?.ready;
     const canvas=await html2canvas(el,{backgroundColor:'#fff',scale:1.4,width:559,height:794,windowWidth:559,windowHeight:794,useCORS:true,logging:false});
-    // JPEG keeps the request small enough for Vercel while remaining clear in Telegram.
-    let dataUrl=canvas.toDataURL('image/jpeg',0.82);
+    // Keep the report compact enough for the Telegram photo upload while preserving A5 proportions.
+    const dataUrl=canvas.toDataURL('image/jpeg',0.82);
     const text=buildReportText();
     const sender=app.session?.user?.user_metadata?.display_name||app.session?.user?.email||'Unknown';
-    const shortCaption=(app.data.cms.shopName||app.business.name||'Nona-me Coffee')+'\n'+t('report')+' · '+today()+'\n'+t('sender')+': '+sender;
-    const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'report',chatId,caption:shortCaption,text,image:dataUrl})});
-    const out=await res.json().catch(()=>({}));
-    if(!res.ok||!out.ok)throw new Error(out.error||'Telegram send failed');
+    const senderId=app.session?.user?.id||'—';
+    const shortCaption=(app.data.cms.shopName||app.business.name||'Nona-me Coffee')+'\n'+t('report')+' · '+today()+'\n'+t('sender')+': '+sender+'\n'+t('senderId')+': '+senderId;
+    const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'report',chatId,caption:shortCaption,text,image:dataUrl,sender,senderId})});
+    const {out,raw}=await readApiResult(res);
+    if(!res.ok||!out.ok)throw new Error(out.error||raw||'Telegram send failed');
     toast((t('sendTelegram')||'Telegram')+' ✓');
   }catch(e){toast(e.message||String(e))}
 }
@@ -216,8 +223,8 @@ async function testTelegram(){
     const chatId=(app.data.settings.telegramChatId||$('wsTelegramChatId')?.value||'').trim();
     if(!chatId)return toast(t('telegramChatId')+' required');
     const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'test',chatId})});
-    const out=await res.json().catch(()=>({}));
-    if(!res.ok||!out.ok)throw new Error(out.error||'Telegram test failed');
+    const {out,raw}=await readApiResult(res);
+    if(!res.ok||!out.ok)throw new Error(out.error||raw||'Telegram test failed');
     toast((t('testTelegram')||'Test Telegram')+' ✓');
   }catch(e){toast(e.message||String(e))}
 }

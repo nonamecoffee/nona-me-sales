@@ -1,8 +1,10 @@
-# Nona-me Sales Master 2.7
+# Nona-me Sales Master 2.8
 
 Full replacement build based on Master 2.6.
 
 ## Telegram
+- Telegram delivery now uses a Node.js Vercel serverless route with a manual multipart upload for maximum runtime compatibility.
+- The API checks the bot token with getMe before every send and returns Telegram/Vercel errors to the UI.
 - Uses Vercel serverless route: /api/telegram/send
 - TELEGRAM_BOT_TOKEN must be set in Vercel Environment Variables.
 - Admin Website settings includes Telegram Chat ID and a Test Telegram button.
