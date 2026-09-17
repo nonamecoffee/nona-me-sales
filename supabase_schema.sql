@@ -164,3 +164,35 @@ grant select, insert, update, delete on public.nona_me_memberships to authentica
 grant select, insert, update on public.nona_me_business_data to authenticated;
 grant select, insert on public.nona_me_business_audit to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
+
+
+-- Staff management: add an existing Supabase Auth account to a business.
+-- The staff member should create a Cloud Account first. Admin then adds that email here.
+create or replace function public.nona_me_add_member_by_email(p_business uuid, p_email text, p_role text default 'staff')
+returns table(user_id uuid, email text, role text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  target_user uuid;
+  target_email text;
+  chosen_role text;
+begin
+  if auth.uid() is null then raise exception 'Not authenticated'; end if;
+  if not public.nona_me_is_admin(p_business) then raise exception 'Not authorized'; end if;
+  chosen_role := case when p_role in ('admin','staff') then p_role else 'staff' end;
+  select id, email into target_user, target_email
+  from auth.users
+  where lower(email) = lower(trim(p_email))
+  limit 1;
+  if target_user is null then raise exception 'No Cloud Account found for this email. Ask the staff member to create an account first.'; end if;
+  insert into public.nona_me_memberships(business_id,user_id,role,active)
+  values(p_business,target_user,chosen_role,true)
+  on conflict (business_id,user_id) do update
+    set role=excluded.role, active=true;
+  return query select target_user, target_email, chosen_role;
+end;
+$$;
+revoke all on function public.nona_me_add_member_by_email(uuid,text,text) from public;
+grant execute on function public.nona_me_add_member_by_email(uuid,text,text) to authenticated;
