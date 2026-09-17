@@ -1,40 +1,48 @@
-# Nona-me Sales Master 3.1 — Full Replacement
+# Nona-me Sales Master 3.2 — Full Replacement
 
-## What this version fixes
-- Telegram Vercel API routes are now standard CommonJS Vercel Node Functions for maximum deployment compatibility.
-- Added `GET /api/telegram/health` to verify that the API route is actually deployed and that `TELEGRAM_BOT_TOKEN` can authenticate to Telegram.
-- Added `POST /api/telegram/test` for a clean connection test.
-- `POST /api/telegram/send` sends the A5 daily report image first, then the plain-text report.
-- Sender name and sender ID remain included in the report.
-- Better JSON error responses so Vercel/Telegram errors are visible instead of a generic failure.
-- Added explicit Vercel function configuration.
-- Existing Master 2.9 features are preserved as the base.
+## Main fix
+- Telegram API is simplified to ONE Vercel Node Function: `api/telegram.js`.
+- Friendly routes remain available through Vercel rewrites:
+  - `GET /api/telegram/health`
+  - `POST /api/telegram/test`
+  - `POST /api/telegram/send`
+- No `functions` glob is used in `vercel.json`, avoiding the previous unmatched-function build error.
+- Telegram report sends the A5 image first, then the plain-text report. Sender name and sender ID remain included by the app.
+- API errors return readable JSON.
+- Static icon files are kept at repository root to make GitHub upload easier.
+- Node engine is `>=22` for current Vercel deployments.
+
+## IMPORTANT GitHub structure
+The repository root must contain `api` as a folder, and inside it only this API file:
+
+```text
+api/
+└── telegram.js
+```
+
+The root should also contain `index.html`, `app.js`, `style.css`, `vercel.json`, `package.json`, and the other project files.
 
 ## Telegram configuration
 Vercel Environment Variable:
 - Key: `TELEGRAM_BOT_TOKEN`
 - Type: Secret
 - Environment: Production (Preview too if needed)
-- Value: the BotFather token
+- Value: BotFather token
 
 Website Admin → Website/Settings:
-- Telegram Chat ID = your target Telegram chat ID
+- Telegram Chat ID = target Telegram chat ID
 
 No new Supabase SQL is required for this Telegram fix.
 
 ## Deploy
-1. Replace the GitHub repository files with the contents of this ZIP. Do not mix with older versions.
-2. Commit and push.
-3. Let Vercel create a new production deployment.
-4. Open `https://YOUR-DOMAIN/api/telegram/health`.
-5. A working deployment returns JSON with `"ok": true` and the bot username.
-6. In Nona-me Admin, press **Test Telegram**.
-7. Then open Daily Report and press **Send to Telegram**.
+1. Replace the GitHub repository contents with this ZIP. Do not mix files from older versions.
+2. Make sure `api/telegram.js` is inside the `api` folder at the repository root.
+3. Make sure the new `vercel.json` replaces the older one.
+4. Commit and wait for the Vercel production deployment.
+5. Open `https://YOUR-DOMAIN/api/telegram/health`.
+6. A working deployment returns JSON with `"ok": true` and the bot username.
+7. In Nona-me Admin, press Test Telegram.
+8. Then use Daily Report → Send to Telegram.
 
-## If `/api/telegram/health` still says NOT_FOUND
-Check Vercel Project Settings → General → Root Directory. It must point to the repository root containing `index.html`, `app.js`, `vercel.json`, `package.json`, and the `api` folder.
-
-
-## Vercel deployment note
-No `vercel.json` is required. Vercel auto-detects the Node Serverless Functions under `api/`.
-Expected Telegram routes: `/api/telegram/health`, `/api/telegram/test`, `/api/telegram/send`.
+## If build still fails
+The Vercel Project Root Directory must be the repository root—the same location containing `index.html`, `app.js`, `vercel.json`, `package.json`, and the `api` folder.

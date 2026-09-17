@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/telegram/*.js": {
-      "maxDuration": 30
-    }
-  }
+  "rewrites": [
+    { "source": "/api/telegram/health", "destination": "/api/telegram?route=health" },
+    { "source": "/api/telegram/test", "destination": "/api/telegram?route=test" },
+    { "source": "/api/telegram/send", "destination": "/api/telegram?route=send" }
+  ]
 }
