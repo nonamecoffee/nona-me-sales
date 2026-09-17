@@ -1,12 +1,16 @@
-# Nona-me Sales Master 2.6
+# Nona-me Sales Master 2.7
 
-Full replacement build. Based on Master 2.5.
+Full replacement build based on Master 2.6.
 
-## Daily Report A5
-- Redesigned Daily Report to a compact, clean A5 portrait layout.
-- Save Image renders to an exact A5 canvas (559 x 794 CSS px; 1118 x 1588 PNG at 2x scale) and scales content down when necessary so it fits without clipping.
-- Print uses A5 portrait with zero page margins and auto-fit scaling.
-- Keeps Khmer/English single-language UI.
-- Save Image keeps mobile share flow; if sharing files is supported, the device share sheet can save to Photos/Gallery.
+## Telegram
+- Uses Vercel serverless route: /api/telegram/send
+- TELEGRAM_BOT_TOKEN must be set in Vercel Environment Variables.
+- Admin Website settings includes Telegram Chat ID and a Test Telegram button.
+- Send to Telegram sends the A5 report image first, then the full plain-text report.
+- Full text is chunked to Telegram message size limits.
+- No HTML parse mode is used for report text, avoiding formatting errors.
+- Errors returned by Telegram are shown to the user.
 
-No Supabase schema change is required for this report-only update.
+## Deploy
+Replace the whole GitHub repo with this package, then redeploy on Vercel.
+No new Supabase SQL is required for the Telegram fix.
