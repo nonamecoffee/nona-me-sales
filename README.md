@@ -1,4 +1,4 @@
-# Nona-me Sales Master 3.0 — Full Replacement
+# Nona-me Sales Master 3.1 — Full Replacement
 
 ## What this version fixes
 - Telegram Vercel API routes are now standard CommonJS Vercel Node Functions for maximum deployment compatibility.
@@ -33,3 +33,8 @@ No new Supabase SQL is required for this Telegram fix.
 
 ## If `/api/telegram/health` still says NOT_FOUND
 Check Vercel Project Settings → General → Root Directory. It must point to the repository root containing `index.html`, `app.js`, `vercel.json`, `package.json`, and the `api` folder.
+
+
+## Vercel deployment note
+No `vercel.json` is required. Vercel auto-detects the Node Serverless Functions under `api/`.
+Expected Telegram routes: `/api/telegram/health`, `/api/telegram/test`, `/api/telegram/send`.
