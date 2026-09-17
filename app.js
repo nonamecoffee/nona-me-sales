@@ -225,7 +225,10 @@ async function testTelegram(){
     const chatId=(app.data.settings.telegramChatId||$('wsTelegramChatId')?.value||'').trim();
     if(!chatId)return toast(t('telegramChatId')+' required');
     const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),15000);
-    const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:'test',chatId})});
+    const health=await fetch('/api/telegram/health',{method:'GET',headers:{'Accept':'application/json'},signal:controller.signal});
+    const healthResult=await readApiResult(health);
+    if(!health.ok||!healthResult.out.ok)throw new Error(healthResult.out.error||healthResult.raw||'Telegram API route is not available.');
+    const res=await fetch('/api/telegram/test',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({chatId})});
     clearTimeout(timer);
     const {out,raw}=await readApiResult(res);
     if(!res.ok||!out.ok)throw new Error(out.error||raw||'Telegram test failed');
