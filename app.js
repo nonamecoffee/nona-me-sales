@@ -212,17 +212,21 @@ async function sendReportTelegram(){
     const sender=app.session?.user?.user_metadata?.display_name||app.session?.user?.email||'Unknown';
     const senderId=app.session?.user?.id||'—';
     const shortCaption=(app.data.cms.shopName||app.business.name||'Nona-me Coffee')+'\n'+t('report')+' · '+today()+'\n'+t('sender')+': '+sender+'\n'+t('senderId')+': '+senderId;
-    const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'report',chatId,caption:shortCaption,text,image:dataUrl,sender,senderId})});
+    const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),30000);
+    const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:'report',chatId,caption:shortCaption,text,image:dataUrl,sender,senderId})});
+    clearTimeout(timer);
     const {out,raw}=await readApiResult(res);
     if(!res.ok||!out.ok)throw new Error(out.error||raw||'Telegram send failed');
     toast((t('sendTelegram')||'Telegram')+' ✓');
-  }catch(e){toast(e.message||String(e))}
+  }catch(e){toast(e.name==='AbortError' ? 'Telegram request timed out. Please try again.' : (e.message||String(e)))}
 }
 async function testTelegram(){
   try{
     const chatId=(app.data.settings.telegramChatId||$('wsTelegramChatId')?.value||'').trim();
     if(!chatId)return toast(t('telegramChatId')+' required');
-    const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'test',chatId})});
+    const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),15000);
+    const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:'test',chatId})});
+    clearTimeout(timer);
     const {out,raw}=await readApiResult(res);
     if(!res.ok||!out.ok)throw new Error(out.error||raw||'Telegram test failed');
     toast((t('testTelegram')||'Test Telegram')+' ✓');

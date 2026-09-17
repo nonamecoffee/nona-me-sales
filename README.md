@@ -1,18 +1,21 @@
-# Nona-me Sales Master 2.8
+# Nona-me Sales Master 2.9
 
-Full replacement build based on Master 2.6.
+## Full Replacement
+This ZIP is a complete replacement package. Replace the GitHub project files with this package; do not merge files from older versions.
 
 ## Telegram
-- Telegram delivery now uses a Node.js Vercel serverless route with a manual multipart upload for maximum runtime compatibility.
-- The API checks the bot token with getMe before every send and returns Telegram/Vercel errors to the UI.
-- Uses Vercel serverless route: /api/telegram/send
-- TELEGRAM_BOT_TOKEN must be set in Vercel Environment Variables.
-- Admin Website settings includes Telegram Chat ID and a Test Telegram button.
-- Send to Telegram sends the A5 report image first, then the full plain-text report.
-- Full text is chunked to Telegram message size limits.
-- No HTML parse mode is used for report text, avoiding formatting errors.
-- Errors returned by Telegram are shown to the user.
+- Fixed the report photo upload path in the Vercel serverless function.
+- `sendPhoto` now receives the manually-built multipart body correctly.
+- `sendMessage` follows after the image.
+- Sender name and sender ID are included in the report text/caption.
+- `TELEGRAM_BOT_TOKEN` must be configured in Vercel Environment Variables.
+- Telegram Chat ID is stored in the business settings in the app.
+- No new Supabase SQL is required for this Telegram fix.
 
 ## Deploy
-Replace the whole GitHub repo with this package, then redeploy on Vercel.
-No new Supabase SQL is required for the Telegram fix.
+1. Replace all GitHub files with the contents of this ZIP.
+2. Commit the changes.
+3. Let Vercel deploy the new production build.
+4. Confirm `TELEGRAM_BOT_TOKEN` is still present in the Production environment.
+5. Open the latest deployment and use Admin -> Website -> Test Telegram.
+6. Then use Daily Report -> Send to Telegram.

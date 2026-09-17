@@ -30,7 +30,8 @@ function chunkText(text, max = 3900) {
 }
 
 async function tgCall(token, method, body) {
-  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, body instanceof Buffer
+  const isMultipart = body && typeof body === 'object' && body.body && (Buffer.isBuffer(body.body) || body.body instanceof Uint8Array) && body.headers;
+  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, isMultipart
     ? {
         method: 'POST',
         headers: body.headers,
@@ -39,7 +40,7 @@ async function tgCall(token, method, body) {
     : {
         method: 'POST',
         headers: { 'content-type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-        body: new URLSearchParams(body)
+        body: new URLSearchParams(body || {})
       });
   const raw = await response.text();
   let data = null;
