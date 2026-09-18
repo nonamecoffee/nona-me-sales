@@ -279,18 +279,44 @@ function openStaffModal(){
 }
 function buildReportText(){
   const rt=getReportTemplate(),r=reportData(),m=senderInfo(),rows=[];
-  const pad=(s,n=30)=>String(s).padEnd(n,' '),right=(s,n=13)=>String(s).padStart(n,' ');
-  if(rt.header) rows.push(rt.header); rows.push(t('report')+' · '+today(),'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  if(rt.showDate) rows.push(t('date')+': '+today());
-  if(rt.showStaff) rows.push(t('sender')+': '+m.name);
-  if(rt.showRate) rows.push(t('rate')+': 1 USD = '+Number(app.data.settings.rate||0).toLocaleString()+' KHR');
-  if(rt.sections.summary){rows.push(pad(t('cups'))+right(r.cups,26));rows.push(pad(t('revenue'))+right(money(r.totalK),14)+right(money(r.totalU,'USD'),12));rows.push(pad(t('expense'))+right(money(r.expK),14)+right(money(r.expU,'USD'),12));}
-  if(rt.sections.payments){rows.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',t('payments'));[['Cash',app.lang==='kh'?'សាច់ប្រាក់':'Cash'],['ABA','ABA'],['Other',app.lang==='kh'?'ផ្សេងៗ':'Other']].forEach(([k,label])=>rows.push(pad(label)+right(money(r.paymentRows[k].k),14)+right(money(r.paymentRows[k].u,'USD'),12)));}
-  if(rt.sections.expenses) rows.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',pad(t('expense'))+right(money(r.expK),14)+right(money(r.expU,'USD'),12));
-  if(rt.sections.cash){rows.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',app.lang==='kh'?'🧮 គ្រប់គ្រងសាច់ប្រាក់':'🧮 CASH CONTROL');[[t('previous'),r.prevK,r.prevU],[t('cashSales'),r.csK,r.csU],[t('cashExpenses'),r.ceK,r.ceU],[t('bankDeposit'),r.depK,r.depU],[t('expected'),r.expectedK,r.expectedU],[t('actual'),r.actualK,r.actualU],[t('difference'),r.actualK===null?null:r.actualK-r.expectedK,r.actualU===null?null:r.actualU-r.expectedU]].forEach(x=>rows.push(pad(x[0])+right(x[1]===null?'—':money(x[1]),14)+right(x[2]===null?'—':money(x[2],'USD'),12)));}
-  if(rt.sections.highlights){rows.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',pad(t('bestSeller'))+right(r.best||'—',26));if(r.promotionSummary)rows.push(pad(t('promotion'))+right(r.promotionSummary[0],26));}
-  if(rt.sections.products){rows.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',app.lang==='kh'?'មុខទំនិញលក់ដាច់':'Top Selling Items');r.topItems.slice(0,5).forEach((x,i)=>rows.push(`${i+1}. ${x[app.lang]||x.en||'—'} · ${x.qty}`));}
-  if(rt.showSender) rows.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',t('sender')+': '+m.name+' · #'+m.shortId);
+  const clean=v=>String(v??'—').replace(/\s+/g,' ').trim()||'—';
+  const pad=(v,n)=>clean(v).padEnd(n,' ');
+  const right=(v,n)=>clean(v).padStart(n,' ');
+  const moneyCell=(v,cur)=>v===null||v===undefined?'—':money(v,cur);
+  const line='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+  const row=(label,k,u)=>pad(label,28)+right(moneyCell(k),16)+right(moneyCell(u,'USD'),12);
+  if(rt.header) rows.push(rt.header);
+  rows.push(t('report')+' · '+today(),line);
+  if(rt.showDate) rows.push(pad(t('date'),28)+today());
+  if(rt.showStaff) rows.push(pad(t('sender'),28)+clean(m.name));
+  if(rt.showRate) rows.push(pad(t('rate'),28)+'1 USD = '+Number(app.data.settings.rate||0).toLocaleString()+' KHR');
+  if(rt.sections.summary){
+    rows.push(pad(t('cups'),28)+right(r.cups,28));
+    rows.push(row(t('revenue'),r.totalK,r.totalU));
+    rows.push(row(t('expense'),r.expK,r.expU));
+  }
+  if(rt.sections.payments){
+    rows.push(line,t('sectionPayments'));
+    [['Cash',app.lang==='kh'?'សាច់ប្រាក់':'Cash'],['ABA','ABA'],['Other',app.lang==='kh'?'ផ្សេងៗ':'Other']].forEach(([k,label])=>rows.push(row(label,r.paymentRows[k].k,r.paymentRows[k].u)));
+  }
+  if(rt.sections.expenses){
+    rows.push(line,t('sectionExpenses'),row(t('expense'),r.expK,r.expU));
+  }
+  if(rt.sections.cash){
+    rows.push(line,app.lang==='kh'?'🧮 គ្រប់គ្រងសាច់ប្រាក់':'🧮 CASH CONTROL');
+    [[t('previous'),r.prevK,r.prevU],[t('cashSales'),r.csK,r.csU],[t('cashExpenses'),r.ceK,r.ceU],[t('bankDeposit'),r.depK,r.depU],[t('expected'),r.expectedK,r.expectedU],[t('actual'),r.actualK,r.actualU],[t('difference'),r.actualK===null?null:r.actualK-r.expectedK,r.actualU===null?null:r.actualU-r.expectedU]].forEach(x=>rows.push(row(x[0],x[1],x[2])));
+  }
+  if(rt.sections.highlights){
+    rows.push(line,t('sectionHighlights'));
+    rows.push(pad(t('bestSeller'),28)+clean(r.best||'—'));
+    if(r.promotionSummary) rows.push(pad(t('promotion'),28)+clean(r.promotionSummary[0]));
+  }
+  if(rt.sections.products){
+    rows.push(line,t('sectionProducts'));
+    rows.push(pad('#',4)+pad(app.lang==='kh'?'មុខទំនិញ':'Product',24)+right(app.lang==='kh'?'កែវ':'Qty',8)+right(app.lang==='kh'?'ចំណូល':'Amount',16));
+    r.topItems.slice(0,5).forEach((x,i)=>rows.push(pad(i+1,4)+pad(x[app.lang]||x.en||'—',24)+right(x.qty,8)+right(x.amountK?money(x.amountK):money(x.amountU,'USD'),16)));
+  }
+  if(rt.showSender) rows.push(line,pad(t('sender'),28)+clean(m.name)+' · #'+clean(m.shortId));
   if(rt.footer) rows.push(rt.footer);
   return rows.join('\n');
 }
@@ -382,7 +408,7 @@ async function renderReportCanvas(){
     sheet.style.maxHeight='none';
     const rt=getReportTemplate();
     const scale=rt.resolution==='ultra'?4.5:(rt.resolution==='high'?3:2);
-    return await html2canvas(wrap,{backgroundColor:'#fff',scale,width:559,height:794,windowWidth:559,windowHeight:794,scrollX:0,scrollY:0,useCORS:true,logging:false,imageTimeout:15000,removeContainer:true});
+    return await html2canvas(wrap,{backgroundColor:'#fff',scale:scale,width:559,height:794,windowWidth:559,windowHeight:794,scrollX:0,scrollY:0,useCORS:true,logging:false,imageTimeout:15000,removeContainer:true});
   }finally{wrap.remove();}
 }
 async function saveReportImage(){
@@ -405,7 +431,7 @@ async function sendReportTelegram(){
     const caption=(rawCaption||fallback).trim().slice(0,1024) || fallback.slice(0,1024);
     const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),30000);
     try{
-      const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:'report',chatId,caption,image:dataUrl,sender:meta.name,senderId:meta.shortId,delivery:rt.telegramDelivery==='photo'?'photo':'document',report:{cups:r.cups,totalK:r.totalK,totalU:r.totalU}})});
+      const res=await fetch('/api/telegram/send',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:'report',chatId,caption,image:dataUrl,sender:meta.name,senderId:meta.shortId,delivery:rt.telegramDelivery==='photo'?'photo':'document',parseMode:'HTML',report:{cups:r.cups,totalK:r.totalK,totalU:r.totalU}})});
       const {out,raw}=await readApiResult(res);
       if(!res.ok||!out.ok)throw new Error(out.error||raw||'Telegram send failed');
     }finally{clearTimeout(timer)}
