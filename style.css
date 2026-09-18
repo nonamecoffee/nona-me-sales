@@ -46,3 +46,8 @@
 /* Master 3.7 — configurable report layout modes */
 #reportCapture .rt-layout-compact{gap:5px!important;padding:17px!important}#reportCapture .rt-layout-compact .nr-card{min-height:40px!important;padding:6px 8px!important}#reportCapture .rt-layout-compact .nr-row,#reportCapture .rt-layout-compact .nr-product-row{padding:3px 5px!important;min-height:15px!important}
 #reportCapture .rt-layout-detailed{gap:10px!important;padding:20px!important}#reportCapture .rt-layout-detailed .nr-card{min-height:52px!important;padding:9px 11px!important}#reportCapture .rt-layout-detailed .nr-row,#reportCapture .rt-layout-detailed .nr-product-row{padding:5px 5px!important;min-height:20px!important}
+
+/* Master 3.9 — high-resolution report + aspect-safe logo */
+#reportCapture .nr-brand{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start}
+#reportCapture .nr-brand img,#nonaReportExport .nr-brand img{height:auto!important;max-height:none!important;aspect-ratio:auto!important;object-fit:contain!important}
+@media print{#reportCapture .nr-brand img{height:auto!important}}

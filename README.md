@@ -1,52 +1,5 @@
-# Nona-me Sales Master 3.8 — Full Replacement
+# Nona-me Sales Master 3.9
 
-## Telegram Vercel Function fix
-This release keeps the Master 3.8 application, keeps the Vercel default export fix, and fixes Telegram report delivery so the daily report is sent as one complete A5 portrait image with a compact sender caption. The surrounding page is no longer captured, and the full text is no longer sent as a second Telegram message.
+Full Replacement build. Includes high-resolution A5 reporting, aspect-safe official logo rendering, Telegram one-message delivery, Original PNG Document delivery for maximum sharpness, and configurable Report Builder settings.
 
-### Telegram report behavior
-- One Telegram message per daily report (A5 portrait image + compact caption)
-- Sender name is shown in readable form
-- Sender ID is shortened to the last 8 characters for clean presentation
-- The full report text is not sent as a second message
-
-### Routes
-- `GET /api/telegram/health`
-- `POST /api/telegram/test`
-- `POST /api/telegram/send`
-
-### Required Vercel settings
-- Project Root Directory: repository root (`./`)
-- Environment Variable: `TELEGRAM_BOT_TOKEN` in Production (Preview too if needed)
-- Website Admin → Telegram Chat ID: target chat ID
-- Node.js: `22.x` or compatible with the `>=22` engine in `package.json`
-
-### GitHub structure
-Keep the included files exactly as delivered. The API file must be located at:
-
-```text
-api/telegram.js
-```
-
-Do not merge this release with older files. Replace the previous project contents with this ZIP.
-
-### Deploy check
-After Vercel deploys, open:
-
-```text
-https://YOUR-DOMAIN/api/telegram/health
-```
-
-A successful response includes `"ok": true` and the Telegram bot username. Then use **Test Telegram** in the admin area.
-
-No new Supabase SQL is required for this Telegram export fix.
-
-
-## Telegram report
-The daily report is sent as one Telegram photo message with the full compact report text attached as the photo caption, so forwarding the photo keeps the report text attached.
-
-
-## Master 3.8 Report Improvements
-- High-resolution A5 report export up to 300 DPI-equivalent rendering.
-- Admin can choose report resolution, PNG/JPEG format, and image quality.
-- Telegram sends one photo message with a non-empty caption; no separate report text message.
-- Telegram image MIME/file extension follows the selected image format.
+Telegram delivery defaults to `document` so the original PNG resolution is preserved and the report caption remains attached to the same forwarded message. Admin can switch to Photo in Report Builder.
