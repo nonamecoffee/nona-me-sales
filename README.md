@@ -1,4 +1,4 @@
-# Nona-me Sales System — Master 5.1
+# Nona-me Sales System — Master 5.2
 
 Full Replacement SaaS/Web system for sales, shifts, cash, expenses, stock, menu, promotions, reports, Telegram, roles, permissions and white-label business settings.
 
@@ -26,8 +26,12 @@ A5 portrait, auto-fit to one page, high/ultra resolution, logo aspect-ratio pres
 This ZIP is one complete system. Replace repository contents as a whole; do not merge with earlier versions.
 
 
-## Master 5.1 session stability
+## Master 5.2 session stability
 - Uses the current Supabase session before every server API call.
 - Keeps the session synchronized with Supabase token refresh events.
 - API authentication reads the Authorization header as the authoritative bearer token.
 - Stale access tokens in request bodies are no longer used for authentication.
+
+
+## Master 5.2
+This release hardens null-safe business data hydration so missing or null report templates fall back to defaults automatically, while preserving all existing features.
