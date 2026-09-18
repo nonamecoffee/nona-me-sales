@@ -1,5 +1,5 @@
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://aucwgnbhcbcovmshjmuo.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_XKT_TSLgOd75bhapXEUZ2Q_rs98dwcO';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 function json(res,status,body){return res.status(status).setHeader('content-type','application/json; charset=utf-8').setHeader('cache-control','no-store').json(body)}
 const clean=v=>String(v??'').trim();
