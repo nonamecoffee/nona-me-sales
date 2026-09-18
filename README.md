@@ -1,7 +1,7 @@
-# Nona-me Sales Master 3.7 — Full Replacement
+# Nona-me Sales Master 3.8 — Full Replacement
 
 ## Telegram Vercel Function fix
-This release keeps the Master 3.7 application, keeps the Vercel default export fix, and fixes Telegram report delivery so the daily report is sent as one complete A5 portrait image with a compact sender caption. The surrounding page is no longer captured, and the full text is no longer sent as a second Telegram message.
+This release keeps the Master 3.8 application, keeps the Vercel default export fix, and fixes Telegram report delivery so the daily report is sent as one complete A5 portrait image with a compact sender caption. The surrounding page is no longer captured, and the full text is no longer sent as a second Telegram message.
 
 ### Telegram report behavior
 - One Telegram message per daily report (A5 portrait image + compact caption)
@@ -43,3 +43,10 @@ No new Supabase SQL is required for this Telegram export fix.
 
 ## Telegram report
 The daily report is sent as one Telegram photo message with the full compact report text attached as the photo caption, so forwarding the photo keeps the report text attached.
+
+
+## Master 3.8 Report Improvements
+- High-resolution A5 report export up to 300 DPI-equivalent rendering.
+- Admin can choose report resolution, PNG/JPEG format, and image quality.
+- Telegram sends one photo message with a non-empty caption; no separate report text message.
+- Telegram image MIME/file extension follows the selected image format.
