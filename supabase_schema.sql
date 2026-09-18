@@ -196,3 +196,28 @@ end;
 $$;
 revoke all on function public.nona_me_add_member_by_email(uuid,text,text) from public;
 grant execute on function public.nona_me_add_member_by_email(uuid,text,text) to authenticated;
+
+
+-- Master 5.0 role and secure Telegram integration migration.
+alter table public.nona_me_memberships drop constraint if exists nona_me_memberships_role_check;
+alter table public.nona_me_memberships add constraint nona_me_memberships_role_check check (role in ('owner','admin','manager','staff','cashier','stock_keeper'));
+
+create table if not exists public.nona_me_integrations (
+  business_id uuid primary key references public.nona_me_businesses(id) on delete cascade,
+  telegram_bot_token text,
+  telegram_chat_id text,
+  updated_at timestamptz not null default now()
+);
+alter table public.nona_me_integrations enable row level security;
+drop policy if exists nona_integrations_no_client_read on public.nona_me_integrations;
+-- No authenticated policies: only server-side service role should read/write secrets.
+revoke all on public.nona_me_integrations from anon, authenticated;
+grant all on public.nona_me_integrations to service_role;
+
+-- Business data writes are routed through the server-side save API. Members retain read access.
+drop policy if exists nona_data_member_update on public.nona_me_business_data;
+drop policy if exists nona_data_member_insert on public.nona_me_business_data;
+create policy nona_data_admin_insert on public.nona_me_business_data
+for insert to authenticated with check (public.nona_me_is_admin(business_id));
+create policy nona_data_admin_update on public.nona_me_business_data
+for update to authenticated using (public.nona_me_is_admin(business_id)) with check (public.nona_me_is_admin(business_id));

@@ -1,26 +1,26 @@
+# Nona-me Sales System — Master 5.0
 
-## Master 4.5 UX/UI Interaction
-- Added lively button press/ripple feedback, hover states, page transitions, modal/toast animations, and mobile-friendly navigation feedback.
-- Added subtle async busy indicators for key save/send actions.
-- No business logic or data model changes.
-# Nona-me Sales Master 3.9
+Full Replacement SaaS/Web system for sales, shifts, cash, expenses, stock, menu, promotions, reports, Telegram, roles, permissions and white-label business settings.
 
-Full Replacement build. Includes high-resolution A5 reporting, aspect-safe official logo rendering, Telegram one-message delivery, Original PNG Document delivery for maximum sharpness, and configurable Report Builder settings.
+## Vercel setup
+- Add `SUPABASE_SERVICE_ROLE_KEY` as a Vercel Secret for secure Telegram settings, staff accounts, and server-side data writes. Never expose it in frontend.
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` are optional because the system has current project defaults.
+- `TELEGRAM_BOT_TOKEN` is optional legacy fallback; normal configuration is Admin → Telegram Settings.
 
-Telegram delivery defaults to `document` so the original PNG resolution is preserved and the report caption remains attached to the same forwarded message. Admin can switch to Photo in Report Builder.
+## Supabase
+Run the complete `supabase_schema.sql` once. It adds the secure `nona_me_integrations` table, expanded roles, and admin-controlled data writes.
 
+## Login
+One login page. Admin creates staff usernames and passwords. No public staff sign-up.
 
-## Master 4.1 Report Engine Fix
-- Report image export measures full report height before capture.
-- If content exceeds A5, the complete sheet scales down proportionally so no section is clipped.
-- Logo keeps intrinsic aspect ratio with no forced height.
-- High/Ultra rasterization remains available.
+## Sales
+Fixed sales workspace: Menu on the left, Current Sale on the right. Only Menu scrolls on desktop/tablet; mobile uses a right-side Current Sale drawer. Categories use quick buttons instead of dropdowns.
 
+## Telegram
+Reports send as one Telegram message containing the report file and caption. Day shift can auto-send an unsent morning report before opening.
 
-Master 4.5 adds grapheme-aware Telegram report column alignment for Khmer/Unicode text and keeps the report/Telegram features from 4.2.
+## Report
+A5 portrait, auto-fit to one page, high/ultra resolution, logo aspect-ratio preserved. Report/Telegram templates are configurable from Admin without code.
 
-
-Master 4.5 Telegram alignment update: Khmer report text uses a stable stacked-row format rather than mixed-width space columns, so labels and KHR/USD amounts remain visually consistent across Telegram clients.
-
-
-Master 4.5 adds CSV import/export for Products & Menu and Stock/Inventory. CSV files are UTF-8 with BOM and are Excel-compatible. Import updates existing records by id and adds new records.
+## Full replacement
+This ZIP is one complete system. Replace repository contents as a whole; do not merge with earlier versions.
