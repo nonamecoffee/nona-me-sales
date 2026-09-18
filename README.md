@@ -1,3 +1,8 @@
+
+## Master 4.2 UX/UI Interaction
+- Added lively button press/ripple feedback, hover states, page transitions, modal/toast animations, and mobile-friendly navigation feedback.
+- Added subtle async busy indicators for key save/send actions.
+- No business logic or data model changes.
 # Nona-me Sales Master 3.9
 
 Full Replacement build. Includes high-resolution A5 reporting, aspect-safe official logo rendering, Telegram one-message delivery, Original PNG Document delivery for maximum sharpness, and configurable Report Builder settings.

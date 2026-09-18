@@ -33,13 +33,13 @@ function normalizeData(raw){const base=blankData();const x=raw&&typeof raw==='ob
 function loadLocal(){try{const x=localStorage.getItem(localKey());if(x)return normalizeData(JSON.parse(x))}catch{}return blankData()}
 function productImageFallback(){return './logo.png'}
 function slugify(s){return s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||('business-'+Date.now())}
-async function init(){console.info('Nona-me Sales Master 2.5 loaded');render();if(!SB)return;try{const {data:{session}}=await SB.auth.getSession();if(session){app.session=session;await loadBusinesses();}}catch(e){toast(e.message)}}
+async function init(){console.info('Nona-me Sales Master 4.2 loaded');render();if(!SB)return;try{const {data:{session}}=await SB.auth.getSession();if(session){app.session=session;await loadBusinesses();}}catch(e){toast(e.message)}}
 async function loadBusinesses(){const {data,error}=await SB.from('nona_me_memberships').select('business_id,role,active,nona_me_businesses(id,name,slug,logo_url,settings)');if(error){toast(error.message);return}app.businesses=(data||[]).filter(x=>x.active!==false&&x.nona_me_businesses).map(x=>({id:x.business_id,role:x.role,business:x.nona_me_businesses}));if(app.businesses.length===1)await chooseBusiness(app.businesses[0]);else render()}
 async function chooseBusiness(row){app.business=row.business;app.membership=row;app.data=loadLocal();app.page='dashboard';await cloudLoadBusiness();render()}
 async function cloudLoadBusiness(){if(!SB||!app.business)return;try{const {data,error}=await SB.from('nona_me_business_data').select('data').eq('business_id',app.business.id).maybeSingle();if(error)throw error;if(data?.data){app.data=normalizeData(data.data);saveLocal()}else if(app.membership.role!=='staff'){await cloudSaveData()}app.pending=false}catch(e){app.pending=true;console.warn(e)}}
 async function cloudSaveData(){if(!SB||!app.business||!app.data||!app.session)return;const {error}=await SB.from('nona_me_business_data').upsert({business_id:app.business.id,data:app.data,updated_by:app.session.user.id,updated_at:new Date().toISOString()},{onConflict:'business_id'});if(error)throw error;app.pending=false;saveLocal()}
 async function saveData(){saveLocal();if(!SB||!app.session||!app.business){app.pending=true;return}try{await cloudSaveData()}catch(e){app.pending=true;toast((app.lang==='kh'?'រក្សាទុកក្នុង Cloud មិនបាន៖ ':'Cloud save failed: ')+e.message)}}
-function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2200)}
+function toast(msg){const el=document.createElement('div');el.className='toast';el.innerHTML=`<span style="display:inline-flex;align-items:center;gap:8px"><span aria-hidden="true">●</span><span>${esc(String(msg||''))}</span></span>`;document.body.appendChild(el);setTimeout(()=>el.remove(),2200)}
 function render(){document.body.classList.toggle('mobile',innerWidth<800);if(!app.session){document.getElementById('app').innerHTML=loginView();bindLogin();return}if(!app.business){document.getElementById('app').innerHTML=businessView();bindBusiness();return}document.getElementById('app').innerHTML=appView();renderPage();bindNav();}
 function loginView(){return `<div class="login-wrap"><div class="login-card"><img class="login-logo" src="${productImageFallback()}"><h1>${t('login')}</h1><div class="muted">Multi-Business Sales Management</div><form id="loginForm"><label>${t('email')}</label><input id="email" type="email" required><label>${t('password')}</label><input id="password" type="password" required><button class="primary full">${t('signIn')}</button></form><div class="divider">${t('signUp')}</div><form id="signupForm"><label>${t('name')}</label><input id="suName" required><label>${t('email')}</label><input id="suEmail" type="email" required><label>${t('password')}</label><input id="suPassword" type="password" minlength="6" required><button class="full">${t('signUp')}</button></form><div class="lang-toggle"><button data-lang="kh">${t('khmer')}</button><button data-lang="en">${t('english')}</button></div></div></div>`}
 function bindLogin(){$('loginForm').onsubmit=async e=>{e.preventDefault();if(!SB)return toast('Supabase unavailable');const {data,error}=await SB.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)return toast(error.message);app.session=data.session;await loadBusinesses();render()};$('signupForm').onsubmit=async e=>{e.preventDefault();if(!SB)return toast('Supabase unavailable');const {data,error}=await SB.auth.signUp({email:$('suEmail').value.trim(),password:$('suPassword').value,options:{data:{display_name:$('suName').value.trim()}}});if(error)return toast(error.message);toast(app.lang==='kh'?'បង្កើតគណនីរួច។ សូមបញ្ជាក់ Email ប្រសិនបើត្រូវការ។':'Account created. Confirm your email if required.');if(data.session){app.session=data.session;await loadBusinesses()}};document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{app.lang=b.dataset.lang;localStorage.setItem(DBKEY+'.lang',app.lang);render()})}
@@ -509,4 +509,35 @@ document.addEventListener('click',e=>{
 },true);
 window.addEventListener('online',async()=>{if(app.business&&app.data){await saveData();render()}});
 window.addEventListener('resize',()=>document.body.classList.toggle('mobile',innerWidth<800));
+
+// Master 4.2 interaction layer: touch feedback + ripple on actionable controls.
+document.addEventListener('pointerdown',e=>{
+  const btn=e.target.closest?.('button');
+  if(!btn||btn.disabled)return;
+  btn.classList.add('is-pressed');
+  const rect=btn.getBoundingClientRect();
+  const size=Math.max(rect.width,rect.height)*1.35;
+  const ripple=document.createElement('span');
+  ripple.className='ripple';
+  ripple.style.width=ripple.style.height=size+'px';
+  ripple.style.left=(e.clientX-rect.left-size/2)+'px';
+  ripple.style.top=(e.clientY-rect.top-size/2)+'px';
+  btn.appendChild(ripple);
+  setTimeout(()=>ripple.remove(),600);
+},{passive:true});
+document.addEventListener('pointerup',e=>{const btn=e.target.closest?.('button');if(btn)btn.classList.remove('is-pressed')},{passive:true});
+document.addEventListener('pointercancel',e=>{const btn=e.target.closest?.('button');if(btn)btn.classList.remove('is-pressed')},{passive:true});
+
+// Give async action buttons a subtle busy state without changing their handlers.
+const busyStyle=document.createElement('style');busyStyle.textContent='@keyframes spin{to{transform:rotate(360deg)}}';document.head.appendChild(busyStyle);
+const busyIds=new Set(['saveSale','saveSalePrint','saveExpense','saveDeposit','saveCash','saveReportImage','sendTelegram','testTelegram','saveWebsite','saveReportTemplate','saveProduct','saveStock','savePromo']);
+document.addEventListener('click',e=>{
+  const btn=e.target.closest?.('button');
+  if(!btn||!btn.id||!busyIds.has(btn.id))return;
+  btn.classList.add('is-busy');
+  btn.dataset.originalHtml=btn.innerHTML;
+  btn.innerHTML=`<span style="display:inline-flex;align-items:center;gap:7px"><span aria-hidden="true" style="width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite"></span>${esc(btn.textContent.trim())}</span>`;
+  setTimeout(()=>{if(document.body.contains(btn)){btn.classList.remove('is-busy');if(btn.dataset.originalHtml!==undefined)btn.innerHTML=btn.dataset.originalHtml}},1800);
+});
+
 init();
